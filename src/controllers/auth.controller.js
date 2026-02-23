@@ -1,7 +1,7 @@
 const User = require('../model/user.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const serverConfig = require('../config/server');
+const config = require('../config/server');
 
 // ĐĂNG KÝ
 const register = async (req, res) => {
@@ -15,9 +15,9 @@ const register = async (req, res) => {
         // console.log(password)
         const hashedPassword = await bcrypt.hash(password, salt);
         // console.log(hashedPassword)
-        const newUser = await User.create({ 
-            username: username, 
-            password: hashedPassword  
+        const newUser = await User.create({
+            username: username,
+            password: hashedPassword
         });
 
         res.status(201).json({
@@ -35,22 +35,22 @@ const login = async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        
+
         const user = await User.findOne({ where: { username } });
         if (!user) {
             return res.status(404).json({ success: false, message: 'Người dùng không tồn tại!' });
         }
 
-        
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ success: false, message: 'Sai mật khẩu' });
         }
 
-        
+
         const token = jwt.sign(
             { id: user.id, username: user.username },
-            serverConfig.JWT_SECRET || 'supersecret',
+            config.AUTH_TOKEN || 'supersecret',
             { expiresIn: '30d' } // Login 1 lần dùng 30 ngày
         );
 
