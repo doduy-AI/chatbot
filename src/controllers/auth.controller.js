@@ -12,9 +12,9 @@ const register = async (req, res) => {
             return res.status(400).json({ success: false, message: 'User đã tồn tại!' });
         }
         const salt = await bcrypt.genSalt(10);
-        console.log(password)
+        // console.log(password)
         const hashedPassword = await bcrypt.hash(password, salt);
-        console.log(hashedPassword)
+        // console.log(hashedPassword)
         const newUser = await User.create({ 
             username: username, 
             password: hashedPassword  
