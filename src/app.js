@@ -14,8 +14,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use('/api', routes);
-
+const router = require("./router/index.router")
+router(app)
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

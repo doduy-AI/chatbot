@@ -1,8 +1,5 @@
-const express = require('express');
-const router = express.Router();
+const auth = require('./auth.router')
 
-router.get('/', (req, res) => {
-  res.json({ message: 'API hoạt động tốt ' });
-});
-
-module.exports = router;
+module.exports = (app) => {
+  app.use("/auth",auth)
+}
