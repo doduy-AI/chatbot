@@ -7,7 +7,7 @@ import json
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
 USER_DATA = {
-    "username": "duydd2",
+    "username": "duydd3",
     "password": "12345" 
 }
 

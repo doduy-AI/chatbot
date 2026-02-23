@@ -15,11 +15,8 @@ const veryConnection = (info, cb) => {
         const decoded = jwt.verify(token, config.AUTH_TOKEN);
         console.log(decoded)
 
-        // --- DÒNG QUAN TRỌNG NHẤT ĐÂY ---
-        // Bạn phải gán 'decoded' vào 'info.req.user' để ở app.js mới lấy ra được
         info.req.user = decoded;
 
-        // console.log(`✅ Token hợp lệ: User [${decoded.username}] đang kết nối...`);
         cb(true);
 
     } catch (err) {
