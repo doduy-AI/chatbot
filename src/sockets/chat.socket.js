@@ -1,31 +1,55 @@
+const redisService = require('../services/redisService');
 
 const handleChatSocket = (wss) => {
+    
+    // Khởi động trình nghe phản hồi từ AI ngay khi server chạy
+    redisService.listenForResponses((data) => {
+        // data = { userId: "ddduy2", reply: "...", status: "success" }
+        
+        // Tìm đúng client đang kết nối để gửi trả kết quả
+        wss.clients.forEach((client) => {
+            if (client.readyState === 1 && client.user?.username === data.userId) {
+                client.send(JSON.stringify({
+                    type: 'AI_REPLY',
+                    content: data.reply,
+                    audioUrl: data.audioUrl || null 
+                }));
+            }
+        });
+    });
+
     wss.on('connection', (ws, req) => {
-        const user = req.user
+        const user = req.user;
         if (!user || !user.username) {
-            console.log(" kết nối không hợp lệ ")
-            ws.close()
-            return
+            ws.close();
+            return;
         }
 
-        console.log(` Thiết lập đường truyền cho ${user.username}`)
-        ws.on('message', (message) => {
-            const msgString = message.toString();
-            // console.log(` Nhận tin từ ${user.username}: ${msgString}`);
-            const {text , language} = JSON.parse(message.toString())
-            console.log(text)
-            console.log(language)
-            ws.send(`Bot nhận được: ${msgString} ${user.username}`);
+        ws.on('message', async (message) => {
+            try {
+                const msgString = message.toString();
+                const payload = JSON.parse(msgString);
+
+                // Tạo task để gửi sang Python
+                const task = {
+                    userId: user.username,
+                    text: payload.text,
+                    language: payload.language || 'vi',
+                    timestamp: Date.now()
+                };
+
+                await redisService.pushTask(task);
+
+                ws.send(JSON.stringify({ type: 'STATUS', content: 'Đang xử lý...' }));
+
+            } catch (err) {
+                console.error("Lỗi format tin nhắn:", err.message);
+                ws.send(JSON.stringify({ type: 'ERROR', content: 'Định dạng gửi không đúng (JSON)' }));
+            }
         });
 
-        ws.on('close', () => {
-            console.log(` ${user.username} đã ngắt kết nối.`);
-        });
+        ws.on('close', () => console.log(`${user.username} ngắt kết nối.`));
+    });
+};
 
-        ws.on('error', (err) => {
-            console.error(` Lỗi socket của ${user.username}:`, err.message);
-        });
-
-    })
-}
 module.exports = handleChatSocket;

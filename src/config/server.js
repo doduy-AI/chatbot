@@ -6,5 +6,7 @@ module.exports = {
     HOST_DB: process.env.HOST_DB,
     NAME_DB: process.env.NAME_DB,
     USER_DB: process.env.USER_DB,
-    PASS_DB: process.env.PASS_DB
+    PASS_DB: process.env.PASS_DB,
+    POST_REDIS: process.env.POSST_REDIS,
+    HOST_REDIS: process.env.HOST_REDIS
 }
