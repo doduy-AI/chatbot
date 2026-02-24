@@ -6,7 +6,7 @@ const veryConnection = (info, cb) => {
     const token = url.searchParams.get('token');
 
     if (!token) {
-        console.log("⚠️ Từ chối kết nối: Không tìm thấy Token.");
+        console.log(" Từ chối kết nối: Không tìm thấy Token.");
         return cb(false, 401, 'Unauthorized');
     }
 
