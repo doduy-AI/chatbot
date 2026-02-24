@@ -15,3 +15,5 @@ yarn-error.log
 dist/
 tmp/
 *.log
+
+qdrant_data/
