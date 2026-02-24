@@ -1,9 +1,11 @@
 import json
 from redis_manager import redis_manager
 from config import settings
+from ai_engine import AIEngine
 
 
 def main():
+    ai = AIEngine()
     print('[MODEL] ' , settings.MODEL_NAME)
     while True:
         task_data = redis_manager.listen_tasks("ai_tasks")
@@ -17,12 +19,16 @@ def main():
             text = data.get("text")
             language = data.get("language")
             
-            # In ra kiểm tra
-            print(f"--- Nhận Task Mới ---")
-            print(f" User: {user_id}")
-            print(f" Text: {text}")
-            print(f" Lang: {language}")
-            print(f"----------------------")
+            reply = ai.generate_respone(text)
+            print("[gemini]" , reply)
+            result = {
+                "userId": user_id,
+                "reply": reply,
+                "status": "success"
+            }
+            redis_manager.publish("ai_responses", result)
+            print(f"✅ Đã trả lời {user_id}")
+
 
 if __name__ == "__main__":
     main()

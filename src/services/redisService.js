@@ -32,6 +32,7 @@ class RedisService{
         redisSubscriber.on('message', (channel, message) => {
             if (channel === this.responseChannel) {
                 const data = JSON.parse(message);
+                console.log(data)
                 callback(data);
             }
         });
