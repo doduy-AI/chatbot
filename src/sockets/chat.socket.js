@@ -11,7 +11,10 @@ const handleChatSocket = (wss) => {
         console.log(` Thiết lập đường truyền cho ${user.username}`)
         ws.on('message', (message) => {
             const msgString = message.toString();
-            console.log(` Nhận tin từ ${user.username}: ${msgString}`);
+            // console.log(` Nhận tin từ ${user.username}: ${msgString}`);
+            const {text , language} = JSON.parse(message.toString())
+            console.log(text)
+            console.log(language)
             ws.send(`Bot nhận được: ${msgString} ${user.username}`);
         });
 
