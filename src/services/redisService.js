@@ -16,7 +16,10 @@ class RedisService{
     constructor(){
         this.queueName = 'ai_tasks';
         this.responseChannel = 'ai_responses';
+        this.embeddingQueue = 'embedding_tasks';
+        this.embeddingResponseChannel = 'embedding_responses';
     }
+    // ai task
     async pushTask(task){
         try {
             const data = JSON.stringify(task)
@@ -35,6 +38,27 @@ class RedisService{
                 console.log(data)
                 callback(data);
             }
+        });
+    }
+
+    // embetding task 
+    async pushEmbeddingTask(task) {
+        try {
+        const data = JSON.stringify(task);
+        await redisPublisher.lpush(this.embeddingQueue, data);
+        } catch (err) {
+        console.error('[Redis] lỗi push embedding task', err);
+        throw err;
+        }
+    }
+
+    listenForEmbeddingResponses(callback) {
+        redisSubscriber.subscribe(this.embeddingResponseChannel);
+        redisSubscriber.on('message', (channel, message) => {
+        if (channel === this.embeddingResponseChannel) {
+            const data = JSON.parse(message);
+            callback(data);
+        }
         });
     }
 }

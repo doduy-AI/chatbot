@@ -1,3 +1,4 @@
+const redits = require("../services/redisService")
 const uploadfile = async (req, res) => {
     try {
     console.log('🧾 Body:', req.body);
@@ -12,10 +13,22 @@ const uploadfile = async (req, res) => {
 
     // Nếu có DB thì thử comment phần này lại để test
     // await File.insertMany(...);
+    const job = {
+      userId,
+      createdAt: Date.now(),
+      files: files.map(f => ({
+        filename: f.filename,
+        path: f.path,
+        size: f.size
+      }))
+    };
+
+    // Gửi 1 job duy nhất vào Redis
+    await redits.pushEmbeddingTask(job)
 
     res.json({
       success: true,
-      message: 'Upload thành công!',
+      message: 'Upload thành công! , đang bắt đầu huấn luyện',
       userId,
       files: files.map(f => ({
         filename: f.filename,
