@@ -17,3 +17,6 @@ tmp/
 *.log
 
 qdrant_data/
+
+**/uploads/**
+uploads/
