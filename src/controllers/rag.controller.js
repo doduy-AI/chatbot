@@ -16,11 +16,11 @@ const uploadfile = async (req, res) => {
     const job = {
       userId,
       createdAt: Date.now(),
-      files: files.map(f => ({
-        filename: f.filename,
-        path: f.path,
-        size: f.size
-      }))
+      // files: files.map(f => ({
+      //   filename: f.filename,
+      //   path: f.path,
+      //   size: f.size
+      // }))
     };
 
     // Gửi 1 job duy nhất vào Redis
