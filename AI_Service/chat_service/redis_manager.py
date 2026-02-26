@@ -1,6 +1,8 @@
 import redis
-import json
-from config import settings
+import json , os , sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from config.config import settings
 
 class RedisManager:
     def __init__(self):

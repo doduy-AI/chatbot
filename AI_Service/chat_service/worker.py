@@ -1,7 +1,10 @@
-import json
+import json , os , sys
 from redis_manager import redis_manager
-from config import settings
-from ai_engine import AIEngine
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config.config import settings
+
+from ai_engine import AIEngine 
 
 
 def main():
@@ -19,7 +22,7 @@ def main():
             text = data.get("text")
             language = data.get("language")
             
-            reply = ai.generate_respone(text)
+            reply = ai.generate_respone(text ,user_id)
             print("[gemini]" , reply)
             result = {
                 "userId": user_id,

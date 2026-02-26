@@ -8,7 +8,7 @@ class Settings(BaseSettings):
         API_LLM : str = "API_LLM"
         MODEL_NAME : str = "MODEL_NAME"  
         QDRANT_HOST : str = "QDRANT_HOST"   
-        QDRANT_PORT : str = "QDRANT_PORT"
+        QDRANT_PORT : int = "QDRANT_PORT"
         MODEL_QDRANT : str = "MODEL_QDRANT"
         model_config = SettingsConfigDict(
         env_file=os.path.join(BASE_DIR, ".env"),  
