@@ -31,7 +31,7 @@ def main():
                 "reply": reply,
                 "status": "success"
             }
-            redis_manager.publish("ai_responses", result)
+            redis_manager.publish("tts_tasks", result)
             print(f"✅ Đã trả lời {user_id}")
 
 
