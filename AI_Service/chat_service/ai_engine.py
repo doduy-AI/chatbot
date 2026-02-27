@@ -15,20 +15,18 @@ class AIEngine:
         self.qdrant_client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
         self.embed_model = SentenceTransformer(settings.MODEL_QDRANT)
         self.collection_name = "customer_vectors"
-        print(type(settings.QDRANT_HOST))
-        print(type(settings.QDRANT_PORT))
-        print(f"Các phương thức đang có: {dir(self.qdrant_client)}")
-
+      
     def get_context(self, user_id, query_text):
         try:
             # 1. Tạo vector từ query text
+            print(user_id)
             query_vector = self.embed_model.encode(query_text).tolist()
 
-            # 2. Sử dụng query_points thay vì query hoặc search
-            # Trong bản FastEmbed, query_points nhận tham số 'query' là vector
+         
             response = self.qdrant_client.query_points(
                 collection_name=self.collection_name,
                 query=query_vector,
+                # query_filter=None
                 query_filter=Filter(
                     must=[
                         FieldCondition(key="userId", match=MatchValue(value=user_id))
@@ -36,8 +34,7 @@ class AIEngine:
                 ),
                 limit=3
             )
-            
-            # 3. Lấy kết quả (Lưu ý: query_points trả về một object có thuộc tính .points)
+     
             search_results = response.points
             
             contexts = [hit.payload.get("text", "") for hit in search_results]
@@ -49,13 +46,26 @@ class AIEngine:
 
     def generate_respone(self , prompt: str , uuid : str):
             try:
-            #     response = self.client.models.generate_content(
-            #     model=settings.MODEL_NAME,
-            #     contents=prompt
-            # )
                 context = self.get_context(uuid, prompt)
+                full_promt = f"""
+                    Bạn là một trợ lý ảo thông minh. Hãy trả lời câu hỏi của người dùng dựa TRỰC TIẾP vào phần Thông tin hỗ trợ dưới đây. 
+Nếu thông tin dưới đây không có câu trả lời, hãy nói rằng bạn không biết, đừng tự ý bịa ra thông tin.
+---
+THÔNG TIN HỖ TRỢ:
+{context}
+---
+
+CÂU HỎI CỦA NGƯỜI DÙNG: 
+{prompt}
+
+"""
+                response = self.client.models.generate_content(
+                model=settings.MODEL_NAME,
+                contents=full_promt
+            )
+               
                 # return response.text
-                return context
+                return response.text
             except Exception as e :
                 print(f"[genAI ERROR] {e}")
                 return "[genAI] {e}"

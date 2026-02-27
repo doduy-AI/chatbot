@@ -3,7 +3,7 @@ const redisService = require('../services/redisService');
 const handleChatSocket = (wss) => {  
     redisService.listenForResponses((data) => {
         wss.clients.forEach((client) => {
-            if (client.readyState === 1 && client.user && client.user?.username === data.userId) {
+            if (client.readyState === 1 && client.user && client.user?.id === data.userId) {
                 client.send(JSON.stringify({
                     type: 'AI_REPLY',
                     content: data.reply,
@@ -14,6 +14,7 @@ const handleChatSocket = (wss) => {
     });
     wss.on('connection', (ws, req) => {
         const user = req.user;
+        console.log(user)
         if (!user || !user.username) {
             ws.close();
             return;
@@ -24,7 +25,7 @@ const handleChatSocket = (wss) => {
                 const msgString = message.toString();
                 const payload = JSON.parse(msgString);
                 const task = {
-                    userId: user.username,
+                    userId: user.id,
                     text: payload.text,
                     language: payload.language || 'vi',
                     timestamp: Date.now()

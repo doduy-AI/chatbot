@@ -16,6 +16,7 @@ def main():
         if task_data:
             raw_json = task_data[1]
             data = json.loads(raw_json)
+            # print(data)
             
             # 3. Trích xuất các trường bạn cần
             user_id = data.get("userId")
