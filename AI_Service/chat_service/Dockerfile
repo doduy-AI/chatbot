@@ -1,15 +1,17 @@
-# Sử dụng Python bản nhẹ (slim)
+# Sử dụng Python bản nhẹ
 FROM python:3.10-slim
 
-# Đặt thư mục làm việc trong container
 WORKDIR /app
 
-# Copy file requirement vào trước để tận dụng cache của Docker
-COPY requirements.txt .
+# Cài đặt thư viện (Dùng file requirements của chat_service)
+COPY chat_service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy toàn bộ code vào container
+# Copy toàn bộ nội dung từ AI_Service vào /app
 COPY . .
 
-# Lệnh chạy ứng dụng
-CMD ["python", "worker.py"]
+# Đặt PYTHONPATH để Python nhận diện thư mục gốc /app là nơi chứa module 'config'
+ENV PYTHONPATH=/app
+
+# Lệnh chạy ứng dụng (Trỏ vào file worker bên trong chat_service)
+CMD ["python", "chat_service/worker.py"]
