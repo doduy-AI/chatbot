@@ -18,6 +18,29 @@ class RedisService{
         this.responseChannel = 'ai_responses';
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
+        this.ttsQueue = 'tts_tasks';
+        this.ttsResponseChannel = 'tts_responses';
+    }
+    // tts_task 
+    async pushTTSTask(task){
+        try {
+            const data = JSON.stringify(task)
+            await redisPublisher.lpush(this.queueName, data);
+        } catch (err) {
+            console.error('[Redis] lỗi push TTS task ' , err)
+            throw err
+        }
+    }
+    listenForTTSResponses(callback) {
+        redisSubscriber.subscribe(this.responseChannel);
+        
+        redisSubscriber.on('message', (channel, message) => {
+            if (channel === this.responseChannel) {
+                const data = JSON.parse(message);
+                console.log(data)
+                callback(data);
+            }
+        });
     }
     // ai task
     async pushTask(task){

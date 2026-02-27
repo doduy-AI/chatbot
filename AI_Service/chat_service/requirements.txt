@@ -4,3 +4,4 @@ python-dotenv
 pydantic-settings
 sentence-transformers
 typeguard
+qdrant-client

@@ -9,6 +9,7 @@ from ai_engine import AIEngine
 
 def main():
     ai = AIEngine()
+    print("sẵn sàng")
     print('[MODEL] ' , settings.MODEL_NAME)
     while True:
         task_data = redis_manager.listen_tasks("ai_tasks")
