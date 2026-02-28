@@ -7,8 +7,8 @@ import json
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
 USER_DATA = {
-    "username": "ddduy",
-    "password": "123456" 
+    "username": "duydd1",
+    "password": "12345" 
 }
 
 def login_and_get_token():

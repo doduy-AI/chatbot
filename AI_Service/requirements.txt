@@ -1,6 +1,7 @@
-google-genai
 redis
 python-dotenv
 pydantic-settings
 sentence-transformers
 typeguard
+python-docx
+qdrant-client
