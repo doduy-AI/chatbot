@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 import uvicorn
-import json
+import json , os
 import struct
 import threading
 import time
@@ -9,7 +9,8 @@ import queue
 import asyncio
 from redis_manager import redis_manager
 from tts_service import generate_tts 
-
+EXTERNAL_HOST = os.getenv("EXTERNAL_HOST", "127.0.0.1")
+EXTERNAL_PORT = os.getenv("EXTERNAL_PORT", "8080")
 app = FastAPI()
 
 audio_buffers = {}
@@ -72,7 +73,7 @@ def redis_listener():
             q = queue.Queue()
             audio_buffers[task_id] = q
 
-            voice_url = f"http://127.0.0.1:8080/stream-voice/{task_id}"
+            voice_url = f"http://{EXTERNAL_HOST}:{EXTERNAL_PORT}/stream-voice/{task_id}"
             print(f" URL: {voice_url}")
             result = {
                 "text" : text ,
