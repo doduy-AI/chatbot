@@ -15,10 +15,41 @@ const redisSubscriber = new Redis({
 class RedisService {
     constructor() {
         this.queueName = 'ai_tasks';
-        this.responseChannel = 'ai_responses';
+        // this.responseChannel = 'ai_responses';
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
 
+        this.voiceResponsePattern = 'voice_ready:*';
+        this.initPatternListener();
+    }
+
+    initPatternListener() {
+        redisSubscriber.on('pmessage', (pattern, channel, message) => {
+            try {
+                const data = JSON.parse(message);
+
+                if (pattern === this.voiceResponsePattern) {
+                    const userId = channel.split(':')[1];
+                    console.log(`[Redis] 🎤 Audio ready for User: ${userId}`);
+                    if (this.voiceCallback) this.voiceCallback(userId, data);
+                }
+
+                // else if (pattern === this.embeddingResponsePattern) {
+                //     const userId = channel.split(':')[1];
+                //     console.log(`[Redis] 🧠 Embedding done for User: ${userId}`);
+                //     if (this.embeddingCallback) this.embeddingCallback(userId, data);
+                // }
+            } catch (err) {
+                console.error('[Redis] Lỗi parse JSON:', err);
+            }
+        });
+    }
+
+
+    listenForResponses(callback) {
+        this.voiceCallback = callback;
+        redisSubscriber.psubscribe(this.voiceResponsePattern);
+        console.log(`[Redis] 👂 Đang nghe Pattern: ${this.voiceResponsePattern}`);
     }
 
     // ai task
@@ -31,17 +62,17 @@ class RedisService {
             throw err
         }
     }
-    listenForResponses(callback) {
-        redisSubscriber.subscribe(this.responseChannel);
+    // listenForResponses(callback) {
+    //     redisSubscriber.subscribe(this.responseChannel);
 
-        redisSubscriber.on('message', (channel, message) => {
-            if (channel === this.responseChannel) {
-                const data = JSON.parse(message);
-                console.log(data)
-                callback(data);
-            }
-        });
-    }
+    //     redisSubscriber.on('message', (channel, message) => {
+    //         if (channel === this.responseChannel) {
+    //             const data = JSON.parse(message);
+    //             console.log(data)
+    //             callback(data);
+    //         }
+    //     });
+    // }
 
     // embetding task 
     async pushEmbeddingTask(task) {

@@ -9,7 +9,7 @@ SAMPLE_RATE = 24000
 CHANNELS = 1
 
 def start_client():
-    url = "http://192.168.1.5:8000"
+    url = "http://192.168.1.192:8000"
     stream = sd.OutputStream(samplerate=SAMPLE_RATE, channels=CHANNELS, dtype='int16')
     stream.start()
 
