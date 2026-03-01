@@ -1,0 +1,42 @@
+services:
+  xtts_worker_1:
+    build: .
+    container_name: xtts_worker_1
+    environment:
+      - REDIS_HOST=192.168.1.192 
+      - REDIS_PORT=6379
+      - EXTERNAL_HOST=192.168.1.192 
+      - EXTERNAL_PORT=8080 
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./model:/app/model 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    restart: no
+
+  xtts_worker_2:
+    build: .
+    container_name: xtts_worker_2
+    environment:
+      - REDIS_HOST=192.168.1.192
+      - REDIS_PORT=6379
+      - EXTERNAL_HOST=192.168.1.192
+      - EXTERNAL_PORT=8081 
+    ports:
+      - "8081:8080" 
+    volumes:
+      - ./model:/app/model
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    restart: no
