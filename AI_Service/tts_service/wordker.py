@@ -57,7 +57,7 @@ async def stream_voice(task_id: str):
     return StreamingResponse(stream_generator(), media_type="audio/wav")
 
 def redis_listener():
-    print("🎧 Worker đang lắng nghe tts_tasks trên Redis...")
+    print(" Worker đang lắng nghe tts_tasks trên Redis...")
     while True:
         try:
             task_data = redis_manager.listen_tasks("tts_tasks")
@@ -73,30 +73,26 @@ def redis_listener():
             audio_buffers[task_id] = q
 
             voice_url = f"http://127.0.0.1:8080/stream-voice/{task_id}"
-            print(f"🔗 URL: {voice_url}")
+            print(f" URL: {voice_url}")
             result = {
                 "text" : text ,
                 "url" : voice_url
             }
-            # Báo cho robot
             redis_manager.publish(f"voice_ready:{user_id}",result)
-            
-            print(f"🎤 Đang xử lý: {text[:30]}...")
-
             start_time = time.time()
             first = True
             for chunk in generate_tts(text):
                 if first:
-                    print(f"⏱️ Chunk đầu: {time.time() - start_time:.2f}s")
+                    print(f"⏱ Chunk đầu: {time.time() - start_time:.2f}s")
                     print(f"DEBUG: Nhận được chunk dung lượng {len(chunk)} bytes") # Thêm dòng này
                     first = False
                 q.put(chunk)
             
             q.put("DONE")
-            print(f"✅ Xong {task_id}")
+            print(f"Xong {task_id}")
 
         except Exception as e:
-            print(f"❌ Lỗi: {e}")
+            print(f" Lỗi: {e}")
 
 @app.on_event("startup")
 async def startup_event():

@@ -49,7 +49,7 @@ class RedisService {
     listenForResponses(callback) {
         this.voiceCallback = callback;
         redisSubscriber.psubscribe(this.voiceResponsePattern);
-        console.log(`[Redis] 👂 Đang nghe Pattern: ${this.voiceResponsePattern}`);
+        console.log(`[Redis] Đang nghe Pattern: ${this.voiceResponsePattern}`);
     }
 
     // ai task

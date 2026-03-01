@@ -12,7 +12,7 @@ MODEL_DIR = "model/"
 latents_file = f"{MODEL_DIR}vi_man_latents.pth"
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-print("🔧 Đang khởi tạo mô hình XTTS...")
+print(" Đang khởi tạo mô hình XTTS...")
 
 config = XttsConfig()
 config.load_json(f"{MODEL_DIR}config.json")
@@ -29,7 +29,7 @@ latents = torch.load(latents_file, map_location=device, weights_only=True)
 gpt_cond_latent = latents["gpt_cond_latent"].to(device)
 speaker_embedding = latents["speaker_embedding"].to(device)
 
-print("✅ Mô hình XTTS đã sẵn sàng.")
+print(" Mô hình XTTS đã sẵn sàng.")
 
 
 # =========================================================
@@ -70,7 +70,7 @@ def generate_tts(text: str):
     Yields: bytes audio (PCM 16bit) của từng đoạn nhỏ.
     """
     chunks = split_text_smartly(text)
-    print(f"🎙️  Tạo giọng nói từ {len(chunks)} đoạn...")
+    print(f"  Tạo giọng nói từ {len(chunks)} đoạn...")
 
     with torch.inference_mode():
         for i, text_chunk in enumerate(chunks):
@@ -91,6 +91,6 @@ def generate_tts(text: str):
             # QUAN TRỌNG: Thay vì cộng dồn, ta 'bắn' nó đi ngay lập tức
             yield audio_chunk
             
-            print(f"  ✅ Đã sinh và đẩy chunk {i+1}/{len(chunks)} vào ống dẫn")
+            print(f"   Đã sinh và đẩy chunk {i+1}/{len(chunks)} vào ống dẫn")
 
     print("🏁 Hoàn tất TTS toàn bộ câu.")
