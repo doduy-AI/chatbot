@@ -29,7 +29,7 @@ def login_and_get_token():
         return None
 
 def on_message(ws, message):
-    print(f"\n [Gemini]: {message}")
+    print(f"\n [BYTEHOME]: {message}")
     print(">> Bạn: ", end="", flush=True)
 
 def on_open(ws):

@@ -4,8 +4,7 @@ const handleChatSocket = (wss) => {
     redisService.listenForResponses((userId, data) => {
 
         wss.clients.forEach((client) => {
-            // console.log(client)
-            // Kiểm tra client đang mở và đúng ID người dùng
+
             if (client.readyState === 1 && client.user && String(client.user.id) === String(userId)) {
                 client.send(JSON.stringify({
                     type: 'AI_VOICE_REPLY',
@@ -13,7 +12,7 @@ const handleChatSocket = (wss) => {
                     audioUrl: data.url,
                     // userId: userId
                 }));
-                console.log(`[Socket] Đã gửi link voice tới user: ${userId}`);
+                // console.log(`[Socket] Đã gửi link voice tới user: ${userId}`);
             }
         });
     });
