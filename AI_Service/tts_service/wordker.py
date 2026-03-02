@@ -9,7 +9,7 @@ import queue
 import asyncio
 from redis_manager import redis_manager
 from tts_service import generate_tts 
-EXTERNAL_HOST = os.getenv("EXTERNAL_HOST", "127.0.0.1")
+EXTERNAL_HOST = os.getenv("EXTERNAL_HOST", "192.168.1.5")
 EXTERNAL_PORT = os.getenv("EXTERNAL_PORT", "8080")
 app = FastAPI()
 
