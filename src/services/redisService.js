@@ -25,17 +25,17 @@ class RedisService{
     async pushTTSTask(task){
         try {
             const data = JSON.stringify(task)
-            await redisPublisher.lpush(this.queueName, data);
+            await redisPublisher.lpush(this.ttsQueue, data);
         } catch (err) {
             console.error('[Redis] lỗi push TTS task ' , err)
             throw err
         }
     }
     listenForTTSResponses(callback) {
-        redisSubscriber.subscribe(this.responseChannel);
+        redisSubscriber.subscribe(this.ttsResponseChannel);
         
         redisSubscriber.on('message', (channel, message) => {
-            if (channel === this.responseChannel) {
+            if (channel === this.ttsResponseChannel) {
                 const data = JSON.parse(message);
                 console.log(data)
                 callback(data);
