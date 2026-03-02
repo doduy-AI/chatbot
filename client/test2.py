@@ -2,67 +2,151 @@ import requests
 import websocket
 import threading
 import json
+import pyaudio
+import speech_recognition as sr
+import time
+from pydub import AudioSegment
+import io
 
 # --- CẤU HÌNH ---
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
 USER_DATA = {
-    "username": "ddduy3",
-    "password": "123456" 
+    "username": "bytehome",
+    "password": "123456"
 }
 
+CHANNELS = 1
+RATE = 24000
+CHUNK = 1024
+
+p = pyaudio.PyAudio()
+recognizer = sr.Recognizer()
+mic = sr.Microphone()
+
+# ======================================================
+# 🔊 Phát âm thanh từ URL (chờ đến khi phát xong)
+# ======================================================
+def play_audio_stream(url: str):
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print(f"⚠️ Không thể lấy audio từ {url}")
+            return
+
+        content_type = response.headers.get("Content-Type", "")
+        format_guess = "mp3" if "mp3" in content_type or url.endswith(".mp3") else "wav"
+
+        audio = AudioSegment.from_file(io.BytesIO(response.content), format=format_guess)
+        raw_data = audio.raw_data
+
+        stream = p.open(
+            format=pyaudio.paInt16,
+            channels=audio.channels,
+            rate=audio.frame_rate,
+            output=True
+        )
+
+        print("🔈 Đang phát phản hồi...")
+        stream.write(raw_data)
+        stream.stop_stream()
+        stream.close()
+        print("✅ Phát xong.\n")
+
+    except Exception as e:
+        print(f"💥 Lỗi phát âm thanh: {e}")
+
+# ======================================================
+# 🔐 Đăng nhập lấy token
+# ======================================================
 def login_and_get_token():
     try:
-        print(f" Đang đăng nhập tài khoản: {USER_DATA['username']}...")
-        response = requests.post(f"{BASE_URL}/auth/login", json=USER_DATA)
-        
-        if response.status_code == 200:
-            data = response.json()
-            token = data.get('token')
-            print(" Lấy Token thành công!")
+        print(f"🔑 Đăng nhập tài khoản: {USER_DATA['username']}...")
+        res = requests.post(f"{BASE_URL}/auth/login", json=USER_DATA)
+        if res.status_code == 200:
+            token = res.json().get("token")
+            print("✅ Lấy Token thành công!\n")
             return token
         else:
-            print(f" Đăng nhập thất bại: {response.text}")
+            print(f"❌ Đăng nhập thất bại: {res.text}")
             return None
     except Exception as e:
-        print(f" Lỗi kết nối API: {e}")
+        print(f"💥 Lỗi kết nối API: {e}")
         return None
 
+# ======================================================
+# 🧠 STT - Nhận dạng giọng nói
+# ======================================================
+def recognize_once():
+    with mic as source:
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
+        print("🎙️ Đang lắng nghe bạn nói...")
+        audio = recognizer.listen(source, phrase_time_limit=15)
+        print("🧠 Đang xử lý giọng nói...")
+
+    try:
+        text = recognizer.recognize_google(audio, language="vi-VN").strip()
+        if text:
+            print(f"🗣️ Bạn nói: {text}")
+        return text
+    except sr.UnknownValueError:
+        print("⚠️ Không nghe rõ, bỏ qua.")
+        return ""
+    except sr.RequestError as e:
+        print(f"🚨 Lỗi STT: {e}")
+        return ""
+
+# ======================================================
+# 💬 Nhận phản hồi từ server
+# ======================================================
 def on_message(ws, message):
-    print(f"\n [Gemini]: {message}")
-    print(">> Bạn: ", end="", flush=True)
+    try:
+        data = json.loads(message)
+        bot_text = data.get("text", "")
+        audio_url = data.get("audioUrl")
 
+        if bot_text:
+            print(f"\n🤖 [BYTEHOME]: {bot_text}")
+
+        # Nếu có file audio → phát xong mới nghe tiếp
+        if audio_url:
+            play_audio_stream(audio_url)
+
+        # Phát xong rồi mới nghe tiếp
+        time.sleep(0.3)
+        loop_speech_to_server(ws)
+
+    except Exception as e:
+        print(f"💥 Lỗi khi xử lý phản hồi: {e}")
+
+# ======================================================
+# 🔁 Vòng lặp nghe → gửi → chờ phản hồi
+# ======================================================
+def loop_speech_to_server(ws):
+    text = recognize_once()
+    if text:
+        data = {"text": text, "language": "VI", "timestamp": ""}
+        ws.send(json.dumps(data))
+
+# ======================================================
+# 🌐 Kết nối WebSocket
+# ======================================================
 def on_open(ws):
-    print(" WebSocket đã thông! Bạn có thể bắt đầu chat.")
-    def send_loop():
-        while True:
-            msg = input(">> Bạn: ")
-            if msg.lower() in ['exit', 'quit']:
-                ws.close()
-                break
-            
-            if msg.strip():
-                
-                data = {
-                    "text": msg,
-                    "language": "VI",
-                    "timestamp": "" 
-                }
-                ws.send(json.dumps(data))
-    threading.Thread(target=send_loop, daemon=True).start()
+    print("✅ WebSocket đã kết nối! Bắt đầu hội thoại bằng giọng nói...\n")
+    loop_speech_to_server(ws)  # Bắt đầu vòng đầu tiên
 
-
-token = login_and_get_token()
-
-if token:
-    
-    full_ws_url = f"{WS_URL}?token={token}"
-    
-    ws = websocket.WebSocketApp(
-        full_ws_url,
-        on_open=on_open,
-        on_message=on_message,
-        on_error=lambda ws, err: print(f"\n Lỗi WS: {err}"),
-        on_close=lambda ws, c, m: print("\n  Đã đóng kết nối.")
-    )
-    ws.run_forever()
+# ======================================================
+# 🚀 Main
+# ======================================================
+if __name__ == "__main__":
+    token = login_and_get_token()
+    if token:
+        ws_url = f"{WS_URL}?token={token}"
+        ws = websocket.WebSocketApp(
+            ws_url,
+            on_open=on_open,
+            on_message=on_message,
+            on_error=lambda ws, err: print(f"💥 Lỗi WS: {err}"),
+            on_close=lambda ws, c, m: print("🔚 Kết nối WebSocket đã đóng.")
+        )
+        ws.run_forever()
