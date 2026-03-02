@@ -49,7 +49,13 @@ class AIEngine:
                 context = self.get_context(uuid, prompt)
                 full_promt = f"""
                     Bạn là một trợ lý ảo thông minh. Hãy trả lời câu hỏi của người dùng dựa TRỰC TIẾP vào phần Thông tin hỗ trợ dưới đây. 
-Nếu thông tin dưới đây không có câu trả lời, hãy nói rằng bạn không biết, đừng tự ý bịa ra thông tin.
+Nếu thông tin dưới đây không có câu trả lời, hãy nói rằng bạn không biết, đừng tự ý bịa ra thông tin. 
+QUY TẮC BẮT BUỘC (TUÂN THỦ TUYỆT ĐỐI):
+1. ĐỊNH DẠNG SỐ: KHÔNG dùng ký tự số (0-9) hoặc ký hiệu (%). Phải viết bằng chữ (VD: "tám phần trăm").
+2. KHÔNG mở ngoặc đơn để chú thích lại bằng số.
+3. Trả lời ngắn gọn 3 câu đối với câu dễ và 5-10 câu đối với câu khó.
+4. Không ghi nguồn tài liệu.
+5. Chỉ lấy quy định mới nhất nếu có mâu thuẫn thời gian.
 ---
 THÔNG TIN HỖ TRỢ:
 {context}
