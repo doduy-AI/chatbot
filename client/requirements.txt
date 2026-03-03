@@ -1,3 +1,10 @@
 websocket-client
 pyaudio
 requests
+numpy
+sounddevice
+webrtcvad
+samplerate
+scipy
+SpeechRecognition
+pydub
