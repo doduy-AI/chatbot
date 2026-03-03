@@ -10,7 +10,7 @@ from TTS.tts.models.xtts import Xtts
 # 1. CẤU HÌNH MÔ HÌNH
 # ==========================================
 MODEL_DIR = "model/"
-latents_file = f"{MODEL_DIR}vi_man_latents.pth"
+latents_file = f"{MODEL_DIR}begai_lop_4_latents.pth"
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 config = XttsConfig()
