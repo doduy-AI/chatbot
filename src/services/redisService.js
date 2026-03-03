@@ -22,7 +22,6 @@ class RedisService {
         this.voiceResponsePattern = 'voice_ready:*';
         this.initPatternListener();
     }
-<<<<<<< HEAD
     // tts_task 
     async pushTTSTask(task){
         try {
@@ -33,17 +32,11 @@ class RedisService {
             throw err
         }
     }
-    listenForTTSResponses(callback) {
-        redisSubscriber.subscribe(this.ttsResponseChannel);
-        
-        redisSubscriber.on('message', (channel, message) => {
-            if (channel === this.ttsResponseChannel) {
-=======
+    
 
     initPatternListener() {
         redisSubscriber.on('pmessage', (pattern, channel, message) => {
             try {
->>>>>>> 57227866339f90ffa4575b5c4f010cdc6454a79d
                 const data = JSON.parse(message);
 
                 if (pattern === this.voiceResponsePattern) {
