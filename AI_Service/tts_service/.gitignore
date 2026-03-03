@@ -3,7 +3,6 @@ hub/
 *.pth
 __pycache__/
 checkpoints/
-datasets/
 large-datasets/
 wandb/
 *.ipynb
