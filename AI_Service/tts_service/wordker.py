@@ -9,7 +9,7 @@ import queue
 import asyncio
 from redis_manager import redis_manager
 from tts_service import generate_tts 
-EXTERNAL_HOST = os.getenv("EXTERNAL_HOST", "192.168.1.5")
+EXTERNAL_HOST = os.getenv("EXTERNAL_HOST", "192.168.1.192")
 EXTERNAL_PORT = os.getenv("EXTERNAL_PORT", "8080")
 app = FastAPI()
 
@@ -107,4 +107,4 @@ async def startup_event():
     t.start()
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8123)
