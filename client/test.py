@@ -12,7 +12,7 @@ import io
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
 USER_DATA = {
-    "username": "bytehome",
+    "username": "bytehome2",
     "password": "123456"
 }
 
@@ -28,6 +28,7 @@ mic = sr.Microphone()
 def play_audio_stream(url: str):
     try:
         response = requests.get(url)
+        print(url)
         if response.status_code != 200:
             print(f" Không thể lấy audio từ {url}")
             return
@@ -84,9 +85,11 @@ def recognize_once():
         return text
     except sr.UnknownValueError:
         print(" Không nghe rõ, bỏ qua.")
+        loop_speech_to_server(ws)
         return ""
     except sr.RequestError as e:
         print(f" Lỗi STT: {e}")
+        loop_speech_to_server(ws)
         return ""
 
 
