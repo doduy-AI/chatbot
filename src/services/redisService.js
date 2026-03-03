@@ -3,24 +3,26 @@ const config = require("../config/server")
 
 
 const redisPublisher = new Redis({
-    host:config.HOST_REDIS,
-    port:config.PORT_REDIS
+    host: config.HOST_REDIS,
+    port: config.PORT_REDIS
 })
 
 const redisSubscriber = new Redis({
-    host:config.HOST_REDIS,
-    port:config.PORT_REDIS
+    host: config.HOST_REDIS,
+    port: config.PORT_REDIS
 })
 
-class RedisService{
-    constructor(){
+class RedisService {
+    constructor() {
         this.queueName = 'ai_tasks';
-        this.responseChannel = 'ai_responses';
+        // this.responseChannel = 'ai_responses';
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
-        this.ttsQueue = 'tts_tasks';
-        this.ttsResponseChannel = 'tts_responses';
+
+        this.voiceResponsePattern = 'voice_ready:*';
+        this.initPatternListener();
     }
+<<<<<<< HEAD
     // tts_task 
     async pushTTSTask(task){
         try {
@@ -36,52 +38,78 @@ class RedisService{
         
         redisSubscriber.on('message', (channel, message) => {
             if (channel === this.ttsResponseChannel) {
+=======
+
+    initPatternListener() {
+        redisSubscriber.on('pmessage', (pattern, channel, message) => {
+            try {
+>>>>>>> 57227866339f90ffa4575b5c4f010cdc6454a79d
                 const data = JSON.parse(message);
-                console.log(data)
-                callback(data);
-            }
-        });
-    }
-    // ai task
-    async pushTask(task){
-        try {
-            const data = JSON.stringify(task)
-            await redisPublisher.lpush(this.queueName, data);
-        } catch (err) {
-            console.error('[Redis] lỗi push task ' , err)
-            throw err
-        }
-    }
-    listenForResponses(callback) {
-        redisSubscriber.subscribe(this.responseChannel);
-        
-        redisSubscriber.on('message', (channel, message) => {
-            if (channel === this.responseChannel) {
-                const data = JSON.parse(message);
-                console.log(data)
-                callback(data);
+
+                if (pattern === this.voiceResponsePattern) {
+                    const userId = channel.split(':')[1];
+                    // console.log(`[Redis] 🎤 Audio ready for User: ${userId}`);
+                    if (this.voiceCallback) this.voiceCallback(userId, data);
+                }
+
+                // else if (pattern === this.embeddingResponsePattern) {
+                //     const userId = channel.split(':')[1];
+                //     console.log(`[Redis] 🧠 Embedding done for User: ${userId}`);
+                //     if (this.embeddingCallback) this.embeddingCallback(userId, data);
+                // }
+            } catch (err) {
+                console.error('[Redis] Lỗi parse JSON:', err);
             }
         });
     }
 
+
+    listenForResponses(callback) {
+        this.voiceCallback = callback;
+        redisSubscriber.psubscribe(this.voiceResponsePattern);
+        console.log(`[Redis] Đang nghe Pattern: ${this.voiceResponsePattern}`);
+    }
+
+    // ai task
+    async pushTask(task) {
+        try {
+            const data = JSON.stringify(task)
+            await redisPublisher.lpush(this.queueName, data);
+        } catch (err) {
+            console.error('[Redis] lỗi push task ', err)
+            throw err
+        }
+    }
+    // listenForResponses(callback) {
+    //     redisSubscriber.subscribe(this.responseChannel);
+
+    //     redisSubscriber.on('message', (channel, message) => {
+    //         if (channel === this.responseChannel) {
+    //             const data = JSON.parse(message);
+    //             console.log(data)
+    //             callback(data);
+    //         }
+    //     });
+    // }
+
     // embetding task 
     async pushEmbeddingTask(task) {
         try {
-        const data = JSON.stringify(task);
-        await redisPublisher.lpush(this.embeddingQueue, data);
+            const data = JSON.stringify(task);
+            await redisPublisher.lpush(this.embeddingQueue, data);
         } catch (err) {
-        console.error('[Redis] lỗi push embedding task', err);
-        throw err;
+            console.error('[Redis] lỗi push embedding task', err);
+            throw err;
         }
     }
 
     listenForEmbeddingResponses(callback) {
         redisSubscriber.subscribe(this.embeddingResponseChannel);
         redisSubscriber.on('message', (channel, message) => {
-        if (channel === this.embeddingResponseChannel) {
-            const data = JSON.parse(message);
-            callback(data);
-        }
+            if (channel === this.embeddingResponseChannel) {
+                const data = JSON.parse(message);
+                callback(data);
+            }
         });
     }
 }
