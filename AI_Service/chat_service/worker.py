@@ -25,7 +25,7 @@ def main():
             language = data.get("language")
             
             reply = ai.generate_respone(text ,user_id)
-            print("[gemini]" , reply)
+            print("[BYTEHOME]" , reply)
             result = {
                 "userId": user_id,
                 "reply": reply,

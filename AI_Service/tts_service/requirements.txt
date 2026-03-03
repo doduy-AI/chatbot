@@ -67,3 +67,5 @@ pydantic-settings
 sentence-transformers
 typeguard
 qdrant-client
+fastapi
+uvicorn

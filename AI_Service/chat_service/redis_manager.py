@@ -16,6 +16,6 @@ class RedisManager:
         return self.client.brpop(queue_name, timeout=0)
 
     def publish(self, channel, data):
-        self.client.publish(channel, json.dumps(data))  
+        self.client.lpush(channel, json.dumps(data))  
 
 redis_manager = RedisManager()
