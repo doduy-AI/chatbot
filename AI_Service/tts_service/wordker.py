@@ -76,6 +76,7 @@ def redis_listener():
             voice_url = f"http://{EXTERNAL_HOST}:{EXTERNAL_PORT}/stream-voice/{task_id}"
             print(f" URL: {voice_url}")
             result = {
+                "type": "AI_VOICE_REPLY",
                 "text" : text ,
                 "url" : voice_url
             }
@@ -91,6 +92,11 @@ def redis_listener():
             
             q.put("DONE")
             print(f"Xong {task_id}")
+            done_event = {
+                "type": "AI_VOICE_DONE",
+                "taskId": task_id
+            }
+            redis_manager.publish(f"voice_ready:{user_id}", json.dumps(done_event))
 
         except Exception as e:
             print(f" Lỗi: {e}")
