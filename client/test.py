@@ -14,6 +14,7 @@ WS_URL = "ws://localhost:3000"
 USER_DATA = {
     "username": "bytehome2",
     "password": "123456"
+
 }
 
 CHANNELS = 1
