@@ -23,7 +23,6 @@ XTTS_MODEL.load_checkpoint(
 )
 XTTS_MODEL.to(device)
 
-# --- THAY THẾ PHẦN LOAD .PTH BẰNG ĐOẠN NÀY ---
 print(f"[*] Đang trích xuất đặc trưng từ file: {speaker_audio_file}")
 gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
     audio_path=speaker_audio_file,
