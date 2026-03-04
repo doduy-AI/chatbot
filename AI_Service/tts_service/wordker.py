@@ -128,7 +128,7 @@ def redis_listener():
                 json.dumps({
                     "type": "AI_VOICE_REPLY",
                     "text": text,
-                    "url": voice_url,
+                    "audioUrl": voice_url,
                 }),
             )
 
