@@ -13,8 +13,8 @@ import sys
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
 USER_DATA = {
-    "username": "duydd1",
-    "password": "12345"
+    "username": "bytehome",
+    "password": "123456"
 }
 
 CHANNELS = 1
