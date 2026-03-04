@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = "REDIS_PORT" 
     EXTERNAL_HOST: str = "EXTERNAL_HOST" 
     EXTERNAL_PORT: int = "EXTERNAL_PORT" 
-    MAX_WORKERS: str = "MAX_WORKERS" 
+    MAX_WORKERS: int = "MAX_WORKERS" 
     QUEUE_MAXSIZE: int = "QUEUE_MAXSIZE" 
     STREAM_GET_TIMEOUT: float = "STREAM_GET_TIMEOUT" 
     QUEUE_PUT_TIMEOUT : float = "QUEUE_PUT_TIMEOUT"
