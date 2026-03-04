@@ -10,13 +10,14 @@ import queue
 import asyncio
 from redis_manager import redis_manager
 from tts_service import generate_tts 
+from config import settings
 
-EXTERNAL_HOST = os.getenv("EXTERNAL_HOST", "192.168.1.192")
-EXTERNAL_PORT = os.getenv("EXTERNAL_PORT", "8080")
-MAX_WORKERS = int(os.getenv("MAX_WORKERS", "6"))
-QUEUE_MAXSIZE = int(os.getenv("QUEUE_MAXSIZE", "10"))
-STREAM_GET_TIMEOUT = float(os.getenv("STREAM_GET_TIMEOUT", "30"))
-QUEUE_PUT_TIMEOUT = float(os.getenv("STREAM_GET_TIMEOUT", "5"))
+EXTERNAL_HOST = settings.EXTERNAL_HOST,
+EXTERNAL_PORT = settings.EXTERNAL_PORT,
+MAX_WORKERS = settings.MAX_WORKERS,
+QUEUE_MAXSIZE = settings.QUEUE_MAXSIZE,
+STREAM_GET_TIMEOUT = settings.STREAM_GET_TIMEOUT,
+QUEUE_PUT_TIMEOUT = settings.QUEUE_PUT_TIMEOUT
 
 app = FastAPI()
 
