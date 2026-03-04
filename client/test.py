@@ -164,6 +164,8 @@ def on_message(ws, message):
     if msg_type == "AI_VOICE_REPLY":
         bot_text = data.get("text")
         audio_url = data.get("audioUrl")
+        print(bot_text)
+        print(audio_url)
 
         # ⏱ Tính thời gian từ lúc gửi text đến khi có audioUrl
         if STATE["start_request_time"] > 0:
