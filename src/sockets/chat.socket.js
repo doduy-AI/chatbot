@@ -9,7 +9,7 @@ const handleChatSocket = (wss) => {
                 client.send(JSON.stringify({
                     type: 'AI_VOICE_REPLY',
                     text: data.text,
-                    audioUrl: data.url,
+                    audioUrl: data.audioUrl,
                     // userId: userId
                 }));
                 // console.log(`[Socket] Đã gửi link voice tới user: ${userId}`);
