@@ -12,11 +12,11 @@ from redis_manager import redis_manager
 from tts_service import generate_tts 
 from config import settings
 
-EXTERNAL_HOST = settings.EXTERNAL_HOST,
-EXTERNAL_PORT = settings.EXTERNAL_PORT,
-MAX_WORKERS = settings.MAX_WORKERS,
-QUEUE_MAXSIZE = settings.QUEUE_MAXSIZE,
-STREAM_GET_TIMEOUT = settings.STREAM_GET_TIMEOUT,
+EXTERNAL_HOST = settings.EXTERNAL_HOST
+EXTERNAL_PORT = settings.EXTERNAL_PORT
+MAX_WORKERS = settings.MAX_WORKERS
+QUEUE_MAXSIZE = settings.QUEUE_MAXSIZE
+STREAM_GET_TIMEOUT = settings.STREAM_GET_TIMEOUT
 QUEUE_PUT_TIMEOUT = settings.QUEUE_PUT_TIMEOUT
 
 app = FastAPI()
