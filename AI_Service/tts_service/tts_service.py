@@ -77,19 +77,21 @@ def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_
 def generate_tts(text: str):
     chunks = split_text_smartly(text)
     first_chunk = True
+    task_start = time.time()
 
     with torch.inference_mode():
-        for text_chunk in chunks:
+        for text_idx, text_chunk in enumerate(chunks):
             full_text = text_chunk.strip() + " "
+            print(f"[TTS] Text chunk #{text_idx+1}: '{full_text[:50]}...' | words={len(full_text.split())}")
 
-            # 1. Chạy model
-            outputs = XTTS_MODEL.inference_stream(
+            chunk_start = time.time()
+            wav_generator = XTTS_MODEL.inference_stream(
                 text=full_text,
                 language="vi",
                 gpt_cond_latent=gpt_cond_latent,
                 speaker_embedding=speaker_embedding,
                 num_beams=1,
-                repetition_penalty=20.0,
+                repetition_penalty=2.0,
                 temperature=0.6,
                 top_p=0.80,
                 speed=1,
@@ -97,14 +99,23 @@ def generate_tts(text: str):
                 length_penalty=1.0
             )
 
-            wav = outputs["wav"]
-            
-            # 2. Xử lý PCM bytes (đã tự bao gồm logic fade-in trong hàm)
-            audio_chunk = float_to_pcm_bytes(wav, is_first_chunk=first_chunk)
+            audio_idx = 0
+            for wav_chunk in wav_generator:
+                now = time.time()
+                if first_chunk:
+                    print(f"⚡ [FIRST AUDIO CHUNK] sau {now - task_start:.2f}s từ đầu")
+                
+                print(f"   Audio chunk #{audio_idx+1} (text#{text_idx+1}) | +{now - chunk_start:.2f}s | size={len(wav_chunk)} samples")
+                
+                audio_chunk = float_to_pcm_bytes(
+                    wav_chunk.cpu().numpy(),
+                    is_first_chunk=first_chunk
+                )
+                yield audio_chunk
+                first_chunk = False
+                audio_idx += 1
 
-            # 3. Yield thẳng ra queue, KHÔNG thêm gì khác
-            yield audio_chunk
-            
-            # 4. Đánh dấu để các chunk sau không bị fade-in nữa
-            first_chunk = False
+            print(f"[TTS] Text chunk #{text_idx+1} xong | {time.time() - chunk_start:.2f}s")
+
+    print(f"[TTS] ✅ Tổng: {time.time() - task_start:.2f}s")
             
