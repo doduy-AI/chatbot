@@ -83,7 +83,7 @@ def generate_tts(text: str):
             full_text = text_chunk.strip() + " "
 
             # 1. Chạy model
-            outputs = XTTS_MODEL.inference(
+            outputs = XTTS_MODEL.inference_stream(
                 text=full_text,
                 language="vi",
                 gpt_cond_latent=gpt_cond_latent,
