@@ -28,7 +28,7 @@ executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
 def create_wav_header(sample_rate=24000, bits_per_sample=16, channels=1):
     o = bytes("RIFF", "ascii")
-    o += struct.pack("<I", 0xFFFFFFFF)
+    o += struct.pack("<I", 0)  # Sửa từ 0xFFFFFFFF thành 0
     o += bytes("WAVE", "ascii")
     o += bytes("fmt ", "ascii")
     o += struct.pack("<I", 16)
@@ -39,7 +39,7 @@ def create_wav_header(sample_rate=24000, bits_per_sample=16, channels=1):
     o += struct.pack("<H", channels * bits_per_sample // 8)
     o += struct.pack("<H", bits_per_sample)
     o += bytes("data", "ascii")
-    o += struct.pack("<I", 0xFFFFFFFF)
+    o += struct.pack("<I", 0)  # Sửa từ 0xFFFFFFFF thành 0
     return o
 
 @app.get("/stream-voice/{task_id}")
