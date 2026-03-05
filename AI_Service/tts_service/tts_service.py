@@ -1,9 +1,11 @@
 import os
 import json
 import torch
-import re
+import re , time
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
+import numpy as np
+import soundfile as sf
 
 
 MODEL_DIR = "model/"
@@ -74,5 +76,9 @@ def generate_tts(text: str):
                 top_k=50,                 
                 length_penalty=1.0
             )
+            wav = outputs["wav"]
+            print(f"[DEBUG] Chunk '{text_chunk[:30]}...' length: {len(wav)/24000:.2f}s, max_amp: {np.max(np.abs(wav)):.2f}")
+            sf.write(f"debug_chunk_{text_chunk} {int(time.time()*1000)}.wav", wav, 24000)
             audio_chunk = (outputs["wav"] * 32767).astype('int16').tobytes()
             yield audio_chunk
+            
