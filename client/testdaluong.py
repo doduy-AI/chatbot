@@ -112,65 +112,46 @@ def auto_loop_speech_to_server(ws):
         CURRENT_INDEX += 1
     else:
         print(f"{GREEN}🎉 Đã chạy hết danh sách câu hỏi!{RESET}")
-def play_audio_stream(url: str, ws):
-    """
-    Phát audio theo luồng streaming — reset chuẩn mỗi lần phát.
-    """
-    try:
-        print(f"{CYAN}{url}{RESET}")
 
-        # Reset mốc đo cho mỗi lượt mới
-        start_time = None
-        first_chunk_time = None
+
+def play_audio_stream(url: str, ws):
+    try:
+        stream = p.open(
+            format=pyaudio.paInt16,
+            channels=CHANNELS,
+            rate=RATE,
+            output=True
+        )
 
         with requests.get(url, stream=True) as r:
             if r.status_code != 200:
-                print(f"{YELLOW}⚠️  Không thể lấy audio từ {url}{RESET}")
+                stream.close()
                 return
 
-            stream = p.open(
-                format=pyaudio.paInt16,
-                channels=1,
-                rate=24000,
-                output=True
-            )
-
-            print(f"{GREEN}▶  Đang phát phản hồi (streaming)...{RESET}")
-
-            buffer = b""
-            chunk_count = 0
-
-            # 🟢 Bắt đầu đo khi thực sự bắt đầu đọc stream
-            start_time = time.time()
+            first_chunk = True
 
             for chunk in r.iter_content(chunk_size=4096):
                 if not chunk:
                     continue
 
-                # Ghi nhận thời điểm nhận chunk đầu tiên
-                if chunk_count == 0:
-                    first_chunk_time = time.time()
-                    latency = first_chunk_time - start_time
-                    print(f"{YELLOW}⏱ Chunk đầu sau: {latency:.2f}s{RESET}")
+                # Skip 44 bytes WAV header ở chunk đầu tiên
+                if first_chunk:
+                    chunk = chunk[44:]
+                    first_chunk = False
+                    if not chunk:  # Nếu chunk chỉ có header thì bỏ qua
+                        continue
 
-                buffer += chunk
-                chunk_count += 1
+                stream.write(chunk)
 
-                if len(buffer) >= 8192:
-                    stream.write(buffer)
-                    buffer = b""
-
-            if buffer:
-                stream.write(buffer)
-
-            stream.stop_stream()
-            stream.close()
-
-        print(f"{GREEN}✅ Phát xong, quay lại lắng nghe bạn...{RESET}")
+        stream.stop_stream()
+        stream.close()
         auto_loop_speech_to_server(ws)
 
     except Exception as e:
-        print(f"{YELLOW}⚠️  Lỗi phát âm thanh streaming: {e}{RESET}")
+        print(f"{YELLOW}⚠️  Lỗi: {e}{RESET}")
+        if 'stream' in locals():
+            stream.stop_stream()
+            stream.close()
 
 def login_and_get_token():
     """
