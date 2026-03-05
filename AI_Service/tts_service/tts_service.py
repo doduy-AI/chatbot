@@ -6,7 +6,11 @@ from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 import numpy as np
 import soundfile as sf
+output_dir = "debug_audio"
 
+# 2. Tạo thư mục nếu chưa có
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 MODEL_DIR = "model/"
 speaker_audio_file = f"{MODEL_DIR}hn_nganha_begai.wav" # <-- Đường dẫn file wav của bạn
@@ -103,7 +107,11 @@ def generate_tts(text: str):
 
             # Lưu debug (tùy chọn)
             safe_name = re.sub(r'[^a-zA-Z0-9]+', '_', text_chunk[:30])
-            sf.write(f"debug_chunk_{safe_name}_{int(time.time()*1000)}.wav", wav, 24000)
+            filename = f"debug_chunk_{safe_name}_{int(time.time()*1000)}.wav"
+            file_path = os.path.join(output_dir, filename)
+
+            # 4. Lưu file
+            sf.write(file_path, wav, 24000)
 
             # Xử lý fade + chuẩn hóa
             audio_chunk = float_to_pcm_bytes(wav)
