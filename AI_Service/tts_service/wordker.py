@@ -48,18 +48,34 @@ async def stream_voice(task_id: str):
         q = audio_buffers.get(task_id)
         if not q:
             raise HTTPException(status_code=404, detail="task not found")
+        
+        # --- BƯỚC QUAN TRỌNG: GOM DỮ LIỆU ĐẦU TIÊN ---
+        # Đợi cho đến khi nhận được ít nhất 1 chunk dữ liệu thực sự
+        # Việc này giúp khi Header gửi đi, trình phát có dữ liệu "lót" ngay lập tức
+        first_chunk = None
+        while first_chunk is None:
+            try:
+                # Lấy chunk đầu tiên
+                chunk = await asyncio.to_thread(q.get, timeout=STREAM_GET_TIMEOUT)
+                if chunk == "DONE": return
+                if isinstance(chunk, bytes):
+                    first_chunk = chunk
+            except:
+                return # Timeout hoặc lỗi
+        
+        # Bây giờ mới bắt đầu gửi Header + Chunk đầu tiên
         yield create_wav_header()
-        loop = asyncio.get_event_loop()
+        yield first_chunk
+        
+        # --- TIẾP TỤC STREAM NHƯ BÌNH THƯỜNG ---
         while True:
             try:
-                chunk = await loop.run_in_executor(None, lambda: q.get(timeout=STREAM_GET_TIMEOUT))
-            except queue.Empty:
-                print(f"[WARN] Stream {task_id} timeout, đóng stream.")
+                chunk = await asyncio.to_thread(q.get, timeout=STREAM_GET_TIMEOUT)
+                if chunk == "DONE": break
+                if isinstance(chunk, bytes):
+                    yield chunk
+            except:
                 break
-            if chunk == "DONE":
-                break
-            if isinstance(chunk, bytes):
-                yield chunk
         audio_buffers.pop(task_id, None)
 
     return StreamingResponse(stream_generator(), media_type="audio/wav")
