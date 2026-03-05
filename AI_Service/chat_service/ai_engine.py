@@ -32,7 +32,6 @@ class AIEngine:
                 config={"system_instruction": system_instruction}
             )
         return self.chat_sessions[uuid]
-                # 5. Nếu không biết hoặc không có thông tin, hãy nói thẳng là bạn không biết.
 
     def get_context(self, user_id, query_text):
         try:

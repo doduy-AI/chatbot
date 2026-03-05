@@ -9,4 +9,4 @@ services:
     env_file: .env
     restart: always
     deploy:
-      replicas: 1
+      replicas: 5
