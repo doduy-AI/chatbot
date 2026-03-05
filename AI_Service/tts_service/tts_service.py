@@ -89,9 +89,9 @@ def generate_tts(text: str):
                 gpt_cond_latent=gpt_cond_latent,
                 speaker_embedding=speaker_embedding,
                 num_beams=1,
-                repetition_penalty=2.0,
-                temperature=0.9,
-                top_p=0.6,
+                repetition_penalty=20.0,
+                temperature=0.6,
+                top_p=0.80,
                 speed=1,
                 top_k=50,
                 length_penalty=1.0
