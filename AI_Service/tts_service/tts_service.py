@@ -6,7 +6,7 @@ from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 import numpy as np
 import soundfile as sf
-output_dir = "debug_audio"
+output_dir = "/content/drive/MyDrive/git/debug_audio"
 
 # 2. Tạo thư mục nếu chưa có
 if not os.path.exists(output_dir):
@@ -105,9 +105,7 @@ def generate_tts(text: str):
             wav = outputs["wav"]
             print(f"[DEBUG] Chunk '{text_chunk[:30]}...' length: {len(wav)/24000:.2f}s, max_amp: {np.max(np.abs(wav)):.2f}")
 
-            # Lưu debug (tùy chọn)
-            safe_name = re.sub(r'[^a-zA-Z0-9]+', '_', text_chunk[:30])
-            filename = f"debug_chunk_{safe_name}_{int(time.time()*1000)}.wav"
+            filename = f"{text_chunk}{int(time.time()*1000)}.wav"
             file_path = os.path.join(output_dir, filename)
 
             # 4. Lưu file

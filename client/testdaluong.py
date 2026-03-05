@@ -1,227 +1,284 @@
-# multi_client_tester.py
-# Yêu cầu: pip install websocket-client requests
-# Lưu ý: nếu muốn playback audio, thêm pyaudio, pydub, v.v. và set HEADLESS = False (not recommended for many parallel clients)
-
-import threading
-import time
-import random
-import json
 import requests
 import websocket
-from typing import List, Dict
-from collections import defaultdict
+import threading
+import json
+import pyaudio
+import speech_recognition as sr
+import time
+from pydub import AudioSegment
+import io
+import sys
 
-# --- CẤU HÌNH CHUNG ---
+
+
+# --- CẤU HÌNH ---
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
-HEADLESS = True   # True = không phát audio (khuyến nghị cho load test), False = cố gắng phát
-MESSAGES_PER_CLIENT = 10
-MIN_DELAY_BETWEEN_MESSAGES = 0.5
-MAX_DELAY_BETWEEN_MESSAGES = 2.0
-# Nếu hệ thống yêu cầu rate-limit pause giữa kết nối: set thêm delay trước khi connect từng client
-DELAY_BETWEEN_CLIENT_START = 0.2
+USER_DATA = {
+    "username": "bytehome",
+    "password": "123456"
+}
 
-# --- Helper: login để lấy token ---
-def login_and_get_token(userdata: Dict[str, str]) -> str:
+CHANNELS = 1
+RATE = 24000
+CHUNK = 1024
+
+p = pyaudio.PyAudio()
+recognizer = sr.Recognizer()
+mic = sr.Microphone()
+
+# Biến trạng thái (tránh global)
+STATE = {
+    "start_request_time": 0
+}
+
+# Màu log
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+CYAN = "\033[96m"
+RESET = "\033[0m"
+
+
+
+QUESTION_LIST = [
+    "Chào buổi sáng, ByteHome!",
+    "Hôm nay là thứ mấy nhỉ?",
+    "Bạn có khỏe không?",
+    "Kể cho tôi nghe một câu chuyện cười đi.",
+    "Bạn có biết hôm nay ngày mấy không?",
+    "Bạn tên là gì?",
+    "Bạn có thích âm nhạc không?",
+    "Cho tôi lời khuyên về cách học ngoại ngữ.",
+    "Hôm nay tôi thấy hơi buồn, bạn có cách nào làm tôi vui không?",
+    "Bạn nghĩ gì về trí tuệ nhân tạo?",
+    "Bật đèn phòng khách.",
+    "Tắt đèn phòng ngủ đi.",
+    "Chuyển màu đèn sang màu vàng ấm.",
+    "Tăng độ sáng của đèn lên 80%.",
+    "Bật điều hòa ở nhiệt độ 25 độ C.",
+    "Tắt điều hòa giúp tôi.",
+    "Quạt phòng khách đang bật hay tắt?",
+    "Bật quạt ở chế độ gió nhẹ.",
+    "Đóng rèm cửa lại.",
+    "Mở rèm cửa phòng khách ra.",
+    "Khóa cửa nhà chưa?",
+    "Mở khóa cửa chính.",
+    "Bật máy lọc không khí.",
+    "Tắt tivi đi.",
+    "Chuyển kênh tivi sang VTV1.",
+    "Thời tiết ở Hà Nội hôm nay thế nào?",
+    "Dự báo thời tiết ngày mai ra sao?",
+    "Giá vàng hôm nay là bao nhiêu?",
+    "Tỷ giá USD sang VND hiện tại là bao nhiêu?",
+    "Tìm kiếm thông tin về cách làm món phở bò.",
+    "Hôm nay có sự kiện gì đặc biệt không?",
+    "Nhắc tôi uống thuốc lúc 8 giờ tối.",
+    "Tôi có lịch hẹn nào vào chiều nay không?",
+    "Đọc báo cáo giao thông khu vực nội thành.",
+    "Kết quả trận đấu tối qua thế nào?",
+    "Chào buổi sáng, bật đèn và báo cáo thời tiết cho tôi.",
+    "Tôi đi ngủ đây, hãy tắt hết đèn và khóa cửa nhé.",
+    "Tôi đi làm đây, tắt hết thiết bị điện đi.",
+    "Tăng âm lượng lên 50% và phát nhạc nhẹ nhàng.",
+    "Chuyển sang chế độ xem phim.",
+    "Bạn có thể nói chậm lại được không?",
+    "Nhắc lại câu vừa rồi.",
+    "Bạn đang nghe tôi nói không?",
+    "Hãy im lặng một chút.",
+    "Hệ thống đang hoạt động ở chế độ nào?",
+    "Kết nối mạng ổn định không?",
+    "Cập nhật phần mềm mới nhất chưa?",
+    "Tôi muốn thay đổi giọng nói của bạn.",
+    "Dừng lại, hủy lệnh vừa rồi.",
+    "ByteHome, kết thúc phiên làm việc nhé."
+]
+CURRENT_INDEX = 0
+
+def auto_loop_speech_to_server(ws):
+    """
+    Tự động gửi câu hỏi từ danh sách thay vì dùng micro.
+    """
+    global CURRENT_INDEX
+    
+    if CURRENT_INDEX < len(QUESTION_LIST):
+        text = QUESTION_LIST[CURRENT_INDEX]
+        print(f"{CYAN}🤖 [AUTO] Gửi câu hỏi: {text}{RESET}")
+        
+        # ⏱ Bắt đầu đo từ lúc gửi text đi
+        STATE["start_request_time"] = time.time()
+        data = {"text": text, "language": "VI", "timestamp": ""}
+        ws.send(json.dumps(data))
+        
+        CURRENT_INDEX += 1
+    else:
+        print(f"{GREEN}🎉 Đã chạy hết danh sách câu hỏi!{RESET}")
+def play_audio_stream(url: str, ws):
+    """
+    Phát audio theo luồng streaming — reset chuẩn mỗi lần phát.
+    """
     try:
-        res = requests.post(f"{BASE_URL}/auth/login", json=userdata, timeout=10)
+        print(f"{CYAN}{url}{RESET}")
+
+        # Reset mốc đo cho mỗi lượt mới
+        start_time = None
+        first_chunk_time = None
+
+        with requests.get(url, stream=True) as r:
+            if r.status_code != 200:
+                print(f"{YELLOW}⚠️  Không thể lấy audio từ {url}{RESET}")
+                return
+
+            stream = p.open(
+                format=pyaudio.paInt16,
+                channels=1,
+                rate=24000,
+                output=True
+            )
+
+            print(f"{GREEN}▶  Đang phát phản hồi (streaming)...{RESET}")
+
+            buffer = b""
+            chunk_count = 0
+
+            # 🟢 Bắt đầu đo khi thực sự bắt đầu đọc stream
+            start_time = time.time()
+
+            for chunk in r.iter_content(chunk_size=4096):
+                if not chunk:
+                    continue
+
+                # Ghi nhận thời điểm nhận chunk đầu tiên
+                if chunk_count == 0:
+                    first_chunk_time = time.time()
+                    latency = first_chunk_time - start_time
+                    print(f"{YELLOW}⏱ Chunk đầu sau: {latency:.2f}s{RESET}")
+
+                buffer += chunk
+                chunk_count += 1
+
+                if len(buffer) >= 8192:
+                    stream.write(buffer)
+                    buffer = b""
+
+            if buffer:
+                stream.write(buffer)
+
+            stream.stop_stream()
+            stream.close()
+
+        print(f"{GREEN}✅ Phát xong, quay lại lắng nghe bạn...{RESET}")
+        auto_loop_speech_to_server(ws)
+
+    except Exception as e:
+        print(f"{YELLOW}⚠️  Lỗi phát âm thanh streaming: {e}{RESET}")
+
+def login_and_get_token():
+    """
+    Đăng nhập để lấy token từ API backend.
+    """
+    try:
+        print(f"🔐 Đăng nhập tài khoản: {USER_DATA['username']}...")
+        res = requests.post(f"{BASE_URL}/auth/login", json=USER_DATA)
         if res.status_code == 200:
             token = res.json().get("token")
+            print(f"{GREEN}✅ Lấy Token thành công!{RESET}\n")
             return token
         else:
-            print(f"[{userdata['username']}] Login failed: {res.status_code} {res.text}")
+            print(f"{YELLOW}❌ Đăng nhập thất bại: {res.text}{RESET}")
             return None
     except Exception as e:
-        print(f"[{userdata['username']}] Login error: {e}")
+        print(f"{YELLOW}⚠️  Lỗi kết nối API: {e}{RESET}")
         return None
 
-# --- TestClient class manages one simulated user ---
-class TestClient:
-    def __init__(self, username: str, password: str, questions: List[str], client_id: int):
-        self.username = username
-        self.password = password
-        self.questions = questions
-        self.client_id = client_id
 
-        self.token = None
-        self.ws = None
+def recognize_once():
+    """
+    Ghi âm và nhận diện giọng nói 1 lần.
+    """
+    with mic as source:
+        print("🎤 Chuẩn bị ghi âm...")
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
+        print("🎧 Đang lắng nghe bạn nói...")
+        audio = recognizer.listen(source, phrase_time_limit=15)
+        print("🧠 Đang xử lý giọng nói...")
 
-        # metrics
-        self.sent_count = 0
-        self.received_audio_count = 0
-        self.latencies = []  # seconds
-        self.errors = []
+    try:
+        text = recognizer.recognize_google(audio, language="vi-VN").strip()
+        if text:
+            print(f"{CYAN}💬 Bạn nói: {text}{RESET}")
+        return text
+    except sr.UnknownValueError:
+        print(f"{YELLOW}⚠️  Không nghe rõ, bỏ qua.{RESET}")
+        return ""
+    except sr.RequestError as e:
+        print(f"{YELLOW}⚠️  Lỗi STT: {e}{RESET}")
+        return ""
 
-        # state to match requests -> replies
-        self._pending_timestamps = {}  # message_id -> start_time
 
-        # thread control
-        self._stop_event = threading.Event()
+def loop_speech_to_server(ws):
+    """
+    Gửi text (STT) từ mic lên server qua WebSocket.
+    """
+    text = recognize_once()
+    if text:
+        # ⏱ Bắt đầu đo từ lúc gửi text đi
+        STATE["start_request_time"] = time.time()
+        data = {"text": text, "language": "VI", "timestamp": ""}
+        ws.send(json.dumps(data))
+    else:
+        loop_speech_to_server(ws)
 
-    def _on_open(self, ws):
-        print(f"[Client {self.client_id} {self.username}] WS opened.")
-        # start sending messages in separate thread to avoid blocking ws callbacks
-        threading.Thread(target=self._send_messages_loop, daemon=True).start()
 
-    def _on_message(self, ws, message):
-        try:
-            data = json.loads(message)
-        except Exception as e:
-            print(f"[Client {self.client_id}] Failed parse message: {e}")
-            return
+def on_message(ws, message):
+    """
+    Xử lý tin nhắn WebSocket nhận được từ server.
+    """
+    data = json.loads(message)
+    msg_type = data.get("type")
 
-        msg_type = data.get("type")
-        if msg_type == "AI_VOICE_REPLY":
-            # bot_text = data.get("text")
-            audio_url = data.get("audioUrl")
-            # compute latency: we measure time from last pending (we store a generic timestamp id)
-            # If server echoes a timestamp or id, better match; here we just pop the oldest pending timestamp.
-            if self._pending_timestamps:
-                # pop arbitrary oldest
-                oldest_key = sorted(self._pending_timestamps.keys())[0]
-                start = self._pending_timestamps.pop(oldest_key)
-                latency = time.time() - start
-                self.latencies.append(latency)
-                self.received_audio_count += 1
-                print(f"[Client {self.client_id}] Received audioUrl after {latency:.3f}s")
-            else:
-                print(f"[Client {self.client_id}] Received AI_VOICE_REPLY but no pending timestamp tracked.")
-            # Optionally, if not HEADLESS, download/playstream (not implemented here to keep stable)
-            # you can call play_audio_stream(audio_url, ws) if you reuse your playback code.
-        elif msg_type == "AI_VOICE_DONE":
-            # server says done speaking
-            pass
-        elif msg_type == "STATUS":
-            # ignore
-            pass
-        else:
-            # other events
-            print(f"[Client {self.client_id}] Other event: {data}")
+    if msg_type == "AI_VOICE_REPLY":
+        bot_text = data.get("text")
+        audio_url = data.get("audioUrl")
+        print(bot_text)
+        print(audio_url)
 
-    def _on_error(self, ws, err):
-        print(f"[Client {self.client_id}] WS error: {err}")
-        self.errors.append(str(err))
+        # ⏱ Tính thời gian từ lúc gửi text đến khi có audioUrl
+        if STATE["start_request_time"] > 0:
+            latency = time.time() - STATE["start_request_time"]
+            print(f"{YELLOW}⏱ Latency (Text -> audioUrl): {latency:.2f} giây{RESET}")
+            STATE["start_request_time"] = 0
 
-    def _on_close(self, ws, close_status_code, close_msg):
-        print(f"[Client {self.client_id}] WS closed: {close_status_code} {close_msg}")
+        if bot_text:
+            print(f"\n{GREEN}[BYTEHOME]: {bot_text}{RESET}")
 
-    def connect_and_run(self):
-        # 1) login
-        token = login_and_get_token({"username": self.username, "password": self.password})
-        if not token:
-            self.errors.append("login_failed")
-            return
+        if audio_url:
+            play_audio_stream(audio_url, ws)
 
-        self.token = token
-        ws_url = f"{WS_URL}?token={self.token}"
+    elif msg_type == "AI_VOICE_DONE":
+        print(f"{CYAN}🤖 Bot nói xong, quay lại lắng nghe bạn...{RESET}")
+        auto_loop_speech_to_server(ws)
 
-        # create WebSocketApp
-        self.ws = websocket.WebSocketApp(
-            ws_url,
-            on_open=self._on_open,
-            on_message=self._on_message,
-            on_error=self._on_error,
-            on_close=self._on_close
-        )
+    else:
+        # Bỏ qua STATUS event (không đo latency)
+        if msg_type != "STATUS":
+            print(f"{YELLOW}⚠️  Event không xác định: {data}{RESET}")
 
-        # run_forever blocks; run in this thread
-        try:
-            # Note: run_forever will block until close; set dispatcher to run in thread
-            self.ws.run_forever()
-        except Exception as e:
-            print(f"[Client {self.client_id}] run_forever error: {e}")
-            self.errors.append(str(e))
 
-    def _send_messages_loop(self):
-        """
-        Gửi MESSAGES_PER_CLIENT văn bản đến server, random chọn câu hỏi.
-        Ghi lại timestamp trước khi ws.send để đo latency khi event AI_VOICE_REPLY về.
-        """
-        for i in range(MESSAGES_PER_CLIENT):
-            if self._stop_event.is_set():
-                break
-            text = random.choice(self.questions)
-            payload = {"text": text, "language": "VI", "timestamp": f"{int(time.time()*1000)}"}
-            try:
-                # store a pending timestamp keyed by message counter to match later.
-                key = f"{int(time.time()*1000)}_{i}"
-                self._pending_timestamps[key] = time.time()
-                self.ws.send(json.dumps(payload))
-                self.sent_count += 1
-                # small random delay between messages to mimic users
-                delay = random.uniform(MIN_DELAY_BETWEEN_MESSAGES, MAX_DELAY_BETWEEN_MESSAGES)
-                time.sleep(delay)
-            except Exception as e:
-                print(f"[Client {self.client_id}] Error sending message: {e}")
-                self.errors.append(str(e))
-                break
+def on_open(ws):
+    
+    print(f"{GREEN}✅ WebSocket đã kết nối! Bắt đầu hội thoại bằng giọng nói...{RESET}\n")
+    auto_loop_speech_to_server(ws)
 
-        # after sending messages, wait a bit to receive responses, then close
-        time.sleep(3)
-        try:
-            self.ws.close()
-        except:
-            pass
-
-    def stop(self):
-        self._stop_event.set()
-        try:
-            self.ws.close()
-        except:
-            pass
-
-# --- Orchestrator: start N clients concurrently ---
-def run_multi_clients(accounts: List[Dict[str, str]], questions: List[str]):
-    clients = []
-    threads = []
-
-    for idx, acc in enumerate(accounts):
-        client = TestClient(username=acc["username"], password=acc["password"], questions=questions, client_id=idx+1)
-        t = threading.Thread(target=client.connect_and_run, daemon=True)
-        clients.append(client)
-        threads.append(t)
-        t.start()
-        time.sleep(DELAY_BETWEEN_CLIENT_START)  # slight stagger
-
-    # Wait for threads to finish (they will close ws after sending)
-    for t in threads:
-        t.join(timeout=60)  # avoid forever blocking, tune as needed
-
-    # Summary
-    print("\n--- SUMMARY ---")
-    total_sent = sum(c.sent_count for c in clients)
-    total_received = sum(c.received_audio_count for c in clients)
-    total_errors = sum(len(c.errors) for c in clients)
-    print(f"Clients: {len(clients)} | Total sent: {total_sent} | Total audio replies received: {total_received} | Total errors: {total_errors}")
-    for c in clients:
-        avg_latency = (sum(c.latencies)/len(c.latencies)) if c.latencies else None
-        print(f" - [{c.client_id}] {c.username}: sent={c.sent_count}, replies={c.received_audio_count}, avg_latency={avg_latency}, errors={len(c.errors)}")
-
-    return clients
 
 if __name__ == "__main__":
-    # --- REPLACE: điền 5 account vào đây ---
-    ACCOUNTS = [
-        {"username": "duy1", "password": "123456"},
-        {"username": "duy2", "password": "123456"},
-        {"username": "duy3", "password": "123456"},
-        {"username": "duy4", "password": "123456"},
-        {"username": "duy5", "password": "123456"},
-    ]
-
-    # --- REPLACE: list ~10 câu hỏi / prompt ---
-    QUESTIONS = [
-        "Xin chào, bạn có thể giới thiệu về mình không?",
-        "Hôm nay thời tiết ở Hà Nội thế nào?",
-        "Cho tôi 3 mẹo tiết kiệm tiền hàng tháng.",
-        "Làm sao để tạo một REST API bằng Node.js?",
-        "Bạn đề xuất sách nào cho phát triển cá nhân?",
-        "Giúp mình lên kế hoạch học tiếng Anh 3 tháng.",
-        "Tại sao Docker lại hữu ích trong phát triển phần mềm?",
-        "Cho ví dụ mã Python đọc file JSON.",
-        "Cách debug memory leak trong ứng dụng Node?",
-        "Gợi ý món ăn đơn giản với gạo và trứng."
-    ]
-
-    # chạy test
-    run_multi_clients(ACCOUNTS, QUESTIONS)
+    token = login_and_get_token()
+    if token:
+        ws_url = f"{WS_URL}?token={token}"
+        ws = websocket.WebSocketApp(
+            ws_url,
+            on_open=on_open,
+            on_message=on_message,
+            on_error=lambda ws, err: print(f"{YELLOW}⚠️  Lỗi WS: {err}{RESET}"),
+            on_close=lambda ws, c, m: print(f"{YELLOW}🔌 Kết nối WebSocket đã đóng.{RESET}")
+        )
+        ws.run_forever()
