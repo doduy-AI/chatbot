@@ -56,13 +56,34 @@ def split_text_smartly(text, min_words=8):
         else: chunks.append(current_chunk.strip())
     return chunks
 
+def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20):
+    """Chuẩn hoá, áp fade-in/out, rồi convert sang PCM 16-bit bytes"""
+    wav = wav.astype(np.float32)
+
+    # Chuẩn hoá tránh clip
+    max_amp = np.max(np.abs(wav)) if wav.size > 0 else 1.0
+    if max_amp > 1.0:
+        wav /= max_amp
+
+    # Fade-in / fade-out khoảng 20ms để loại 'bụp'
+    fade_len = int(sample_rate * fade_ms / 1000)
+    if len(wav) > fade_len * 2:
+        fade = np.linspace(0, 1, fade_len, dtype=np.float32)
+        wav[:fade_len] *= fade
+        wav[-fade_len:] *= fade[::-1]
+
+    pcm = (wav * 32767.0).astype(np.int16)
+    return pcm.tobytes()
+
 def generate_tts(text: str):
     chunks = split_text_smartly(text)
-    
+    first_chunk = True
+    silence_bytes = b"\x00" * int(0.1 * 24000 * 2)  # 100ms silence đầu tiên
+
     with torch.inference_mode():
         for text_chunk in chunks:
-            full_text = text_chunk.strip() + " " 
-            
+            full_text = text_chunk.strip() + " "
+
             outputs = XTTS_MODEL.inference(
                 text=full_text,
                 language="vi",
@@ -76,9 +97,21 @@ def generate_tts(text: str):
                 top_k=50,                 
                 length_penalty=1.0
             )
+
             wav = outputs["wav"]
             print(f"[DEBUG] Chunk '{text_chunk[:30]}...' length: {len(wav)/24000:.2f}s, max_amp: {np.max(np.abs(wav)):.2f}")
-            sf.write(f"debug_chunk_{text_chunk} {int(time.time()*1000)}.wav", wav, 24000)
-            audio_chunk = (outputs["wav"] * 32767).astype('int16').tobytes()
+
+            # Lưu debug (tùy chọn)
+            safe_name = re.sub(r'[^a-zA-Z0-9]+', '_', text_chunk[:30])
+            sf.write(f"debug_chunk_{safe_name}_{int(time.time()*1000)}.wav", wav, 24000)
+
+            # Xử lý fade + chuẩn hóa
+            audio_chunk = float_to_pcm_bytes(wav)
+
+            # Thêm đoạn im lặng 100ms trước chunk đầu tiên để loại 'bụp'
+            if first_chunk:
+                yield silence_bytes
+                first_chunk = False
+
             yield audio_chunk
             
