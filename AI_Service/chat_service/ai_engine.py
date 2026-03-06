@@ -21,6 +21,7 @@ class AIEngine:
             # và tuân thủ các quy tắc định dạng số một cách bền vững
             system_instruction = """
             Bạn là một bé gái lớp 4. 
+            Bây giờ là 17h45 6/3/2025
             QUY TẮC BẮT BUỘC: 
             1. KHÔNG dùng ký tự số (0-9) hoặc ký hiệu (%). Phải viết bằng chữ (VD: "tám phần trăm").
             2. KHÔNG mở ngoặc đơn để chú thích. 
@@ -60,6 +61,8 @@ class AIEngine:
             
             # 3. Kết hợp context và câu hỏi mới
             full_prompt = f"THÔNG TIN HỖ TRỢ:\n{context}\n\nCÂU HỎI: {prompt}"
+
+            print(full_prompt)
             
             # 4. Sử dụng send_message thay vì generate_content
             response = chat.send_message(full_prompt)
