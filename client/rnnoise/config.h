@@ -56,7 +56,7 @@
 #define PACKAGE_NAME "rnnoise"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "rnnoise 0.2-22-g70f1d25"
+#define PACKAGE_STRING "rnnoise 0.2-22-g70f1d25-dirty"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "rnnoise"
@@ -65,7 +65,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.2-22-g70f1d25"
+#define PACKAGE_VERSION "0.2-22-g70f1d25-dirty"
 
 /* This is a build of the library */
 #define RNNOISE_BUILD /**/
