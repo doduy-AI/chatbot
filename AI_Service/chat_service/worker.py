@@ -23,8 +23,11 @@ def main():
             user_id = data.get("userId")
             text = data.get("text")
             language = data.get("language")
+
+            # fix cứng group_id
+            group_id = "hiemily"
             
-            reply = ai.generate_respone(text ,user_id)
+            reply = ai.generate_respone(text ,user_id,group_id)
             print("[BYTEHOME]" , reply)
             result = {
                 "userId": user_id,

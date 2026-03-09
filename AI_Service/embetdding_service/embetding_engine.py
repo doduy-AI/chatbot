@@ -9,7 +9,7 @@ from config.config import settings
 client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
 model = SentenceTransformer(settings.MODEL_QDRANT)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-COLLECTION_NAME = "customer_vectors"
+COLLECTION_NAME = "bytehome"
 UPLOAD_BASE_DIR = BASE_DIR / "uploads"
 
 def init_storage():
@@ -72,6 +72,8 @@ def process_embedding_for_user(user_id ,group_id):
                     payload={
                         "groupId": group_id,
                         "userId": user_id,
+                        # "userId": "base",
+                        
                         "fileName": file_path.name,
                         "text": chunks[idx]
                     }
