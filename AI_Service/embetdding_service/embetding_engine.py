@@ -23,6 +23,11 @@ def init_storage():
             field_name="userId",
             field_schema=PayloadSchemaType.KEYWORD,
         )
+        client.create_payload_index(
+            collection_name=COLLECTION_NAME,
+            field_name="groupId",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
         print(f" Đã khởi tạo thành công collection: {COLLECTION_NAME}")
 
 init_storage()
@@ -41,7 +46,7 @@ def extract_text(file_path):
     return ""
 
 
-def process_embedding_for_user(user_id):
+def process_embedding_for_user(user_id ,group_id):
     user_dir = Path(UPLOAD_BASE_DIR) / user_id
     if not user_dir.exists():
         print("Thư mục {user_id} không tồn tại ")
@@ -65,6 +70,7 @@ def process_embedding_for_user(user_id):
                     id=str(uuid.uuid4()),
                     vector=vector,
                     payload={
+                        "groupId": group_id,
                         "userId": user_id,
                         "fileName": file_path.name,
                         "text": chunks[idx]
