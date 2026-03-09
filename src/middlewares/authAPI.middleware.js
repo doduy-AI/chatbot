@@ -30,7 +30,7 @@ const isAdmin = async (req, res, next) => {
   const userRole = user.Role.rolename;
 
   if (userRole === "admin") {
-    return next(); // ✅ Thêm return ở đây để thoát khỏi hàm ngay lập tức
+    return next(); 
   }
 
   // Nếu không phải admin, dòng này mới được chạy
