@@ -4,7 +4,7 @@ const userController = require('../../controllers/Admin/user.controller')
 
 router.get('/list',userController.listUser)
 
-// router.post('/create')
+router.post('/create',userController.create)
 
 
 module.exports =router;
