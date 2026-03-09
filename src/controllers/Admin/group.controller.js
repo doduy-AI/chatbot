@@ -38,4 +38,18 @@ const create = async(req,res)=>{
     }
 }
 
-module.exports= {create}
+const getAllGroup = async (req ,res) => {
+    try{
+        const groups = await Group.findAll()
+        return res.status(200).json({
+            success:true,
+            count:groups.length,
+            data:groups
+        })
+    }
+    catch(e){
+        return res.status(500).json({message:"Khong lay duoc group"})
+    }
+}
+
+module.exports= {create,getAllGroup}
