@@ -20,13 +20,36 @@ Hệ thống nhận diện giọng nói (Speech-to-Text) thời gian thực, đ�
 ## Yêu cầu Hệ thống (Requirements)
 
 ### 1. System Libraries (Cấp Hệ điều hành)
-Bắt buộc cài đặt trên Raspberry Pi (hoặc Ubuntu/Debian) để lấy được audio từ soundcard và biên dịch các module C.
+Bắt buộc cài đặt trên Raspberry Pi (hoặc Ubuntu/Debian) để lấy được audio từ soundcard và biên dịch RNNoise.
 ```bash
 sudo apt-get update
 sudo apt-get install portaudio19-dev python3-pyaudio libasound-dev
+sudo apt install autoconf automake libtool pkg-config build-essential
 ```
 
-### 2. Python Dependencies
+### 2. Biên dịch thư viện RNNoise từ mã nguồn
+Để hệ thống khử ồn chạy nhanh và tiêu thụ ít CPU nhất trên Raspberry Pi, bạn cần clone và build RNNoise từ C source.
+
+Thực hiện các lệnh sau:
+```bash
+git clone https://github.com/xiph/rnnoise.git
+cd rnnoise
+./autogen.sh
+
+# NẾU BẠN CHẠY TRÊN RASPBERRY PI 4 / PI 5, HÃY BUILD TỐI ƯU BẰNG LỆNH NÀY:
+CFLAGS="-O3 -march=native" ./configure
+
+# (Dùng make -j4 để dùng 4 nhân CPU build cho nhanh)
+make -j4
+
+# Cài đặt thư viện vào hệ thống
+sudo make install
+sudo ldconfig
+```
+
+> **Lưu ý**: Sau khi build xong, file thư viện `.so` thường nằm ở thư mục `.libs/librnnoise.so`. Hãy đảm bảo cấu trúc thư mục của project chứa file này tại `client/rnnoise/.libs/librnnoise.so` để `STT.py` có thể load được qua ctypes.
+
+### 3. Python Dependencies
 Cài đặt qua pip các thư viện liệt kê trong `requiment.txt`:
 ```bash
 pip install -r requiment.txt
@@ -38,7 +61,7 @@ pip install -r requiment.txt
 - `torch==2.2.1`: Chạy mô hình Silero VAD.
 - `scipy==1.12.0`: Xây dựng Highpass filter.
 
-### 3. File cục bộ (Local Files)
+### 4. File cục bộ (Local Files)
 Đảm bảo bạn có file thư viện C động của RNNoise trong đường dẫn sau:
 `client/rnnoise/.libs/librnnoise.so`
 
