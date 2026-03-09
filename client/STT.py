@@ -1,199 +1,269 @@
-import sounddevice as sd
 import numpy as np
-import wave
+import sounddevice as sd
 import time
 import ctypes
-import samplerate
+import os
+import collections
+import queue
 import torch
 
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, lfilter_zi, lfilter
 
-# ================= CONFIG =================
-INPUT_SR = 16000
-RNNOISE_SR = 48000
+MIC_SR         = 48000
+TARGET_SR      = 16000
 
-FRAME_MS = 10
-FRAME_16K = int(INPUT_SR * FRAME_MS / 1000)      # 160
-FRAME_48K = int(RNNOISE_SR * FRAME_MS / 1000)    # 480
+RNNOISE_FRAME  = 480
 
-MAX_RECORD_TIME = 15.0
-SILENCE_TIMEOUT = 2.0
-NO_VOICE_TIMEOUT = 10.0
+BLOCK_MS       = 20
+MIC_BLOCKSIZE  = int(MIC_SR * BLOCK_MS / 1000)
 
-# ---- speech decision ----
-ENERGY_RATIO = 1.0
-NOISE_ALPHA = 0.95
-SPEECH_BAND_RATIO = 0.25
-SILERO_THRESHOLD = 0.7
+MAX_RECORD_S   = 15.0
+SILENCE_S      = 0.8
+NO_VOICE_S     = 10.0
 
-DOM_WINDOW = 15
-DOM_THRESHOLD = 0.25
+PRE_BUF_COUNT  = int(300 / BLOCK_MS)
 
-OUTPUT_WAV = "voice.wav"
-# ========================================
+SILERO_CHUNK   = 512
+SILERO_THRESH  = 0.5
 
-# -------- RNNoise --------
-import os
-rnnoise = ctypes.cdll.LoadLibrary(os.path.expanduser("/home/doduy/Documents/rnnoise/.libs/librnnoise.so"))
-rnnoise.rnnoise_process_frame.argtypes = [
-    ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-]
-rnnoise.rnnoise_create.restype = ctypes.c_void_p
-rnnoise_state = rnnoise.rnnoise_create(None)
+ENERGY_RATIO   = 1.5
+NOISE_ALPHA    = 0.95
+MIN_ENERGY     = 0.003
 
-# -------- Silero VAD --------
-silero_model, silero_utils = torch.hub.load(
-    repo_or_dir="snakers4/silero-vad",
-    model="silero_vad",
-    trust_repo=True
+DOM_WINDOW     = 10
+DOM_THRESHOLD  = 0.3
+
+MIC_QUEUE_MAX  = 150
+
+_HP_B, _HP_A   = butter(2, 80 / (MIC_SR / 2), btype='high')
+
+
+RNNOISE_LIB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "rnnoise", ".libs", "librnnoise.so"
 )
-silero_model.eval()
 
-SILERO_SAMPLES = 512
-silero_buf = np.zeros(0, dtype=np.float32)
-
-def silero_is_speech(frame_16k):
-    global silero_buf
-
-    silero_buf = np.concatenate([silero_buf, frame_16k])
-
-    if len(silero_buf) < SILERO_SAMPLES:
-        return False, 0.0
-
-    chunk = silero_buf[:SILERO_SAMPLES]
-    silero_buf = silero_buf[SILERO_SAMPLES:]
-
-    tensor = torch.from_numpy(chunk).float().unsqueeze(0)
-
-    with torch.no_grad():
-        prob = silero_model(tensor, INPUT_SR).item()
-
-    return prob > SILERO_THRESHOLD, prob
+_rnn_in  = (ctypes.c_float * RNNOISE_FRAME)()
+_rnn_out = (ctypes.c_float * RNNOISE_FRAME)()
+_rnn_result = np.empty(MIC_BLOCKSIZE, dtype=np.float32)
 
 
-# -------- Filters --------
-def highpass(x, cutoff=80):
-    b, a = butter(1, cutoff / (INPUT_SR / 2), btype='high')
-    return lfilter(b, a, x)
+def init_rnnoise():
+    if not os.path.exists(RNNOISE_LIB_PATH):
+        print(f"[RNNoise] Khong tim thay: {RNNOISE_LIB_PATH}")
+        return None, None
 
-def speech_band_ratio(x):
-    fft = np.abs(np.fft.rfft(x))
-    freqs = np.fft.rfftfreq(len(x), 1 / INPUT_SR)
-    speech_energy = np.sum(fft[(freqs > 300) & (freqs < 3400)])
-    return speech_energy / (np.sum(fft) + 1e-9)
+    lib = ctypes.cdll.LoadLibrary(RNNOISE_LIB_PATH)
+    lib.rnnoise_create.restype  = ctypes.c_void_p
+    lib.rnnoise_create.argtypes = [ctypes.c_void_p]
+    lib.rnnoise_process_frame.restype  = ctypes.c_float
+    lib.rnnoise_process_frame.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(ctypes.c_float),
+        ctypes.POINTER(ctypes.c_float),
+    ]
+    lib.rnnoise_destroy.restype  = None
+    lib.rnnoise_destroy.argtypes = [ctypes.c_void_p]
 
-# -------- Resamplers --------
-to_48k = samplerate.Resampler("sinc_fastest", channels=1)
-to_16k = samplerate.Resampler("sinc_fastest", channels=1)
+    state = lib.rnnoise_create(None)
+    print("[RNNoise] San sang.")
+    return lib, state
 
-# -------- Main --------
-def record():
-    # print("  Hệ thống sẵn sàng...")
-    silero_model.reset_states()
 
-    frames = []
-    start_time = time.time()
-    last_voice = start_time
+def rnnoise_block(block_48k, rnn_lib, rnn_state):
+    if rnn_lib is None:
+        return block_48k
 
-    had_voice = False
-    first_voice_time = None
-    no_voice_warned = False
+    for i in range(2):
+        offset = i * RNNOISE_FRAME
 
-    noise_floor = 0.001
-    dom_buf = []
+        for j in range(RNNOISE_FRAME):
+            _rnn_in[j] = block_48k[offset + j]
 
-    with sd.InputStream(
-        samplerate=INPUT_SR,
-        channels=1,
-        blocksize=FRAME_16K,
-        dtype="float32"
-    ) as stream:
+        rnn_lib.rnnoise_process_frame(rnn_state, _rnn_out, _rnn_in)
 
-        while True:
-            audio, _ = stream.read(FRAME_16K)
-            audio = highpass(audio[:, 0])
+        _rnn_result[offset:offset + RNNOISE_FRAME] = np.frombuffer(
+            _rnn_out, dtype=np.float32
+        )
 
-            # --- 16k → 48k ---
-            audio_48k = to_48k.process(audio, RNNOISE_SR / INPUT_SR)
-            if len(audio_48k) != FRAME_48K:
-                continue
+    return _rnn_result.copy()
 
-            # --- RNNoise ---
-            in_buf = (ctypes.c_float * FRAME_48K)(*audio_48k)
-            out_buf = (ctypes.c_float * FRAME_48K)()
-            rnnoise.rnnoise_process_frame(rnnoise_state, out_buf, in_buf)
-            clean_48k = np.frombuffer(out_buf, dtype=np.float32)
 
-            # --- 48k → 16k ---
-            clean_16k = to_16k.process(clean_48k, INPUT_SR / RNNOISE_SR)
-            if len(clean_16k) != FRAME_16K:
-                continue
+def init_silero():
+    print("[Silero] Dang load model VAD...")
+    model, _ = torch.hub.load(
+        repo_or_dir="snakers4/silero-vad",
+        model="silero_vad",
+        trust_repo=True
+    )
+    model.eval()
+    print("[Silero] San sang.")
+    return model
 
-            pcm16 = (clean_16k * 32768).astype(np.int16).tobytes()
-            frames.append(pcm16)
 
-            # ---- Silero VAD ----
-            is_speech, prob = silero_is_speech(clean_16k)
+class SileroVAD:
+    def __init__(self, model):
+        self.model = model
+        self.buf = np.zeros(SILERO_CHUNK, dtype=np.float32)
+        self.buf_pos = 0
+        self.last_prob = 0.0
 
-            rms = np.sqrt(np.mean(clean_16k ** 2) + 1e-9)
-            if not is_speech:
-                noise_floor = NOISE_ALPHA * noise_floor + (1 - NOISE_ALPHA) * rms
+    def reset(self):
+        self.model.reset_states()
+        self.buf_pos = 0
+        self.last_prob = 0.0
 
-            band_ratio = speech_band_ratio(clean_16k)
+    def feed(self, samples_16k):
+        pos = 0
+        while pos < len(samples_16k):
+            space = SILERO_CHUNK - self.buf_pos
+            take = min(space, len(samples_16k) - pos)
+            self.buf[self.buf_pos:self.buf_pos + take] = samples_16k[pos:pos + take]
+            self.buf_pos += take
+            pos += take
 
-            speech_candidate = (
-                is_speech and
-                prob > SILERO_THRESHOLD and
-                rms > noise_floor * ENERGY_RATIO and
-                band_ratio > SPEECH_BAND_RATIO
+            if self.buf_pos >= SILERO_CHUNK:
+                tensor = torch.from_numpy(self.buf.copy()).float().unsqueeze(0)
+                with torch.no_grad():
+                    self.last_prob = self.model(tensor, TARGET_SR).item()
+                self.buf_pos = 0
+
+        return self.last_prob > SILERO_THRESH, self.last_prob
+
+
+class MicStream:
+    def __init__(self):
+        self.q = queue.Queue(maxsize=MIC_QUEUE_MAX)
+        self.stream = None
+
+    def _callback(self, indata, frames, t_info, status):
+        try:
+            self.q.put_nowait(indata[:, 0].copy())
+        except queue.Full:
+            pass
+
+    def start(self):
+        if self.stream is None:
+            self.stream = sd.InputStream(
+                samplerate=MIC_SR,
+                channels=1,
+                dtype="float32",
+                blocksize=MIC_BLOCKSIZE,
+                callback=self._callback,
             )
+            self.stream.start()
 
-            dom_buf.append(1 if speech_candidate else 0)
-            if len(dom_buf) > DOM_WINDOW:
-                dom_buf.pop(0)
+    def stop(self):
+        if self.stream is not None:
+            self.stream.stop()
+            self.stream.close()
+            self.stream = None
 
-            dominance = sum(dom_buf) / len(dom_buf)
-            now = time.time()
+    def get(self, timeout=0.5):
+        return self.q.get(timeout=timeout)
 
-            if dominance > DOM_THRESHOLD:
-                last_voice = now
-                if not had_voice:
-                    had_voice = True
-                    first_voice_time = now
-                print(f"  VOICE  prob={prob:.2f}", end="\r")
+    def clear(self):
+        while not self.q.empty():
+            try:
+                self.q.get_nowait()
+            except queue.Empty:
+                break
+
+
+def capture_audio(mic, rnn_lib, rnn_state, silero_vad, audio_queue=None, voice_timer=None, recording_flag=None):
+    silero_vad.reset()
+    mic.clear()
+
+    hp_zi = lfilter_zi(_HP_B, _HP_A)
+    pre_buf = collections.deque(maxlen=PRE_BUF_COUNT)
+
+    audio_frames = []
+    has_voice    = False
+    noise_floor  = MIN_ENERGY
+    dom_buf      = collections.deque(maxlen=DOM_WINDOW)
+
+    t_start      = time.time()
+    t_last_voice = t_start
+    t_first_voice = None
+
+    print("\r[MIC] Dang lang nghe...          ", end="", flush=True)
+
+    while True:
+        try:
+            block_48k = mic.get(timeout=0.5)
+        except queue.Empty:
+            continue
+
+        block_48k, hp_zi = lfilter(_HP_B, _HP_A, block_48k, zi=hp_zi)
+        block_48k = block_48k.astype(np.float32)
+
+        clean_48k = rnnoise_block(block_48k, rnn_lib, rnn_state)
+        clean_16k = clean_48k[::3].copy()
+
+        is_silero, prob = silero_vad.feed(clean_16k)
+
+        rms = np.sqrt(np.mean(clean_16k ** 2) + 1e-9)
+        energy_speech = rms > max(noise_floor * ENERGY_RATIO, MIN_ENERGY)
+        if not energy_speech:
+            noise_floor = NOISE_ALPHA * noise_floor + (1 - NOISE_ALPHA) * rms
+
+        speech_candidate = is_silero and energy_speech
+
+        dom_buf.append(1 if speech_candidate else 0)
+        dominance = sum(dom_buf) / len(dom_buf) if dom_buf else 0
+
+        now = time.time()
+
+        if dominance > DOM_THRESHOLD:
+            t_last_voice = now
+            if not has_voice:
+                has_voice = True
+                t_first_voice = now
+                audio_frames.extend(pre_buf)
+                pre_buf.clear()
+                if recording_flag:
+                    recording_flag.set()
+                print("\r[MIC] Dang thu am...  ", end="", flush=True)
+
+        if not has_voice:
+            pre_buf.append(clean_16k)
+        else:
+            audio_frames.append(clean_16k)
+
+        if not has_voice and (now - t_start > NO_VOICE_S):
+            print("\r[WAIT] Khong phat hien giong noi.       ")
+            if recording_flag:
+                recording_flag.clear()
+            return "__NO_VOICE__"
+
+        if has_voice and (now - t_last_voice > SILENCE_S):
+            print("\r[STOP] Cat cau (im lang).              ")
+            break
+
+        if has_voice and (now - t_first_voice > MAX_RECORD_S):
+            if audio_queue is not None and audio_frames:
+                audio = np.concatenate(audio_frames)
+                if voice_timer:
+                    voice_timer.touch()
+                try:
+                    audio_queue.put_nowait(audio)
+                except:
+                    try:
+                        audio_queue.get_nowait()
+                    except:
+                        pass
+                    audio_queue.put_nowait(audio)
+                audio_frames = []
+                t_first_voice = now
+                print("\r[STT] Gui 15s, tiep tuc nghe...  ", end="", flush=True)
             else:
-                print(f"  NOISE  prob={prob:.2f}", end="\r")
-
-            # ---- warn: no voice ----
-            if not had_voice and not no_voice_warned and (now - start_time > NO_VOICE_TIMEOUT):
-                # print("\n  Xin lỗi, bạn có cần tôi giúp gì không?")
-                no_voice_warned = True
-                return "__NO_VOICE__"
-
-            # ---- stop: silence ----
-            if had_voice and (now - last_voice > SILENCE_TIMEOUT):
-                print("\n⏹  Im lặng 2s → dừng")
+                print("\r[STOP] Dat gioi han 15s.               ")
                 break
 
-            # ---- stop: max talk ----
-            if had_voice and (now - first_voice_time > MAX_RECORD_TIME):
-                print("\n⏹  Đã nói đủ 15s → dừng")
-                break
+    if recording_flag:
+        recording_flag.clear()
 
-    if not had_voice:
-        # print("  Không phát hiện giọng người → không lưu file")
+    if not audio_frames:
         return None
 
-    with wave.open(OUTPUT_WAV, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(INPUT_SR)
-        wf.writeframes(b"".join(frames))
-
-    # print(f" Đã lưu file: {OUTPUT_WAV}")
-    return OUTPUT_WAV
-
-# if __name__ == "__main__":
-#     record()
+    return np.concatenate(audio_frames)
