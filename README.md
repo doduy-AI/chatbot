@@ -150,7 +150,7 @@ docker exec -it redis_ai_service redis-cli MONITORdocker exec -it redis_ai_servi
 
 ## 👨‍💻 Tác giả
 **Duy Đỗ (doduy-AI)**  
-📧 [doduy.ai@gmail.com](mailto:doduy.ai@gmail.com)
+📧 [dev.dinhduy@gmail.com](mailto:dev.dinhduy@gmail.com)
 
 ---
 
