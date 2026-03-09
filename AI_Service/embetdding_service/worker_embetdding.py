@@ -18,12 +18,18 @@ def main():
                 # print('[message]'+ message)
                 data = json.loads(message)
                 u_id = data.get("userId")
+
+                # fix tạm cứng groupId để test embetding
+                groupId = "hiemily"
+                # u_id = "base"
+
+
                 # print(u_id)
                 if u_id:
                     print(f" Nhận yêu cầu Embedding cho User: {u_id}")
                     
                    
-                    process_embedding_for_user(u_id)
+                    process_embedding_for_user(u_id ,groupId)
                     
                     print(f" Hoàn thành xử lý cho {u_id}")
                 else:

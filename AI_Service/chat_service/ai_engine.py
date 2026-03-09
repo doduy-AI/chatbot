@@ -12,7 +12,7 @@ class AIEngine:
         self.client = genai.Client(api_key=settings.API_LLM)
         self.qdrant_client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
         self.embed_model = SentenceTransformer(settings.MODEL_QDRANT)
-        self.collection_name = "customer_vectors"
+        self.collection_name = "bytehome"
         self.chat_sessions = {}
 
     def get_chat_session(self, uuid):
@@ -34,15 +34,23 @@ class AIEngine:
             )
         return self.chat_sessions[uuid]
 
-    def get_context(self, user_id, query_text):
+    def get_context(self, user_id, query_text ,group_id):
         try:
             query_vector = self.embed_model.encode(query_text).tolist()
             response = self.qdrant_client.query_points(
                 collection_name=self.collection_name,
                 query=query_vector,
                 query_filter=Filter(
-                    must=[FieldCondition(key="userId", match=MatchValue(value=user_id))]
-                ),
+                must=[
+                    FieldCondition(key="groupId", match=MatchValue(value=group_id)),
+                    Filter(
+                        should=[
+                            FieldCondition(key="userId", match=MatchValue(value="base")),
+                            FieldCondition(key="userId", match=MatchValue(value=user_id))
+                        ]
+                    )
+                ]
+            ),
                 limit=3
             )
             contexts = [hit.payload.get("text", "") for hit in response.points]
@@ -51,10 +59,10 @@ class AIEngine:
             print(f"[Qdrant Error] {e}")
             return ""
 
-    def generate_respone(self, prompt: str, uuid: str):
+    def generate_respone(self, prompt: str, uuid: str ,group_id: str):
         try:
             # 1. Lấy context từ Qdrant
-            context = self.get_context(uuid, prompt)
+            context = self.get_context(uuid, prompt ,group_id)
             
             # 2. Lấy session (AI đã nhớ lịch sử từ các lần trước)
             chat = self.get_chat_session(uuid)
