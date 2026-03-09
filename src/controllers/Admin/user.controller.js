@@ -1,11 +1,36 @@
 const User = require('../../model/user.model')
+const Role = require('../../model/role.model')
+const Group = require("../../model/group.model")
 const bcrypt = require('bcryptjs');
 
-const listUser = (req,res)=>{
-    console.log(req.user)
-    res.json({
-        message:"list user"
+const listUser =async (req,res)=>{
+   try{
+
+    const user = await User.findAll({
+    attributes:{
+        exclude:['password','roleid','groupId'],
+    },
+    include: [
+        {
+          model: Role,
+          attributes: ['rolename'] // Chỉ lấy cột rolename cho nhẹ
+        },
+        {
+            model:Group,
+            attributes:['groupName']
+        }
+      ]
+    
+   })
+
+   return res.status(200).json({success:true,count:user.length,data:user})
+   }
+   catch(e){
+    return res.status(500).json({
+        success:false,
+        message:e.message
     })
+   }
 }
 
 
@@ -26,7 +51,7 @@ const create = async(req,res)=>{
        const hashedPassword = await bcrypt.hash(password,salt)
 
        const userNew = await User.create({
-        roleid:"1",
+        roleid:"2",
         groupId:groupId,
         username:username,
         password:hashedPassword
