@@ -35,6 +35,7 @@ Thực hiện các lệnh sau:
 git clone https://github.com/xiph/rnnoise.git
 cd rnnoise
 ./autogen.sh
+./configure
 
 # NẾU BẠN CHẠY TRÊN RASPBERRY PI 4 / PI 5, HÃY BUILD TỐI ƯU BẰNG LỆNH NÀY:
 CFLAGS="-O3 -march=native" ./configure

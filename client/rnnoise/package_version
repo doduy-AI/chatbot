@@ -7,4 +7,4 @@
 # making frequent changes that they know will not be released.
 AUTO_UPDATE=yes
 
-PACKAGE_VERSION="0.2-22-g70f1d25"
+PACKAGE_VERSION="0.2-22-g70f1d25-dirty"

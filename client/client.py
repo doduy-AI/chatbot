@@ -258,6 +258,21 @@ def finalize_sentence(buffer, detector, reason):
     detector.reset()
 
 
+
+# def loop_speech_to_server(ws):
+#     """
+#     Gửi text (STT) từ mic lên server qua WebSocket.
+#     """
+#     text = recognize_once()
+#     if text:
+#         # ⏱ Bắt đầu đo từ lúc gửi text đi
+#         STATE["start_request_time"] = time.time()
+#         data = {"text": text, "language": "VI", "timestamp": ""}
+#         ws.send(json.dumps(data))
+#     else:
+#         loop_speech_to_server(ws)
+
+        
 def main():
     print("=" * 50)
     print("  Voice AI Client — Google STT (v7)")

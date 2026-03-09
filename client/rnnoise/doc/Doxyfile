@@ -1,7 +1,7 @@
 # Process with doxygen to generate API documentation
 
 PROJECT_NAME           = rnnoise
-PROJECT_NUMBER         = 0.2-22-g70f1d25
+PROJECT_NUMBER         = 0.2-22-g70f1d25-dirty
 PROJECT_BRIEF          = "RNN-based noise suppressor."
 INPUT                  = ../include/rnnoise.h
 OPTIMIZE_OUTPUT_FOR_C  = YES
