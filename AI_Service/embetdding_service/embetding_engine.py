@@ -46,13 +46,16 @@ def extract_text(file_path):
     return ""
 
 
-def process_embedding_for_user(user_id ,group_id):
+def process_embedding_for_user(user_id ,group_id,base):
     user_dir = Path(UPLOAD_BASE_DIR) / user_id
     if not user_dir.exists():
         print("Thư mục {user_id} không tồn tại ")
         return
     all_points = []
-
+    if(base == 'yes'):
+        userIdBase = "base"
+    else:
+        userIdBase = user_id
     for file_path in user_dir.glob("*"):
         if file_path.suffix.lower() in [".txt", ".docx"]:
             print(f" Đang xử lý: {file_path.name}")
@@ -71,9 +74,7 @@ def process_embedding_for_user(user_id ,group_id):
                     vector=vector,
                     payload={
                         "groupId": group_id,
-                        "userId": user_id,
-                        # "userId": "base",
-                        
+                        "userId": userIdBase,                        
                         "fileName": file_path.name,
                         "text": chunks[idx]
                     }

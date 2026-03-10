@@ -14,22 +14,19 @@ def main():
         if task_data:
             try:
                 topic, message = task_data
-                # print("[topic] "+ topic)
-                # print('[message]'+ message)
                 data = json.loads(message)
+                base = data.get("base")
                 u_id = data.get("userId")
-
-                # fix tạm cứng groupId để test embetding
-                groupId = "hiemily"
-                # u_id = "base"
+                groupId = data.get("groupId")
+                
 
 
                 # print(u_id)
                 if u_id:
                     print(f" Nhận yêu cầu Embedding cho User: {u_id}")
                     
-                   
-                    process_embedding_for_user(u_id ,groupId)
+
+                    process_embedding_for_user(u_id ,groupId,base)
                     
                     print(f" Hoàn thành xử lý cho {u_id}")
                 else:

@@ -6,6 +6,7 @@ const uploadfile = async (req,res)=>{
         const userId = req.user.id
         const files = req.files
         const groupId = req.body.groupId
+        const base = "yes"
 
         if (!userId) return res.status(400).json({ success: false, message: 'Thiếu userId!' });
         if (!files || files.length === 0)
@@ -14,7 +15,8 @@ const uploadfile = async (req,res)=>{
 
         const job ={
             userId,
-            groupId
+            groupId,
+            base
         }
 
         await redis.pushEmbeddingTask(job)
