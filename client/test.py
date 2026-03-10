@@ -123,10 +123,11 @@ def loop_speech_to_server(ws):
     """
     text = recognize_once()
     if text:
+        print (text)
         # ⏱ Bắt đầu đo từ lúc gửi text đi
-        STATE["start_request_time"] = time.time()
-        data = {"text": text, "language": "VI", "timestamp": ""}
-        ws.send(json.dumps(data))
+        # STATE["start_request_time"] = time.time()
+        # data = {"text": text, "language": "VI", "timestamp": ""}
+        # ws.send(json.dumps(data))
     else:
         loop_speech_to_server(ws)
 
