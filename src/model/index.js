@@ -18,7 +18,7 @@ User.belongsTo(Role,{
 Group.hasMany(User,{
     foreignKey:"groupId"
 })
-
+// một user chỉ được nằm trong 1 group duy nhất 
 User.belongsTo(Group,{
     foreignKey:"groupId"
 })
