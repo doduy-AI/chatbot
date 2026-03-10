@@ -13,7 +13,7 @@ import sys
 BASE_URL = "http://localhost:3000"
 WS_URL = "ws://localhost:3000"
 USER_DATA = {
-    "username": "testadmin",
+    "username": "test1",
     "password": "123456"
 }
 
