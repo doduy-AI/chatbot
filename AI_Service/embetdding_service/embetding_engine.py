@@ -9,7 +9,7 @@ from config.config import settings
 client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
 model = SentenceTransformer(settings.MODEL_QDRANT)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-COLLECTION_NAME = "customer_vectors"
+COLLECTION_NAME = "bytehome"
 UPLOAD_BASE_DIR = BASE_DIR / "uploads"
 
 def init_storage():
@@ -21,6 +21,11 @@ def init_storage():
         client.create_payload_index(
             collection_name=COLLECTION_NAME,
             field_name="userId",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
+        client.create_payload_index(
+            collection_name=COLLECTION_NAME,
+            field_name="groupId",
             field_schema=PayloadSchemaType.KEYWORD,
         )
         print(f" Đã khởi tạo thành công collection: {COLLECTION_NAME}")
@@ -41,13 +46,16 @@ def extract_text(file_path):
     return ""
 
 
-def process_embedding_for_user(user_id):
+def process_embedding_for_user(user_id ,group_id,base):
     user_dir = Path(UPLOAD_BASE_DIR) / user_id
     if not user_dir.exists():
         print("Thư mục {user_id} không tồn tại ")
         return
     all_points = []
-
+    if(base == 'yes'):
+        userIdBase = "base"
+    else:
+        userIdBase = user_id
     for file_path in user_dir.glob("*"):
         if file_path.suffix.lower() in [".txt", ".docx"]:
             print(f" Đang xử lý: {file_path.name}")
@@ -65,7 +73,8 @@ def process_embedding_for_user(user_id):
                     id=str(uuid.uuid4()),
                     vector=vector,
                     payload={
-                        "userId": user_id,
+                        "groupId": group_id,
+                        "userId": userIdBase,                        
                         "fileName": file_path.name,
                         "text": chunks[idx]
                     }
