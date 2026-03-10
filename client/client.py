@@ -10,6 +10,7 @@ import numpy as np
 import speech_recognition as sr
 import requests
 import websocket
+import pyaudio
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
@@ -26,6 +27,9 @@ USER_DATA = {
     "password": "123456"
 }
 
+TTS_CHANNELS = 1
+TTS_RATE = 24000
+
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
 CYAN = "\033[96m"
@@ -33,6 +37,7 @@ RED = "\033[91m"
 RESET = "\033[0m"
 
 _recognizer = sr.Recognizer()
+_pyaudio = pyaudio.PyAudio()
 
 
 def transcribe_audio(audio_16k):
@@ -279,12 +284,55 @@ def login_and_get_token():
         return None
 
 
+def play_audio_stream(url, is_playing_event):
+    try:
+        is_playing_event.set()
+        print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
+        
+        stream = _pyaudio.open(
+            format=pyaudio.paInt16,
+            channels=TTS_CHANNELS,
+            rate=TTS_RATE,
+            output=True
+        )
+
+        with requests.get(url, stream=True, timeout=10) as r:
+            if r.status_code != 200:
+                print(f"{RED}[TTS] Loi tai audio: {r.status_code}{RESET}")
+                stream.close()
+                is_playing_event.clear()
+                return
+
+            first_chunk = True
+            for chunk in r.iter_content(chunk_size=4096):
+                if not chunk:
+                    continue
+
+                if first_chunk:
+                    chunk = chunk[44:]
+                    first_chunk = False
+                    if not chunk:
+                        continue
+
+                stream.write(chunk)
+
+        stream.stop_stream()
+        stream.close()
+        print(f"{GREEN}[TTS] Phat xong!{RESET}")
+        
+    except Exception as e:
+        print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
+    finally:
+        is_playing_event.clear()
+
+
 class WebSocketHandler:
-    def __init__(self, token):
+    def __init__(self, token, is_playing_event):
         self.token = token
         self.ws_url = f"{WS_URL}?token={token}"
         self.ws = None
         self.connected = False
+        self.is_playing_event = is_playing_event
         
     def on_message(self, ws, message):
         try:
@@ -300,6 +348,11 @@ class WebSocketHandler:
                 
                 if audio_url:
                     print(f"{CYAN}[Audio URL]: {audio_url}{RESET}")
+                    threading.Thread(
+                        target=play_audio_stream,
+                        args=(audio_url, self.is_playing_event),
+                        daemon=True
+                    ).start()
             
             elif msg_type == "AI_VOICE_DONE":
                 print(f"{CYAN}[Bot] Hoan thanh phan hoi{RESET}")
@@ -391,7 +444,9 @@ def main():
         print(f"\n{RED}[Error] Khong the lay token. Thoat.{RESET}\n")
         return
     
-    ws_handler = WebSocketHandler(token)
+    is_playing_event = threading.Event()
+    
+    ws_handler = WebSocketHandler(token, is_playing_event)
     ws = ws_handler.connect()
     ws_thread = threading.Thread(
         target=ws.run_forever,
@@ -449,6 +504,10 @@ def main():
         sentence_start_time = None
 
         while not stop_event.is_set():
+            if is_playing_event.is_set():
+                time.sleep(0.1)
+                continue
+
             try:
                 raw_text, latency = text_queue.get(timeout=0.1)
 
