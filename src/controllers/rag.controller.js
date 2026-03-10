@@ -1,8 +1,8 @@
 const redits = require("../services/redisService")
 const uploadfile = async (req, res) => {
     try {
-    console.log('🧾 Body:', req.body);
-    console.log('📂 Files:', req.files);
+    console.log(' Body:', req.body);
+    console.log(' Files:', req.files);
 
     const userId = req.user.id;
     const files = req.files;
@@ -11,8 +11,6 @@ const uploadfile = async (req, res) => {
     if (!files || files.length === 0)
       return res.status(400).json({ success: false, message: 'Chưa chọn file nào!' });
 
-    // Nếu có DB thì thử comment phần này lại để test
-    // await File.insertMany(...);
     const job = {
       userId,
       createdAt: Date.now(),
@@ -37,7 +35,7 @@ const uploadfile = async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('🔥 Lỗi upload:', error);
+    console.error(' Lỗi upload:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 };

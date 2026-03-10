@@ -35,6 +35,7 @@ Thực hiện các lệnh sau:
 git clone https://github.com/xiph/rnnoise.git
 cd rnnoise
 ./autogen.sh
+./configure
 
 # NẾU BẠN CHẠY TRÊN RASPBERRY PI 4 / PI 5, HÃY BUILD TỐI ƯU BẰNG LỆNH NÀY:
 CFLAGS="-O3 -march=native" ./configure
@@ -50,6 +51,8 @@ sudo ldconfig
 > **Lưu ý**: Sau khi build xong, file thư viện `.so` thường nằm ở thư mục `.libs/librnnoise.so`. Hãy đảm bảo cấu trúc thư mục của project chứa file này tại `client/rnnoise/.libs/librnnoise.so` để `STT.py` có thể load được qua ctypes.
 
 ### 3. Python Dependencies
+
+conda 3.10
 Cài đặt qua pip các thư viện liệt kê trong `requiment.txt`:
 ```bash
 pip install -r requiment.txt

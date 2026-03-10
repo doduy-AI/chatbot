@@ -4,6 +4,7 @@ import threading
 import signal
 import io
 import wave
+import json
 
 import numpy as np
 import speech_recognition as sr
@@ -14,7 +15,12 @@ from STT import (
 )
 
 AUDIO_QUEUE_MAX = 5
-TEXT_QUEUE_MAX  = 10
+TEXT_QUEUE_MAX = 10
+
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+CYAN = "\033[96m"
+RESET = "\033[0m"
 
 _recognizer = sr.Recognizer()
 
@@ -53,7 +59,6 @@ class VoiceTimer:
 
 
 class EndpointDetector:
-
     FILLERS = frozenset({
         "ờ", "à", "ừ", "ừm", "ạ", "ơ", "ơi", "ê", "hả",
         "uhm", "um", "ah", "uh", "eh",
@@ -77,11 +82,9 @@ class EndpointDetector:
         (20,  3.0),
         (30,  3.5),
     )
-    SILENCE_MAX     = 4.5
+    SILENCE_MAX = 4.5
     CONNECTOR_BONUS = 1.0
-
     TEXT_AGE_WORD_THRESHOLD = 6
-
     STABILITY_COUNT = 3
 
     def __init__(self):
@@ -244,23 +247,39 @@ def stt_worker(audio_queue, text_queue, stop_event, stt_busy):
             stt_busy.clear()
 
 
-def finalize_sentence(buffer, detector, reason):
+def finalize_sentence(buffer, detector, reason, start_time):
     full = " ".join(buffer)
     clean = detector.filter_fillers(full)
     if not clean:
         buffer.clear()
         detector.reset()
         return
-    print(f"\n>> Cau hoan chinh [{reason}]:")
+    
+    end_time = time.time()
+    duration = end_time - start_time if start_time else 0
+    
+    print(f"\n{GREEN}>> Cau hoan chinh [{reason}]{RESET}")
     print(f"   {clean}")
+    print(f"   duration: {duration:.2f}s")
+    
+    data = {
+        "text": clean,
+        "language": "VI",
+        "timestamp": int(start_time) if start_time else int(time.time()),
+        "duration": round(duration, 2)
+    }
+    
+    print(f"\n{YELLOW}[SIMULATE SEND]{RESET}")
+    print(json.dumps(data, ensure_ascii=False, indent=2))
     print("=" * 50)
+    
     buffer.clear()
     detector.reset()
 
 
 def main():
     print("=" * 50)
-    print("  Voice AI Client — Google STT (v7)")
+    print("  Voice AI Client — STT Pipeline")
     print("=" * 50)
 
     rnn_lib, rnn_state = init_rnnoise()
@@ -274,12 +293,11 @@ def main():
     print("\n[STT] Google Speech Recognition")
     print("[STT] San sang!\n")
 
-    voice_timer    = VoiceTimer()
-    audio_queue    = queue.Queue(maxsize=AUDIO_QUEUE_MAX)
-    text_queue     = queue.Queue(maxsize=TEXT_QUEUE_MAX)
-    stt_busy       = threading.Event()
-    mic_recording  = threading.Event()
-
+    voice_timer = VoiceTimer()
+    audio_queue = queue.Queue(maxsize=AUDIO_QUEUE_MAX)
+    text_queue = queue.Queue(maxsize=TEXT_QUEUE_MAX)
+    stt_busy = threading.Event()
+    mic_recording = threading.Event()
     stop_event = threading.Event()
 
     def signal_handler(sig, frame):
@@ -309,6 +327,7 @@ def main():
     try:
         detector = EndpointDetector()
         temp_text_buffer = []
+        sentence_start_time = None
 
         while not stop_event.is_set():
             try:
@@ -325,8 +344,11 @@ def main():
 
                 detector.on_text_received()
 
-                print(f"\nBan noi: {text}")
+                print(f"\n{CYAN}Ban noi: {text}{RESET}")
                 print(f"   {latency:.2f}s")
+
+                if not temp_text_buffer:
+                    sentence_start_time = time.time()
 
                 if not detector.try_extend_buffer(temp_text_buffer, text):
                     temp_text_buffer.append(text)
@@ -334,16 +356,19 @@ def main():
                     print(f"   [MERGE] Mo rong buffer")
 
                 if detector.check_punctuation(text):
-                    finalize_sentence(temp_text_buffer, detector, "PUNCT")
+                    finalize_sentence(temp_text_buffer, detector, "PUNCT", sentence_start_time)
+                    sentence_start_time = None
                     continue
 
                 if detector.check_keyword_endpoint(text):
-                    finalize_sentence(temp_text_buffer, detector, "KEYWORD")
+                    finalize_sentence(temp_text_buffer, detector, "KEYWORD", sentence_start_time)
+                    sentence_start_time = None
                     continue
 
                 merged = " ".join(temp_text_buffer)
                 if detector.check_stability(merged):
-                    finalize_sentence(temp_text_buffer, detector, "STABLE")
+                    finalize_sentence(temp_text_buffer, detector, "STABLE", sentence_start_time)
+                    sentence_start_time = None
                     continue
 
             except queue.Empty:
@@ -358,13 +383,14 @@ def main():
                     audio_queue.empty(),
                     mic_recording.is_set(),
                 ):
-                    finalize_sentence(temp_text_buffer, detector, "SILENCE")
+                    finalize_sentence(temp_text_buffer, detector, "SILENCE", sentence_start_time)
+                    sentence_start_time = None
 
     except KeyboardInterrupt:
         stop_event.set()
 
     if temp_text_buffer:
-        finalize_sentence(temp_text_buffer, detector, "EXIT")
+        finalize_sentence(temp_text_buffer, detector, "EXIT", sentence_start_time)
 
     t_mic.join(timeout=3.0)
     t_stt.join(timeout=3.0)
