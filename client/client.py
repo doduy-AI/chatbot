@@ -4,9 +4,13 @@ import threading
 import signal
 import io
 import wave
+import json
 
 import numpy as np
 import speech_recognition as sr
+import requests
+import websocket
+import pyaudio
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
@@ -14,9 +18,26 @@ from STT import (
 )
 
 AUDIO_QUEUE_MAX = 5
-TEXT_QUEUE_MAX  = 10
+TEXT_QUEUE_MAX = 10
+
+BASE_URL = "http://192.168.1.35:3000"
+WS_URL = "ws://192.168.1.35:3000"
+USER_DATA = {
+    "username": "thanhdev",
+    "password": "123456"
+}
+
+TTS_CHANNELS = 1
+TTS_RATE = 24000
+
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+CYAN = "\033[96m"
+RED = "\033[91m"
+RESET = "\033[0m"
 
 _recognizer = sr.Recognizer()
+_pyaudio = pyaudio.PyAudio()
 
 
 def transcribe_audio(audio_16k):
@@ -53,7 +74,6 @@ class VoiceTimer:
 
 
 class EndpointDetector:
-
     FILLERS = frozenset({
         "ờ", "à", "ừ", "ừm", "ạ", "ơ", "ơi", "ê", "hả",
         "uhm", "um", "ah", "uh", "eh",
@@ -77,11 +97,9 @@ class EndpointDetector:
         (20,  3.0),
         (30,  3.5),
     )
-    SILENCE_MAX     = 4.5
+    SILENCE_MAX = 4.5
     CONNECTOR_BONUS = 1.0
-
     TEXT_AGE_WORD_THRESHOLD = 6
-
     STABILITY_COUNT = 3
 
     def __init__(self):
@@ -244,39 +262,199 @@ def stt_worker(audio_queue, text_queue, stop_event, stt_busy):
             stt_busy.clear()
 
 
-def finalize_sentence(buffer, detector, reason):
+def login_and_get_token():
+    try:
+        print(f"[Auth] Dang nhap: {USER_DATA['username']}...")
+        res = requests.post(f"{BASE_URL}/auth/login", json=USER_DATA, timeout=5)
+        if res.status_code == 200:
+            token = res.json().get("token")
+            print(f"{GREEN}[Auth] Lay token thanh cong!{RESET}\n")
+            return token
+        else:
+            print(f"{RED}[Auth] Dang nhap that bai: {res.text}{RESET}")
+            return None
+    except requests.exceptions.ConnectionError:
+        print(f"{RED}[Auth] Loi: Khong the ket noi den server {BASE_URL}{RESET}")
+        return None
+    except requests.exceptions.Timeout:
+        print(f"{RED}[Auth] Loi: Timeout ket noi den server{RESET}")
+        return None
+    except Exception as e:
+        print(f"{RED}[Auth] Loi: {e}{RESET}")
+        return None
+
+
+def play_audio_stream(url, is_playing_event):
+    try:
+        is_playing_event.set()
+        print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
+        
+        stream = _pyaudio.open(
+            format=pyaudio.paInt16,
+            channels=TTS_CHANNELS,
+            rate=TTS_RATE,
+            output=True
+        )
+
+        with requests.get(url, stream=True, timeout=10) as r:
+            if r.status_code != 200:
+                print(f"{RED}[TTS] Loi tai audio: {r.status_code}{RESET}")
+                stream.close()
+                is_playing_event.clear()
+                return
+
+            first_chunk = True
+            for chunk in r.iter_content(chunk_size=4096):
+                if not chunk:
+                    continue
+
+                if first_chunk:
+                    chunk = chunk[44:]
+                    first_chunk = False
+                    if not chunk:
+                        continue
+
+                stream.write(chunk)
+
+        stream.stop_stream()
+        stream.close()
+        print(f"{GREEN}[TTS] Phat xong!{RESET}")
+        
+    except Exception as e:
+        print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
+    finally:
+        is_playing_event.clear()
+
+
+class WebSocketHandler:
+    def __init__(self, token, is_playing_event):
+        self.token = token
+        self.ws_url = f"{WS_URL}?token={token}"
+        self.ws = None
+        self.connected = False
+        self.is_playing_event = is_playing_event
+        
+    def on_message(self, ws, message):
+        try:
+            data = json.loads(message)
+            msg_type = data.get("type")
+            
+            if msg_type == "AI_VOICE_REPLY":
+                bot_text = data.get("text")
+                audio_url = data.get("audioUrl")
+                
+                if bot_text:
+                    print(f"\n{GREEN}[Bot]: {bot_text}{RESET}")
+                
+                if audio_url:
+                    print(f"{CYAN}[Audio URL]: {audio_url}{RESET}")
+                    threading.Thread(
+                        target=play_audio_stream,
+                        args=(audio_url, self.is_playing_event),
+                        daemon=True
+                    ).start()
+            
+            elif msg_type == "AI_VOICE_DONE":
+                print(f"{CYAN}[Bot] Hoan thanh phan hoi{RESET}")
+                
+            elif msg_type != "STATUS":
+                print(f"{YELLOW}[WS] Event: {msg_type}{RESET}")
+                
+        except Exception as e:
+            print(f"{RED}[WS] Loi xu ly message: {e}{RESET}")
+    
+    def on_error(self, ws, error):
+        print(f"{RED}[WS] Loi: {error}{RESET}")
+    
+    def on_close(self, ws, close_status_code, close_msg):
+        print(f"{YELLOW}[WS] Ket noi dong{RESET}")
+        self.connected = False
+    
+    def on_open(self, ws):
+        print(f"{GREEN}[WS] Ket noi thanh cong!{RESET}")
+        self.connected = True
+    
+    def connect(self):
+        self.ws = websocket.WebSocketApp(
+            self.ws_url,
+            on_open=self.on_open,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_close=self.on_close
+        )
+        return self.ws
+    
+    def send_text(self, text, timestamp, duration):
+        if self.ws and self.connected:
+            try:
+                data = {
+                    "text": text,
+                    "language": "VI",
+                    "timestamp": timestamp,
+                    "duration": duration
+                }
+                self.ws.send(json.dumps(data))
+                print(f"{GREEN}[WS] Da gui len server{RESET}")
+            except Exception as e:
+                print(f"{RED}[WS] Loi gui: {e}{RESET}")
+
+
+def finalize_sentence(buffer, detector, reason, start_time, ws_handler=None):
     full = " ".join(buffer)
     clean = detector.filter_fillers(full)
     if not clean:
         buffer.clear()
         detector.reset()
         return
-    print(f"\n>> Cau hoan chinh [{reason}]:")
+    
+    end_time = time.time()
+    duration = end_time - start_time if start_time else 0
+    timestamp = int(start_time) if start_time else int(time.time())
+    
+    print(f"\n{GREEN}>> Cau hoan chinh [{reason}]{RESET}")
     print(f"   {clean}")
+    print(f"   duration: {duration:.2f}s")
+    
+    data = {
+        "text": clean,
+        "language": "VI",
+        "timestamp": timestamp,
+        "duration": round(duration, 2)
+    }
+    
+    print(f"\n{YELLOW}[DATA]{RESET}")
+    print(json.dumps(data, ensure_ascii=False, indent=2))
+    
+    if ws_handler:
+        ws_handler.send_text(clean, timestamp, round(duration, 2))
+    
     print("=" * 50)
+    
     buffer.clear()
     detector.reset()
 
 
-
-# def loop_speech_to_server(ws):
-#     """
-#     Gửi text (STT) từ mic lên server qua WebSocket.
-#     """
-#     text = recognize_once()
-#     if text:
-#         # ⏱ Bắt đầu đo từ lúc gửi text đi
-#         STATE["start_request_time"] = time.time()
-#         data = {"text": text, "language": "VI", "timestamp": ""}
-#         ws.send(json.dumps(data))
-#     else:
-#         loop_speech_to_server(ws)
-
-        
 def main():
     print("=" * 50)
-    print("  Voice AI Client — Google STT (v7)")
+    print("  Voice AI Client — STT Pipeline")
     print("=" * 50)
+    
+    token = login_and_get_token()
+    if not token:
+        print(f"\n{RED}[Error] Khong the lay token. Thoat.{RESET}\n")
+        return
+    
+    is_playing_event = threading.Event()
+    
+    ws_handler = WebSocketHandler(token, is_playing_event)
+    ws = ws_handler.connect()
+    ws_thread = threading.Thread(
+        target=ws.run_forever,
+        daemon=True,
+        name="websocket_worker"
+    )
+    ws_thread.start()
+    time.sleep(1)
 
     rnn_lib, rnn_state = init_rnnoise()
     silero_model = init_silero()
@@ -289,12 +467,11 @@ def main():
     print("\n[STT] Google Speech Recognition")
     print("[STT] San sang!\n")
 
-    voice_timer    = VoiceTimer()
-    audio_queue    = queue.Queue(maxsize=AUDIO_QUEUE_MAX)
-    text_queue     = queue.Queue(maxsize=TEXT_QUEUE_MAX)
-    stt_busy       = threading.Event()
-    mic_recording  = threading.Event()
-
+    voice_timer = VoiceTimer()
+    audio_queue = queue.Queue(maxsize=AUDIO_QUEUE_MAX)
+    text_queue = queue.Queue(maxsize=TEXT_QUEUE_MAX)
+    stt_busy = threading.Event()
+    mic_recording = threading.Event()
     stop_event = threading.Event()
 
     def signal_handler(sig, frame):
@@ -324,8 +501,13 @@ def main():
     try:
         detector = EndpointDetector()
         temp_text_buffer = []
+        sentence_start_time = None
 
         while not stop_event.is_set():
+            if is_playing_event.is_set():
+                time.sleep(0.1)
+                continue
+
             try:
                 raw_text, latency = text_queue.get(timeout=0.1)
 
@@ -340,8 +522,11 @@ def main():
 
                 detector.on_text_received()
 
-                print(f"\nBan noi: {text}")
+                print(f"\n{CYAN}Ban noi: {text}{RESET}")
                 print(f"   {latency:.2f}s")
+
+                if not temp_text_buffer:
+                    sentence_start_time = time.time()
 
                 if not detector.try_extend_buffer(temp_text_buffer, text):
                     temp_text_buffer.append(text)
@@ -349,16 +534,19 @@ def main():
                     print(f"   [MERGE] Mo rong buffer")
 
                 if detector.check_punctuation(text):
-                    finalize_sentence(temp_text_buffer, detector, "PUNCT")
+                    finalize_sentence(temp_text_buffer, detector, "PUNCT", sentence_start_time, ws_handler)
+                    sentence_start_time = None
                     continue
 
                 if detector.check_keyword_endpoint(text):
-                    finalize_sentence(temp_text_buffer, detector, "KEYWORD")
+                    finalize_sentence(temp_text_buffer, detector, "KEYWORD", sentence_start_time, ws_handler)
+                    sentence_start_time = None
                     continue
 
                 merged = " ".join(temp_text_buffer)
                 if detector.check_stability(merged):
-                    finalize_sentence(temp_text_buffer, detector, "STABLE")
+                    finalize_sentence(temp_text_buffer, detector, "STABLE", sentence_start_time, ws_handler)
+                    sentence_start_time = None
                     continue
 
             except queue.Empty:
@@ -373,16 +561,22 @@ def main():
                     audio_queue.empty(),
                     mic_recording.is_set(),
                 ):
-                    finalize_sentence(temp_text_buffer, detector, "SILENCE")
+                    finalize_sentence(temp_text_buffer, detector, "SILENCE", sentence_start_time, ws_handler)
+                    sentence_start_time = None
 
     except KeyboardInterrupt:
         stop_event.set()
 
     if temp_text_buffer:
-        finalize_sentence(temp_text_buffer, detector, "EXIT")
+        finalize_sentence(temp_text_buffer, detector, "EXIT", sentence_start_time, ws_handler)
 
     t_mic.join(timeout=3.0)
     t_stt.join(timeout=3.0)
+    
+    if ws_handler and ws_handler.ws:
+        ws_handler.ws.close()
+    if ws_thread:
+        ws_thread.join(timeout=3.0)
 
     mic.stop()
     if rnn_lib and rnn_state:
