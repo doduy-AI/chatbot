@@ -9,6 +9,22 @@ const User = sequelize.define('User',{
         primaryKey: true,
         allowNull: false
     },
+    roleid:{
+            type:DataTypes.INTEGER,
+            allowNull:false,
+            references:{
+                model:"Role",
+                key:"roleid"
+            }
+    },
+    groupId:{
+        type:DataTypes.UUID,
+        allowNull:false,
+        references:{
+            model:"Groups",
+            key:"groupId"
+        }
+    },
     username:{
         type: DataTypes.STRING,
         allowNull:false,
@@ -18,6 +34,7 @@ const User = sequelize.define('User',{
         type: DataTypes.STRING,
         allowNull:false
     }
+
 },{
     timestamps: true,
     // hooks: {
