@@ -25,7 +25,7 @@ def main():
             language = data.get("language")
 
             # fix cứng group_id
-            group_id = "hiemily"
+            group_id = data.get("groupId")
             
             reply = ai.generate_respone(text ,user_id,group_id)
             print("[BYTEHOME]" , reply)
