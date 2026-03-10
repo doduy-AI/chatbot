@@ -21,7 +21,6 @@ qdrant_data/
 **/uploads/**
 uploads/
 
-**/rnnoise/**
-client/rnnoise/
+
 
 __pycache__/
