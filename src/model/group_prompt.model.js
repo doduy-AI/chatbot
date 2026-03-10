@@ -11,10 +11,12 @@ const prompt = sequelize.define('prompt',{
     groupId:{
         type:DataTypes.UUID,
         allowNull:false,
+        unique:true,
         references:{
             model:"Groups",
             key:"groupId"
-        }
+        },
+        onDelete:'CASCADE'
     },
     promptName:{
         type:DataTypes.STRING,
