@@ -1,6 +1,5 @@
 const {DataTypes} = require('sequelize')
 const sequelize = require('../config/db')
-const bcrypt = require('bcryptjs')
 
 const User = sequelize.define('User',{
     id:{
@@ -12,7 +11,7 @@ const User = sequelize.define('User',{
     roleid:{
             type:DataTypes.INTEGER,
             allowNull:false,
-            references:{
+            references:{    
                 model:"Role",
                 key:"roleid"
             }
@@ -37,13 +36,7 @@ const User = sequelize.define('User',{
 
 },{
     timestamps: true,
-    // hooks: {
-    //     beforeBulkCreate: async (user) => {
-    //         console.log(user)
-    //         const salt = await bcrypt.genSalt(10);
-    //         user.password = await bcrypt.hash(user.password , salt)
-    //     }
-    // }
+   
 })
 
 module.exports = User ;
