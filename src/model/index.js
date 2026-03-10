@@ -2,6 +2,8 @@ const Role = require("./role.model")
 const Group = require("./group.model")
 const User = require("./user.model")
 
+const Prompt = require('./group_prompt.model')
+
 const sequelize = require('../config/db');
 
 // Một quyền thuộc về nhiều user (1-N)
@@ -24,11 +26,17 @@ User.belongsTo(Group,{
 })
 
 
+Group.hasOne(Prompt,{
+    foreignKey:'groupId'
+})
+Prompt.belongsTo(Group, { foreignKey: 'groupId' });
+
 module.exports = { 
     sequelize ,
     Role,
     Group,
-    User
+    User,
+    Prompt
 }
 
 
