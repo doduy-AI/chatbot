@@ -46,30 +46,34 @@ def extract_text(file_path):
     return ""
 
 
-def process_embedding_for_user(user_id ,group_id,base):
+def process_embedding_for_user(user_id, group_id, base):
     user_dir = Path(UPLOAD_BASE_DIR) / user_id
     if not user_dir.exists():
-        print("Thư mục {user_id} không tồn tại ")
+        print(f"Thư mục {user_id} không tồn tại")
         return
-    all_points = []
-    if(base == 'yes'):
-        userIdBase = "base"
-    else:
-        userIdBase = user_id
+
+    # Xác định userId lưu vào payload
+    userIdBase = "base" if base == 'yes' else user_id
+
+    # Duyệt từng file trong thư mục
     for file_path in user_dir.glob("*"):
         if file_path.suffix.lower() in [".txt", ".docx"]:
-            print(f" Đang xử lý: {file_path.name}")
+            print(f" 📑 Đang xử lý: {file_path.name}")
             content = extract_text(file_path)
             
             if not content.strip():
                 continue
 
+            # Chia nhỏ văn bản của file hiện tại
             chunks = [content[i:i+600] for i in range(0, len(content), 600)]
             
+            # Tạo vector cho file hiện tại
             vectors = model.encode(chunks).tolist()
             
+            # Gom points của RIÊNG file này vào một danh sách tạm
+            current_file_points = []
             for idx, vector in enumerate(vectors):
-                all_points.append(PointStruct(
+                current_file_points.append(PointStruct(
                     id=str(uuid.uuid4()),
                     vector=vector,
                     payload={
@@ -79,8 +83,17 @@ def process_embedding_for_user(user_id ,group_id,base):
                         "text": chunks[idx]
                     }
                 ))
-    if all_points:
-        client.upsert(collection_name=COLLECTION_NAME, points=all_points)
-        print(f" Đã lưu {len(all_points)} đoạn văn cho User: {user_id}")
-    else:
-        print(f"ℹKhông có dữ liệu mới để cập nhật cho User: {user_id}")
+
+            # --- SỬA ĐỔI CHÍNH: LƯU VÀO QDRANT NGAY SAU MỖI FILE ---
+            if current_file_points:
+                try:
+                    client.upsert(
+                        collection_name=COLLECTION_NAME, 
+                        points=current_file_points
+                    )
+                    print(f"    Đã lưu {len(current_file_points)} đoạn của file: {file_path.name}")
+                except Exception as e:
+                    print(f"    Lỗi khi đẩy file {file_path.name} lên Qdrant: {e}")
+            # -----------------------------------------------------
+
+    print(f"\n Hoàn thành xử lý toàn bộ file cho User: {user_id}")
