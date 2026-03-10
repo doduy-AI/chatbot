@@ -10,10 +10,10 @@ import io
 import sys
 
 # --- CẤU HÌNH ---
-BASE_URL = "http://localhost:3000"
-WS_URL = "ws://localhost:3000"
+BASE_URL = "http://192.168.1.35:3000"
+WS_URL = "ws://192.168.1.35:3000"
 USER_DATA = {
-    "username": "bytehome10",
+    "username": "test1",
     "password": "123456"
 }
 
@@ -123,11 +123,11 @@ def loop_speech_to_server(ws):
     """
     text = recognize_once()
     if text:
-        print (text)
+        # print (text)
         # ⏱ Bắt đầu đo từ lúc gửi text đi
-        # STATE["start_request_time"] = time.time()
-        # data = {"text": text, "language": "VI", "timestamp": ""}
-        # ws.send(json.dumps(data))
+        STATE["start_request_time"] = time.time()
+        data = {"text": text, "language": "VI", "timestamp": ""}
+        ws.send(json.dumps(data))
     else:
         loop_speech_to_server(ws)
 
