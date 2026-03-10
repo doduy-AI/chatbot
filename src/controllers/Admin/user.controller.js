@@ -20,7 +20,6 @@ const listUser =async (req,res)=>{
             attributes:['groupName']
         }
       ]
-    
    })
 
    return res.status(200).json({success:true,count:user.length,data:user})
@@ -67,9 +66,6 @@ const create = async(req,res)=>{
             username:userNew.username
         }
        })
-
-
-
     }
     catch(e){
         return res.status(500).json({
