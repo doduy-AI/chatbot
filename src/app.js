@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const WebSocket = require('ws');
 const http = require('http');
-const sequelize = require('./config/db');
+const {sequelize} = require('./model/index');
 const serverConfig = require('./config/server');
 
 const handleChatSocket = require('./sockets/chat.socket');
@@ -38,16 +38,16 @@ app.use((err, req, res, next) => {
 sequelize
   .authenticate()
   .then(() => {
-    console.log('✅ Kết nối database thành công!');
+    console.log(' Kết nối database thành công!');
     return sequelize.sync({ alter: true });
   })
   .then(() => {
     const PORT = serverConfig.PORT || 3000;
     server.listen(PORT, () => {
-      console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+      console.log(` Server đang chạy tại http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('❌ Lỗi khởi động:', err.message);
+    console.error(' Lỗi khởi động:', err.message);
     process.exit(1);
   });
