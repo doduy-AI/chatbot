@@ -11,7 +11,7 @@ const User = sequelize.define('User',{
     roleid:{
             type:DataTypes.INTEGER,
             allowNull:false,
-            references:{
+            references:{    
                 model:"Role",
                 key:"roleid"
             }
