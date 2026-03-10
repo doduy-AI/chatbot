@@ -13,7 +13,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 MODEL_DIR = "model/"
-speaker_audio_file = f"{MODEL_DIR}hn_nganha_begai.wav" # <-- Đường dẫn file wav của bạn
+speaker_audio_file = f"{MODEL_DIR}hn_nganha_begai.wav" 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 print(" Đang khởi tạo mô hình XTTS...")

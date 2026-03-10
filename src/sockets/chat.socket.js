@@ -1,5 +1,5 @@
 const redisService = require('../services/redisService');
-
+const User = require('../model/user.model')
 const handleChatSocket = (wss) => {
     redisService.listenForResponses((userId, data) => {
 
@@ -17,9 +17,14 @@ const handleChatSocket = (wss) => {
         });
     });
 
-    wss.on('connection', (ws, req) => {
+    wss.on('connection', async (ws, req) => {
         const user = req.user;
-
+        const userGroup = await User.findOne({
+        where:{
+            id:user.id
+        }
+        })
+        const groupId = userGroup.groupId
         if (!user || !user.id) {
             console.log("Kết nối bị từ chối: Không có thông tin User");
             ws.close();
@@ -36,6 +41,7 @@ const handleChatSocket = (wss) => {
 
                 const task = {
                     userId: user.id,
+                    groupId:groupId,
                     text: payload.text,
                     language: payload.language || 'vi',
                     timestamp: Date.now()
