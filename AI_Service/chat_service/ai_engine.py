@@ -53,18 +53,10 @@ class AIEngine:
 
     def generate_respone(self, prompt: str, uuid: str):
         try:
-            # 1. Lấy context từ Qdrant
             context = self.get_context(uuid, prompt)
-            
-            # 2. Lấy session (AI đã nhớ lịch sử từ các lần trước)
             chat = self.get_chat_session(uuid)
-            
-            # 3. Kết hợp context và câu hỏi mới
             full_prompt = f"THÔNG TIN HỖ TRỢ:\n{context}\n\nCÂU HỎI: {prompt}"
-
             print(full_prompt)
-            
-            # 4. Sử dụng send_message thay vì generate_content
             response = chat.send_message(full_prompt)
             return response.text
             
