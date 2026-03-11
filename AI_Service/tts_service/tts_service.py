@@ -16,6 +16,38 @@ MODEL_DIR = "model/"
 speaker_audio_file = f"{MODEL_DIR}giongnuhanoi6s.wav" 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
+VOICE_PROFILES={
+    "nuhanoi":{
+        "audio": f"{MODEL_DIR}giongnuhanoi6s.wav",
+        "inference": {
+            "temperature": 0.7,
+            "top_p": 0.80,
+            "top_k": 8,
+            "speed": 1.0,
+            "repetition_penalty": 20.0,
+            "num_beams": 1,
+            "length_penalty": 1.0,
+        }
+
+    },
+    "nutreem":{
+        "audio": f"{MODEL_DIR}hn_nganha_begai.wav",
+        "inference": {
+            "temperature": 0.7,
+            "top_p": 0.80,
+            "top_k": 8,
+            "speed": 1.0,
+            "repetition_penalty": 20.0,
+            "num_beams": 1,
+            "length_penalty": 1.0,
+        }
+
+    }
+}
+
+
+
+
 print(" Đang khởi tạo mô hình XTTS...")
 
 config = XttsConfig()
@@ -29,13 +61,21 @@ XTTS_MODEL.load_checkpoint(
 )
 XTTS_MODEL.to(device)
 
-print(f"[*] Đang trích xuất đặc trưng từ file: {speaker_audio_file}")
-gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
-    audio_path=speaker_audio_file,
-    gpt_cond_len=config.gpt_cond_len,
-    max_ref_length=config.max_ref_len,
-    sound_norm_refs=config.sound_norm_refs,
-)
+print("Đang trích xuất đặc trưng giọng nói...")
+VOICE_LATENTS = {}
+for voice_id, profile in VOICE_PROFILES.items():
+    print(f"  [{voice_id}] ← {profile['audio']}")
+    gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
+        audio_path=profile["audio"],
+        gpt_cond_len=config.gpt_cond_len,
+        max_ref_length=config.max_ref_len,
+        sound_norm_refs=config.sound_norm_refs,
+    )
+    VOICE_LATENTS[voice_id] = {
+        "gpt_cond_latent": gpt_cond_latent,
+        "speaker_embedding": speaker_embedding,
+    }
+
 # ----------------------------------------------
 
 print(" Mô hình XTTS đã sẵn sàng.")
@@ -74,7 +114,9 @@ def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_
     pcm = (wav * 32767.0).astype(np.int16)
     return pcm.tobytes()
 
-def generate_tts(text: str):
+def generate_tts(text: str,voice:str):
+    latents = VOICE_LATENTS[voice]
+    inf_cfg = VOICE_PROFILES[voice]["inference"]
     chunks = split_text_smartly(text)
     first_chunk = True
 
@@ -86,15 +128,9 @@ def generate_tts(text: str):
             outputs = XTTS_MODEL.inference(
                 text=full_text,
                 language="vi",
-                gpt_cond_latent=gpt_cond_latent,
-                speaker_embedding=speaker_embedding,
-                num_beams=1,
-                repetition_penalty=20.0,
-                temperature=0.7,
-                top_p=0.80,
-                speed=1,
-                top_k=8,
-                length_penalty=1.0
+                gpt_cond_latent=latents["gpt_cond_latent"],
+                speaker_embedding=latents["speaker_embedding"],
+                **inf_cfg,
             )
 
             wav = outputs["wav"]
