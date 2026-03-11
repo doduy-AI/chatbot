@@ -80,14 +80,14 @@ async def stream_voice(task_id: str):
 
     return StreamingResponse(stream_generator(), media_type="audio/wav")
 
-def process_tts_task(user_id, text, task_id, q: queue.Queue):
+def process_tts_task(user_id, text, task_id, q: queue.Queue,voice):
     """Chạy generate_tts trong thread riêng và đẩy chunk vào q"""
     start_time = time.time()
     print(f"[TTS] Bắt đầu task {task_id} cho user {user_id}")
 
     try:
         first_chunk = True
-        for chunk in generate_tts(text):
+        for chunk in generate_tts(text,voice):
             if first_chunk:
                 print(f"⏱ Task {task_id}: chunk đầu sau {time.time() - start_time:.2f}s")
                 first_chunk = False
@@ -130,6 +130,7 @@ def redis_listener():
             data = json.loads(task_data[1])
             user_id = data.get("userId")
             text = data.get("reply", "")
+            voice = data.get("voice")
             task_id = f"task_{int(time.time() * 1000)}"
 
             # Tạo queue cho task và lưu vào audio_buffers trước khi publish URL
@@ -146,7 +147,7 @@ def redis_listener():
             })
 
             # Submit task cho thread pool
-            executor.submit(process_tts_task, user_id, text, task_id, q)
+            executor.submit(process_tts_task, user_id, text, task_id, q,voice)
 
         except Exception as e:
             print(f"[ERR] Redis listener: {e}")
