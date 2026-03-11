@@ -208,8 +208,13 @@ class EndpointDetector:
 
 
 def mic_worker(audio_queue, mic, rnn_lib, rnn_state, silero_vad,
-               voice_timer, stop_event, mic_recording):
+               voice_timer, stop_event, mic_recording, is_playing_event):
     while not stop_event.is_set():
+        # --- Pause mic while audio is playing ---
+        if is_playing_event.is_set():
+            time.sleep(0.1)
+            continue
+
         try:
             audio = capture_audio(mic, rnn_lib, rnn_state, silero_vad, audio_queue, voice_timer, mic_recording)
 
@@ -319,6 +324,7 @@ def play_audio_stream(url, is_playing_event):
         stream.stop_stream()
         stream.close()
         print(f"{GREEN}[TTS] Phat xong!{RESET}")
+        time.sleep(0.3)  # small delay before resuming mic
         
     except Exception as e:
         print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
@@ -483,7 +489,7 @@ def main():
     t_mic = threading.Thread(
         target=mic_worker,
         args=(audio_queue, mic, rnn_lib, rnn_state, silero_vad,
-              voice_timer, stop_event, mic_recording),
+              voice_timer, stop_event, mic_recording, is_playing_event),
         daemon=True, name="mic_worker"
     )
     t_stt = threading.Thread(
@@ -502,11 +508,33 @@ def main():
         detector = EndpointDetector()
         temp_text_buffer = []
         sentence_start_time = None
+        was_playing = False
 
         while not stop_event.is_set():
+            # --- Wait until audio playback finishes ---
             if is_playing_event.is_set():
+                was_playing = True
                 time.sleep(0.1)
                 continue
+
+            # --- Flush stale data after playback ends ---
+            if was_playing:
+                was_playing = False
+                # Discard any audio/text captured during playback (echo)
+                while not audio_queue.empty():
+                    try:
+                        audio_queue.get_nowait()
+                    except queue.Empty:
+                        break
+                while not text_queue.empty():
+                    try:
+                        text_queue.get_nowait()
+                    except queue.Empty:
+                        break
+                temp_text_buffer.clear()
+                detector.reset()
+                sentence_start_time = None
+                print(f"\n{CYAN}[System] Audio xong, tiep tuc nghe...{RESET}")
 
             try:
                 raw_text, latency = text_queue.get(timeout=0.1)
