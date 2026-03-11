@@ -11,6 +11,7 @@ import speech_recognition as sr
 import requests
 import websocket
 import pyaudio
+voice="nuhanoi"
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
@@ -396,6 +397,7 @@ class WebSocketHandler:
                 data = {
                     "text": text,
                     "language": "VI",
+                    "voice":voice,
                     "timestamp": timestamp,
                     "duration": duration
                 }
