@@ -3,9 +3,9 @@ import requests
 
 # --- CẤU HÌNH ---
 API_URL = 'http://localhost:3000/api/admin/rag/uploadfile'
-TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM2NjE1NjQ3LTY3Y2YtNGZhMi1iODFmLWM4NTQxNDNiMDRlNyIsInVzZXJuYW1lIjoiQWRtaW4iLCJpYXQiOjE3NzMxNTYxOTIsImV4cCI6MTc3NTc0ODE5Mn0.dAINSqG9ESYfBgx8MFUJ3ngXtXMkHXDyOkLrbnGNO1U'  # Dán token của bạn vào đây
-TARGET_DIR = '/home/duydo/Downloads/data_cminh'  # Thư mục chứa 1000 file (có folder con)
-GROUP_ID = 'f3a3d17a-c498-459b-ba10-e01dff928680' # Thêm GroupID của bạn vào đây
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJlNDBmZTk0LTIyMGMtNDA4NS05YThkLWM0ODAwMTlhYzk2MCIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzMxOTUyNzgsImV4cCI6MTc3NTc4NzI3OH0.QBFVKMudtjAu41Hl2RKoWNH1oPQJJ6PEGE1Ues8lNcs'  # Dán token của bạn vào đây
+TARGET_DIR = '/home/doduy/Downloads/data_cminh'  # Thư mục chứa 1000 file (có folder con)
+GROUP_ID = '4cf8e736-fe58-4d5a-bd91-16f5fe67f68e' # Thêm GroupID của bạn vào đây
 
 def get_all_files_recursive(directory):
     """Quét sạch mọi file trong mọi ngóc ngách thư mục con"""
