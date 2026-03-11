@@ -11,7 +11,7 @@ import speech_recognition as sr
 import requests
 import websocket
 import pyaudio
-voice="nuhanoi"
+voice="nutreem"
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
