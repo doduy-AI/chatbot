@@ -13,7 +13,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 MODEL_DIR = "model/"
-speaker_audio_file = f"{MODEL_DIR}hn_nganha_begai.wav" 
+speaker_audio_file = f"{MODEL_DIR}giongnuhanoi6s.wav" 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 print(" Đang khởi tạo mô hình XTTS...")
@@ -90,10 +90,10 @@ def generate_tts(text: str):
                 speaker_embedding=speaker_embedding,
                 num_beams=1,
                 repetition_penalty=20.0,
-                temperature=0.6,
+                temperature=0.7,
                 top_p=0.80,
                 speed=1,
-                top_k=50,
+                top_k=8,
                 length_penalty=1.0
             )
 
