@@ -26,12 +26,14 @@ def main():
 
             # fix cứng group_id
             group_id = data.get("groupId")
+            voice = data.get("voice")
             
             reply = ai.generate_respone(text ,user_id,group_id)
             print("[BYTEHOME]" , reply)
             result = {
                 "userId": user_id,
                 "reply": reply,
+                "voice":voice,
                 "status": "success"
             }
             redis_manager.publish("tts_tasks", result)
