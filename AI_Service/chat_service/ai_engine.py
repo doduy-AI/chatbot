@@ -65,9 +65,15 @@ class AIEngine:
         try:
             context = self.get_context(uuid, prompt ,group_id)
             chat = self.get_chat_session(uuid)
+           
             full_prompt = f"THÔNG TIN HỖ TRỢ:\n{context}\n\nCÂU HỎI: {prompt}"
             print(full_prompt)
             response = chat.send_message(full_prompt)
+            history = chat.get_history()
+            for msg in history:
+                print(f"role: {msg.role}")
+                print(f"text: {msg.parts[0].text}")
+                print("---")
             return response.text
             
         except Exception as e:
