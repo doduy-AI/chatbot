@@ -34,6 +34,7 @@ const handleChatSocket = (wss) => {
         ws.user = user;
         console.log(`[Socket] ${user.username} đã kết nối.`);
 
+
         ws.on('message', async (message) => {
             try {
                 const msgString = message.toString();
@@ -61,7 +62,15 @@ const handleChatSocket = (wss) => {
             }
         });
 
-        ws.on('close', () => console.log(`${user.username} ngắt kết nối.`));
+        ws.on('close', async () => {console.log(`${user.username} ngắt kết nối.`);
+            const task = {
+                    userId: user.id,
+                    text:"disconectuser",
+                    timestamp: Date.now()
+                };
+        await redisService.pushTask(task)
+        });
+        
     });
 };
 

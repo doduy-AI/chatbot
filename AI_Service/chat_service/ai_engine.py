@@ -79,6 +79,11 @@ class AIEngine:
         except Exception as e:
             print(f"[genAI ERROR] {e}")
             return "Tớ xin lỗi, tớ đang gặp chút trục trặc nhỏ."
+        
+    def delete_session(self, uuid):
+        if uuid in self.chat_sessions:
+            del self.chat_sessions[uuid]
+            print(f"🗑 Xóa session: {uuid}")
 
 if __name__ == "__main__":
     ai = AIEngine()

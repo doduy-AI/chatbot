@@ -18,7 +18,6 @@ class RedisService {
         // this.responseChannel = 'ai_responses';
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
-
         this.voiceResponsePattern = 'voice_ready:*';
         this.initPatternListener();
     }
@@ -105,6 +104,8 @@ class RedisService {
             }
         });
     }
+
+    
 }
 
 module.exports = new RedisService();

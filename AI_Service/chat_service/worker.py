@@ -16,17 +16,28 @@ def handle_task(data):
     text = data.get("text")
     group_id = data.get("groupId")
     voice = data.get("voice")
+    if text == "disconectuser":
+        ai.delete_session(user_id)
+        return
 
     reply = ai.generate_respone(text, user_id, group_id)
     print("[BYTEHOME]", reply)
 
-    redis_manager.publish("tts_tasks", {
-        "userId": user_id,
-        "reply": reply,
-        "voice": voice,
-        "status": "success"
-    })
+    # redis_manager.publish("tts_tasks", {
+    #     "userId": user_id,
+    #     "reply": reply,
+    #     "voice": voice,
+    #     "status": "success"
+    # })
+
+    redis_manager.publish(f"voice_ready:{user_id}", {
+                "type": "AI_VOICE_REPLY",
+                "text": text,
+                "audioUrl": "http://192.168.1.35:3001/giongnuhanoi6s.wav"
+            })
     print(f" Đã trả lời {user_id}")
+
+
 
 def main():
     print(" sẵn sàng")
@@ -34,6 +45,8 @@ def main():
 
     while True:
         task_data = redis_manager.listen_tasks("ai_tasks")
+
+            
         if task_data:
             data = json.loads(task_data[1])
             executor.submit(handle_task, data)
