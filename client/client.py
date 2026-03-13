@@ -24,7 +24,7 @@ TEXT_QUEUE_MAX = 10
 BASE_URL = "http://192.168.1.35:3000"
 WS_URL = "ws://192.168.1.35:3000"
 USER_DATA = {
-    "username": "BHXH",
+    "username": "emily",
     "password": "123456"
 }
 

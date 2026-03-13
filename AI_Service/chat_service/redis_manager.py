@@ -17,5 +17,8 @@ class RedisManager:
 
     def publish(self, channel, data):
         self.client.lpush(channel, json.dumps(data))  
-
+        
+    def get_cache(self, key):
+        data = self.client.get(key)
+        return data if data else None
 redis_manager = RedisManager()

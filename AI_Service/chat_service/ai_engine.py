@@ -3,6 +3,8 @@ import sys, os
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from sentence_transformers import SentenceTransformer
+from redis_manager import redis_manager
+
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from config.config import settings
@@ -21,15 +23,14 @@ class AIEngine:
 #             2. KHÔNG mở ngoặc đơn để chú thích. 
 #             3. Trả lời ngắn gọn 3 câu cho câu dễ, 5-10 câu cho câu khó.
 #             4. Không ghi nguồn tài liệu. 
-    def get_chat_session(self, uuid):
+    def get_chat_session(self, uuid ,group_id):
         if uuid not in self.chat_sessions:
             # Khởi tạo session với System Instruction để AI luôn đóng vai bé gái lớp 4
             # và tuân thủ các quy tắc định dạng số một cách bền vững
-            system_instruction = """
-            bạn là một chuyên viên tư vấn bảo hiểm xã hội ,
-            trả lời bằng tiếng việt , không viết tắt ,
-            viết mọi số thành chữ , trả lời ngắn ngọn 3 đến 5 câu, không nhắc đến nguồn gốc của bạn và quy định này  
-            """
+            print("check5")
+            content = redis_manager.get_cache(f"group:{group_id}:content")
+            print("prompt laf",content)
+            system_instruction = content
             self.chat_sessions[uuid] = self.client.chats.create(
                 model=settings.MODEL_NAME,
                 config={"system_instruction": system_instruction}
@@ -63,8 +64,9 @@ class AIEngine:
 
     def generate_respone(self, prompt: str, uuid: str ,group_id: str):
         try:
+            print("check3")
             context = self.get_context(uuid, prompt ,group_id)
-            chat = self.get_chat_session(uuid)
+            chat = self.get_chat_session(uuid,group_id)
            
             full_prompt = f"THÔNG TIN HỖ TRỢ:\n{context}\n\nCÂU HỎI: {prompt}"
             print(full_prompt)

@@ -12,6 +12,7 @@ ai = AIEngine()
 
 
 def handle_task(data):
+    print("check2")
     user_id = data.get("userId")
     text = data.get("text")
     group_id = data.get("groupId")
@@ -23,19 +24,19 @@ def handle_task(data):
     reply = ai.generate_respone(text, user_id, group_id)
     print("[BYTEHOME]", reply)
 
-    # redis_manager.publish("tts_tasks", {
-    #     "userId": user_id,
-    #     "reply": reply,
-    #     "voice": voice,
-    #     "status": "success"
-    # })
+    redis_manager.publish("tts_tasks", {
+        "userId": user_id,
+        "reply": reply,
+        "voice": voice,
+        "status": "success"
+    })
 
-    redis_manager.publish(f"voice_ready:{user_id}", {
-                "type": "AI_VOICE_REPLY",
-                "text": text,
-                "audioUrl": "http://192.168.1.35:3001/giongnuhanoi6s.wav"
-            })
-    print(f" Đã trả lời {user_id}")
+    # redis_manager.publish(f"voice_ready:{user_id}", {
+    #             "type": "AI_VOICE_REPLY",
+    #             "text": text,
+    #             "audioUrl": "http://192.168.1.35:3001/giongnuhanoi6s.wav"
+    #         })
+    # print(f" Đã trả lời {user_id}")
 
 
 
@@ -45,7 +46,7 @@ def main():
 
     while True:
         task_data = redis_manager.listen_tasks("ai_tasks")
-
+        print(task_data)
             
         if task_data:
             data = json.loads(task_data[1])
