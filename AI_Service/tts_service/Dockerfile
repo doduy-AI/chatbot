@@ -28,4 +28,4 @@ COPY . .
 EXPOSE 8080
 
 # 8. Chạy server
-CMD ["python3","-u" "wordker.py"]
+CMD ["python3","-u" ,"wordker.py"]
