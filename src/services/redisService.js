@@ -104,8 +104,22 @@ class RedisService {
             }
         });
     }
+// cache 
 
-    
+    async getCache(key){
+        const data = await redisPublisher.get(key)
+        return data || null 
+    }
+
+    async setCache(key,value,ttl =3600){
+        await redisPublisher.set(key,value,'EX',ttl)
+    }
+    async delCache(key) {
+        await redisPublisher.del(key);
+        console.log(`[Cache] Đã xóa key: ${key}`);
+    }
+
+    // end cache redis 
 }
 
 module.exports = new RedisService();

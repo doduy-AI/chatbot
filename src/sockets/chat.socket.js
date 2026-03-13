@@ -1,5 +1,6 @@
 const redisService = require('../services/redisService');
 const User = require('../model/user.model')
+const Prompt = require('../model/group_prompt.model')
 const handleChatSocket = (wss) => {
     redisService.listenForResponses((userId, data) => {
 
@@ -16,15 +17,17 @@ const handleChatSocket = (wss) => {
             }
         });
     });
-
+// client kết nối ws đến server 
     wss.on('connection', async (ws, req) => {
         const user = req.user;
+        // tìm user này thuộc group nào 
         const userGroup = await User.findOne({
         where:{
-            id:user.id
+            id:user.id,
         }
         })
         const groupId = userGroup.groupId
+        // nếu không có thoong tin user thì từ chối
         if (!user || !user.id) {
             console.log("Kết nối bị từ chối: Không có thông tin User");
             ws.close();
@@ -32,6 +35,20 @@ const handleChatSocket = (wss) => {
         }
 
         ws.user = user;
+        const cacheKey = `group:${groupId}:content`;
+        let content = await redisService.getCache(cacheKey)
+        if (content) {
+         console.log(`[Cache HIT] group ${groupId}`);
+        }else{
+            const promptGroup = await Prompt.findOne({
+            where:{
+                groupId:groupId
+            }
+        })
+        content = promptGroup.content 
+        await redisService.setCache(cacheKey, content, 3600);
+        console.log(`[Cache MISS] group ${groupId} → đã lưu cache`);
+        }
         console.log(`[Socket] ${user.username} đã kết nối.`);
 
 
