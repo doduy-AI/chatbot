@@ -3,6 +3,7 @@ version: '3.8'
 services:
   xtts_worker_1:
     build: .
+    image: doduy1911/xtts_worker:latest
     container_name: xtts_worker_1
     environment:
       - REDIS_HOST=192.168.1.35
@@ -14,7 +15,7 @@ services:
       - STREAM_GET_TIMEOUT=30.0
       - QUEUE_PUT_TIMEOUT=5.0
     ports:
-      - "8080:8080"
+      - "8123:8123"
     volumes:
       - ./model:/app/model
     deploy:
@@ -25,3 +26,4 @@ services:
               count: 1
               capabilities: [gpu]
     restart: unless-stopped
+
