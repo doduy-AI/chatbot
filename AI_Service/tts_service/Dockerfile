@@ -24,7 +24,6 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # 6. Copy toàn bộ code và MODEL vào container
 # Lưu ý: Duy nên để thư mục model/ cùng cấp với Dockerfile
 COPY . .
-RUN python3 check.py && python3 download_checkpoint.py
 
 # 7. Port mặc định của FastAPI
 EXPOSE 8080
