@@ -82,27 +82,23 @@ async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
     print(f"[TTS] Bắt đầu task {task_id} cho user {user_id}")
 
     try:
+        first_chunk = True
         # generate_tts là sync → chạy trong thread pool
         def run_tts():
-            return list(generate_tts(text, voice))
+            nonlocal first_chunk
+            for chuck in generate_tts(text, voice):
+                if first_chunk:
+                    print(f" Task {task_id}: chunk đầu sau {time.time() - start_time:.2f}s")
+                    first_chunk = False
+                future = asyncio.run_coroutine_threadsafe(q.put(chuck), loop)
+                future.result(timeout=30)
 
-        chunks = await loop.run_in_executor(None, run_tts)
-
-        first_chunk = True
-        for chunk in chunks:
-            if first_chunk:
-                print(f"⏱ Task {task_id}: chunk đầu sau {time.time() - start_time:.2f}s")
-                first_chunk = False
-            await q.put(chunk)
-
+        await loop.run_in_executor(None, run_tts)
         await q.put("DONE")
-        print(f"[TTS] ✅ Xong task {task_id} ({time.time() - start_time:.2f}s)")
-
         redis_manager.publish(
             f"voice_ready:{user_id}",
             json.dumps({"type": "AI_VOICE_DONE", "taskId": task_id}),
         )
-        # ✅ return ngay, không chờ stream
 
     except Exception as e:
         print(f"[ERR] Task {task_id}: {e}")
@@ -110,7 +106,7 @@ async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
 
 
 async def redis_listener():
-    print("👂 Worker đang lắng nghe kênh tts_tasks...")
+    print(" Worker đang lắng nghe kênh tts_tasks...")
     loop = asyncio.get_event_loop()
 
     while True:
