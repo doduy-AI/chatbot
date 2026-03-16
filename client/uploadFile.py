@@ -3,7 +3,7 @@ import requests
 
 # --- CẤU HÌNH ---
 API_URL = 'http://localhost:3000/api/admin/rag/uploadfile'
-TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJlNDBmZTk0LTIyMGMtNDA4NS05YThkLWM0ODAwMTlhYzk2MCIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzMxOTUyNzgsImV4cCI6MTc3NTc4NzI3OH0.QBFVKMudtjAu41Hl2RKoWNH1oPQJJ6PEGE1Ues8lNcs'  # Dán token của bạn vào đây
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJlNDBmZTk0LTIyMGMtNDA4NS05YThkLWM0ODAwMTlhYzk2MCIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzM2NTI3NzEsImV4cCI6MTc3NjI0NDc3MX0.txCMQm1uU5OW68L2j72OYhQY1qqDhcyZ1nJ1F-XZ6pI'  # Dán token của bạn vào đây
 TARGET_DIR = '/home/doduy/Downloads/data_cminh'  # Thư mục chứa 1000 file (có folder con)
 GROUP_ID = '4cf8e736-fe58-4d5a-bd91-16f5fe67f68e' # Thêm GroupID của bạn vào đây
 
