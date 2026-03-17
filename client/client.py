@@ -289,8 +289,11 @@ def login_and_get_token():
         print(f"{RED}[Auth] Loi: {e}{RESET}")
         return None
 
-
-def play_audio_stream(url, is_playing_event, save_path="output.wav"):
+import os
+import time
+import wave
+from datetime import datetime
+def play_audio_stream(url, is_playing_event):
     try:
         is_playing_event.set()
         print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
@@ -302,6 +305,13 @@ def play_audio_stream(url, is_playing_event, save_path="output.wav"):
             output=True
         )
 
+        # Tạo folder output nếu chưa có
+        os.makedirs("output", exist_ok=True)
+        
+        # Đặt tên file theo timestamp
+        filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".wav"
+        save_path = os.path.join("output", filename)
+
         with requests.get(url, stream=True, timeout=10) as r:
             if r.status_code != 200:
                 print(f"{RED}[TTS] Loi tai audio: {r.status_code}{RESET}")
@@ -311,7 +321,7 @@ def play_audio_stream(url, is_playing_event, save_path="output.wav"):
 
             with wave.open(save_path, 'wb') as wav_file:
                 wav_file.setnchannels(TTS_CHANNELS)
-                wav_file.setsampwidth(2)        # paInt16 = 2 bytes
+                wav_file.setsampwidth(2)
                 wav_file.setframerate(TTS_RATE)
 
                 first_chunk = True
@@ -320,13 +330,13 @@ def play_audio_stream(url, is_playing_event, save_path="output.wav"):
                         continue
 
                     if first_chunk:
-                        chunk = chunk[44:]      # Bỏ WAV header gốc
+                        chunk = chunk[44:]
                         first_chunk = False
                         if not chunk:
                             continue
 
-                    stream.write(chunk)         # Phát
-                    wav_file.writeframes(chunk) # Ghi file cùng lúc
+                    stream.write(chunk)
+                    wav_file.writeframes(chunk)
 
         stream.stop_stream()
         stream.close()
@@ -337,7 +347,6 @@ def play_audio_stream(url, is_playing_event, save_path="output.wav"):
         print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
     finally:
         is_playing_event.clear()
-
 
 class WebSocketHandler:
     def __init__(self, token, is_playing_event):
