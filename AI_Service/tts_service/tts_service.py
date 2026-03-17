@@ -122,6 +122,7 @@ def generate_tts(text: str,voice:str):
 
     with torch.inference_mode():
         for text_chunk in chunks:
+            print(text_chunk)
             full_text = text_chunk.strip() + " "
 
             # 1. Chạy model
