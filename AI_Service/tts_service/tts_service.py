@@ -81,27 +81,34 @@ for voice_id, profile in VOICE_PROFILES.items():
 print(" Mô hình XTTS đã sẵn sàng.")
 
 
-def split_text_smartly(text, min_words=4): 
-    phrases = re.split(r'([.,!?;])', text)
 
+def split_text_smartly(text, max_words=12):
+    sentences = re.split(r'([.!?;])', text)
     chunks = []
-    current_chunk = ""
 
-    for i in range(0, len(phrases) - 1, 2):
-        phrase = phrases[i].strip()
-        punct = phrases[i+1].strip()
+    for i in range(0, len(sentences) - 1, 2):
+        sentence = sentences[i].strip()
+        punct = sentences[i+1]
 
-        if not phrase:
-            continue
+        full_sentence = sentence + punct
 
-        current_chunk += phrase + punct + " "
+        # 👉 nếu câu ngắn → giữ nguyên
+        if len(full_sentence.split()) <= max_words:
+            chunks.append(full_sentence.strip())
+        else:
+            # 👉 nếu dài → mới split theo dấu ,
+            sub_chunks = re.split(r',', full_sentence)
 
-        if len(current_chunk.split()) >= min_words:
-            chunks.append(current_chunk.strip())
-            current_chunk = ""
+            for sc in sub_chunks:
+                sc = sc.strip()
+                if not sc:
+                    continue
 
-    if current_chunk.strip():
-        chunks.append(current_chunk.strip())
+                # 💥 FIX QUAN TRỌNG: nếu kết thúc bằng dấu , → đổi thành .
+                if not sc.endswith('.'):
+                    sc = sc.rstrip(',') + '.'
+
+                chunks.append(sc)
 
     return chunks
 
