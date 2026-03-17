@@ -120,7 +120,7 @@ def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_
 def generate_tts(text: str,voice:str):
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES[voice]["inference"]
-    chunks = clean_text(split_text_smartly(text))
+    chunks = split_text_smartly(clean_text(text))
     first_chunk = True
 
     with torch.inference_mode():
