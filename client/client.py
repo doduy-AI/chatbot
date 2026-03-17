@@ -290,7 +290,7 @@ def login_and_get_token():
         return None
 
 
-def play_audio_stream(url, is_playing_event):
+def play_audio_stream(url, is_playing_event, save_path="output.wav"):
     try:
         is_playing_event.set()
         print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
@@ -309,23 +309,29 @@ def play_audio_stream(url, is_playing_event):
                 is_playing_event.clear()
                 return
 
-            first_chunk = True
-            for chunk in r.iter_content(chunk_size=4096):
-                if not chunk:
-                    continue
+            with wave.open(save_path, 'wb') as wav_file:
+                wav_file.setnchannels(TTS_CHANNELS)
+                wav_file.setsampwidth(2)        # paInt16 = 2 bytes
+                wav_file.setframerate(TTS_RATE)
 
-                if first_chunk:
-                    chunk = chunk[44:]
-                    first_chunk = False
+                first_chunk = True
+                for chunk in r.iter_content(chunk_size=4096):
                     if not chunk:
                         continue
 
-                stream.write(chunk)
+                    if first_chunk:
+                        chunk = chunk[44:]      # Bỏ WAV header gốc
+                        first_chunk = False
+                        if not chunk:
+                            continue
+
+                    stream.write(chunk)         # Phát
+                    wav_file.writeframes(chunk) # Ghi file cùng lúc
 
         stream.stop_stream()
         stream.close()
-        print(f"{GREEN}[TTS] Phat xong!{RESET}")
-        time.sleep(0.3)  # small delay before resuming mic
+        print(f"{GREEN}[TTS] Phat xong! Da luu: {save_path}{RESET}")
+        time.sleep(0.3)
         
     except Exception as e:
         print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")

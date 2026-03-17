@@ -82,22 +82,27 @@ print(" Mô hình XTTS đã sẵn sàng.")
 
 
 def split_text_smartly(text, min_words=4): 
-    phrases = re.split(r'([.!?;])', text)
+    phrases = re.split(r'([.,!?;])', text)
+
     chunks = []
     current_chunk = ""
+
     for i in range(0, len(phrases) - 1, 2):
         phrase = phrases[i].strip()
         punct = phrases[i+1].strip()
-        if not phrase: continue
+
+        if not phrase:
+            continue
+
         current_chunk += phrase + punct + " "
+
         if len(current_chunk.split()) >= min_words:
             chunks.append(current_chunk.strip())
             current_chunk = ""
-    if len(phrases) % 2 != 0 and phrases[-1].strip():
-        current_chunk += phrases[-1].strip()
+
     if current_chunk.strip():
-        if chunks: chunks[-1] += " " + current_chunk.strip()
-        else: chunks.append(current_chunk.strip())
+        chunks.append(current_chunk.strip())
+
     return chunks
 
 # def clean_text(text):
@@ -128,7 +133,7 @@ def generate_tts(text: str,voice:str):
     with torch.inference_mode():
         for text_chunk in chunks:
             print(text_chunk)
-            full_text = text_chunk.strip() + " "
+            full_text = text_chunk.strip() + "..."
 
             # 1. Chạy model
             outputs = XTTS_MODEL.inference(
