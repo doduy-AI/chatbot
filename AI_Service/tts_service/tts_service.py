@@ -100,6 +100,9 @@ def split_text_smartly(text, min_words=8):
         else: chunks.append(current_chunk.strip())
     return chunks
 
+def clean_text(text):
+    return re.sub(r"[^\w\s.,]", "", text).strip()
+
 def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
     wav = np.array(wav, dtype=np.float32)
     
@@ -117,7 +120,7 @@ def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_
 def generate_tts(text: str,voice:str):
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES[voice]["inference"]
-    chunks = split_text_smartly(text)
+    chunks = clean_text(split_text_smartly(text))
     first_chunk = True
 
     with torch.inference_mode():
