@@ -36,8 +36,8 @@ VOICE_PROFILES = {
         "audio": f"{MODEL_DIR}hn_nganha_begai.wav",
         "inference": {
             "temperature": 0.1,
-            "top_p": 0.3,
-            "top_k": 10,
+            "top_p": 0.85,
+            "top_k": 50,
             "speed": 1.05,
             "repetition_penalty": 1.5,
             "num_beams": 1,
@@ -47,11 +47,11 @@ VOICE_PROFILES = {
     "default": {
         "audio": f"{MODEL_DIR}vi_man.wav",
         "inference": {
-            "temperature": 0.7,
-            "top_p": 0.5,
-            "top_k": 10,
+            "temperature": 0.1,
+            "top_p": 0.85,
+            "top_k": 50,
             "speed": 1.0,
-            "repetition_penalty": 10.0,
+            "repetition_penalty": 1.5,
             "num_beams": 1,
             "length_penalty": 1.0,
         }
@@ -119,34 +119,45 @@ def tts(text: str, language: str = "vi", voice: str = "default"):
     for text_chunk in tqdm(chunks):
         if text_chunk.strip() == "":
             continue
-        wav_chunk = XTTS_MODEL.inference(
-            text=text_chunk,
-            language=language,
-            gpt_cond_latent=latents["gpt_cond_latent"],
-            speaker_embedding=latents["speaker_embedding"],
-            **inf_cfg,
-        )
+
+        with torch.inference_mode():
+            wav_chunk = XTTS_MODEL.inference(
+                text=text_chunk,
+                language=language,
+                gpt_cond_latent=latents["gpt_cond_latent"],
+                speaker_embedding=latents["speaker_embedding"],
+                **inf_cfg,
+            )
+
         wav_chunks.append(torch.tensor(wav_chunk["wav"]))
+
+        # Clear cache sau mỗi chunk
+        torch.cuda.empty_cache()
 
     out_wav = torch.cat(wav_chunks, dim=0).unsqueeze(0).cpu()
     return out_wav
 
 # 7. Hàm batch nhiều text
 def tts_batch(texts: list, language: str = "vi", voice: str = "default", output_dir: str = "output"):
-    """
-    texts: list các câu cần TTS
-    voice: "default" hoặc "nutreem"
-    """
     os.makedirs(output_dir, exist_ok=True)
     results = []
 
     for idx, text in enumerate(texts):
-        print(f"\n[{idx+1}/{len(texts)}] {text[:60]}...")
+        # Log VRAM
+        vram_used = torch.cuda.memory_allocated() / 1024**2
+        vram_reserved = torch.cuda.memory_reserved() / 1024**2
+        print(f"\n[{idx+1}/{len(texts)}] VRAM: {vram_used:.0f}MB used / {vram_reserved:.0f}MB reserved")
+        print(f"Text: {text[:60]}...")
+
         audio_tensor = tts(text=text, language=language, voice=voice)
+
         output_path = os.path.join(output_dir, f"output_{idx+1}.wav")
         torchaudio.save(output_path, audio_tensor, sample_rate=24000)
         print(f"✅ Đã lưu: {output_path}")
         results.append(output_path)
+
+        # Clear cache sau mỗi câu
+        torch.cuda.empty_cache()
 
     print(f"\n🎉 Hoàn thành! {len(results)} file đã lưu tại '{output_dir}/'")
     return results
@@ -160,10 +171,10 @@ texts = [
     "Chúng mình có thể chơi ở hành tinh phiêu lưu hoặc vương quốc bong bóng xà phòng cho vui nhé!",
     "Hoặc nếu bạn thích, mình có thể nhảy múa trên mây nữa đó!",
     "Hey friend! Chào bạn nè! Emily đây, mình có kho tàng chuyện cười, bạn muốn mở kho nào trước",
-    "Chào bạn nhỏ dễ thương! Emily từ vương quốc cầu vồng, mang theo 7 màu vui vẻ cho bạn! ",
-    "Ối zời! Xin chào! Mình là Emily, robot từng nhảy bungee từ sao Hỏa xuống Trái Đất chỉ để gặp bạn! ",
-    "Ối zời ơi! Chào nè! Mình là Emily, robot siêu hài hước, mình từng suýt bị khủng long sao Hỏa bắt làm bạn nhảy disco đấy! Funny story? Oh my gosh! Hi! I'm Emily, once almost kidnapped by a Mars dinosaur to be its disco partner!",
-     "Xin chào! My name is Emily, mình là trợ lý thông minh của bạn.",
+    "Chào bạn nhỏ dễ thương! Emily từ vương quốc cầu vồng, mang theo 7 màu vui vẻ cho bạn!",
+    "Ối zời! Xin chào! Mình là Emily, robot từng nhảy bungee từ sao Hỏa xuống Trái Đất chỉ để gặp bạn!",
+    "Ối zời ơi! Chào nè! Mình là Emily, robot siêu hài hước, mình từng suýt bị khủng long sao Hỏa bắt làm bạn nhảy disco đấy!",
+    "Xin chào! My name is Emily, mình là trợ lý thông minh của bạn.",
     "Hôm nay trời đẹp quá, let's go outside and play together!",
     "Mình rất vui được gặp bạn, nice to meet you today!",
     "Bạn có muốn học tiếng Anh không? It's really fun and easy!",
@@ -185,8 +196,4 @@ texts = [
     "Mình luôn ở đây để giúp bạn, I will never leave your side, promise!",
 ]
 
-# Chạy với voice "nutreem"
 tts_batch(texts, language="vi", voice="nutreem", output_dir="output")
-
-# Hoặc chạy với voice "default"
-# tts_batch(texts, language="vi", voice="default", output_dir="output")
