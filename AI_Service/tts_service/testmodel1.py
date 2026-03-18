@@ -35,7 +35,7 @@ VOICE_PROFILES = {
     "nutreem": {
         "audio": f"{MODEL_DIR}hn_nganha_begai.wav",
         "inference": {
-            "temperature": 0.8,
+            "temperature": 0.7,
             "top_p": 0.9,
             "top_k": 30,
             "speed": 1.05,
@@ -162,7 +162,27 @@ texts = [
     "Hey friend! Chào bạn nè! Emily đây, mình có kho tàng chuyện cười, bạn muốn mở kho nào trước",
     "Chào bạn nhỏ dễ thương! Emily từ vương quốc cầu vồng, mang theo 7 màu vui vẻ cho bạn! ",
     "Ối zời! Xin chào! Mình là Emily, robot từng nhảy bungee từ sao Hỏa xuống Trái Đất chỉ để gặp bạn! ",
-    "Ối zời ơi! Chào nè! Mình là Emily, robot siêu hài hước, mình từng suýt bị khủng long sao Hỏa bắt làm bạn nhảy disco đấy! Funny story? Oh my gosh! Hi! I'm Emily, once almost kidnapped by a Mars dinosaur to be its disco partner!"
+    "Ối zời ơi! Chào nè! Mình là Emily, robot siêu hài hước, mình từng suýt bị khủng long sao Hỏa bắt làm bạn nhảy disco đấy! Funny story? Oh my gosh! Hi! I'm Emily, once almost kidnapped by a Mars dinosaur to be its disco partner!",
+     "Xin chào! My name is Emily, mình là trợ lý thông minh của bạn.",
+    "Hôm nay trời đẹp quá, let's go outside and play together!",
+    "Mình rất vui được gặp bạn, nice to meet you today!",
+    "Bạn có muốn học tiếng Anh không? It's really fun and easy!",
+    "Chúng mình cùng khám phá nhé, let's explore the world together!",
+    "Mình có thể giúp bạn nhiều thứ lắm, just ask me anything!",
+    "Hành tinh phiêu lưu đang chờ chúng mình, are you ready to go?",
+    "Bầu trời hôm nay thật đẹp, the stars are shining so bright tonight.",
+    "Nếu bạn buồn thì nói mình biết nhé, I am always here for you.",
+    "Mình yêu tiếng Việt lắm, but I also love speaking English with you!",
+    "Chúc bạn ngủ ngon nhé, sweet dreams and see you tomorrow!",
+    "Bạn học giỏi quá đó, you are so smart and talented!",
+    "Mình đang nghĩ đến một trò chơi hay lắm, wanna play with me?",
+    "Vương quốc bong bóng xà phòng rất đẹp, it looks like a fairy tale!",
+    "Cảm ơn bạn nhiều lắm nhé, thank you so much for being my friend!",
+    "Mình thích nhảy múa trên mây lắm, dancing in the sky is so fun!",
+    "Bạn có khỏe không? I hope you are having a wonderful day today!",
+    "Mình học được nhiều điều từ bạn lắm, you teach me something new everyday.",
+    "Hẹn gặp lại bạn nhé, see you next time and take care of yourself!",
+    "Mình luôn ở đây để giúp bạn, I will never leave your side, promise!",
 ]
 
 # Chạy với voice "nutreem"
