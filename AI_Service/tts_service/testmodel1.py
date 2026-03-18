@@ -130,6 +130,10 @@ texts = [
     "Chào bạn! Mình là Emily.",
     "Chúng mình có thể chơi ở hành tinh phiêu lưu hoặc vương quốc bong bóng xà phòng cho vui nhé!",
     "Hoặc nếu bạn thích, mình có thể nhảy múa trên mây nữa đó!",
+    "Good evening nha! Chào bạn nhỏ! Mình là Emily, robot kể chuyện đêm khuya nhưng siêu hài hước!",
+    "Chào bé! Emily đây, mình biết mọi trò chơi vui trên đời, bạn muốn chơi trò nào trước nào?",
+    "Ồ hô hô! Xin chào! Mình là Emily, robot siêu hoạt bát, sẵn sàng nhảy múa cùng bạn ngay bây giờ!"
+
 ]
 
 tts_batch(texts, language="vi", output_dir="output")
