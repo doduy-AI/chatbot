@@ -1,4 +1,5 @@
 import os
+import gc
 import torch
 import torchaudio
 from tqdm import tqdm
@@ -108,7 +109,7 @@ def preprocess_text(text, language="vi"):
 # 6. Hàm inference 1 text
 def tts(text: str, language: str = "vi", voice: str = "default"):
     if voice not in VOICE_LATENTS:
-        raise ValueError(f"Voice '{voice}' không tồn tại. Các voice có sẵn: {list(VOICE_LATENTS.keys())}")
+        raise ValueError(f"Voice '{voice}' không tồn tại.")
 
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES[voice]["inference"]
@@ -130,9 +131,8 @@ def tts(text: str, language: str = "vi", voice: str = "default"):
             )
 
         wav_chunks.append(torch.tensor(wav_chunk["wav"]))
-
-        # Clear cache sau mỗi chunk
         torch.cuda.empty_cache()
+        gc.collect()
 
     out_wav = torch.cat(wav_chunks, dim=0).unsqueeze(0).cpu()
     return out_wav
@@ -143,21 +143,29 @@ def tts_batch(texts: list, language: str = "vi", voice: str = "default", output_
     results = []
 
     for idx, text in enumerate(texts):
-        # Log VRAM
         vram_used = torch.cuda.memory_allocated() / 1024**2
-        vram_reserved = torch.cuda.memory_reserved() / 1024**2
-        print(f"\n[{idx+1}/{len(texts)}] VRAM: {vram_used:.0f}MB used / {vram_reserved:.0f}MB reserved")
+        print(f"\n[{idx+1}/{len(texts)}] VRAM: {vram_used:.0f}MB")
         print(f"Text: {text[:60]}...")
 
         audio_tensor = tts(text=text, language=language, voice=voice)
+
+        # Log duration và amplitude
+        duration = audio_tensor.shape[-1] / 24000
+        max_amp = audio_tensor.abs().max().item()
+        print(f"⏱ Duration: {duration:.2f}s | Max amplitude: {max_amp:.4f}")
+
+        if max_amp < 0.01:
+            print(f"🔴 CÂU NÀY BỊ ÂM CÂM!")
 
         output_path = os.path.join(output_dir, f"output_{idx+1}.wav")
         torchaudio.save(output_path, audio_tensor, sample_rate=24000)
         print(f"✅ Đã lưu: {output_path}")
         results.append(output_path)
 
-        # Clear cache sau mỗi câu
+        # Release và cleanup
+        del audio_tensor
         torch.cuda.empty_cache()
+        gc.collect()
 
     print(f"\n🎉 Hoàn thành! {len(results)} file đã lưu tại '{output_dir}/'")
     return results

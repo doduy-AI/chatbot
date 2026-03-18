@@ -31,7 +31,7 @@ VOICE_PROFILES={
 
     },
     "nutreem":{
-        "audio": f"{MODEL_DIR}hn_nganha_begai.wav",
+        "audio": f"{MODEL_DIR}nutrem.wav",
         "inference": {
         "temperature": 0.8,
         "top_p": 0.9,
