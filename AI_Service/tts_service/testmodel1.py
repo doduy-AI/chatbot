@@ -70,7 +70,7 @@ gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
     sound_norm_refs=XTTS_MODEL.config.sound_norm_refs,
 )
 
-# 5. Hàm chạy suy luận (Inference)
+# 5. Hàm chạy suy luận (Inference) - 1 text
 def tts(model: Xtts, text: str, language: str, gpt_cond_latent: torch.Tensor, speaker_embedding: torch.Tensor):
     chunks = preprocess_text(text, language)
     wav_chunks = []
@@ -84,31 +84,52 @@ def tts(model: Xtts, text: str, language: str, gpt_cond_latent: torch.Tensor, sp
             language=language,
             gpt_cond_latent=gpt_cond_latent,
             speaker_embedding=speaker_embedding,
-length_penalty=1.0,
+            length_penalty=1.0,
             repetition_penalty=10.0,
             top_k=10,
             top_p=0.5,
         )
         wav_chunks.append(torch.tensor(wav_chunk["wav"]))
 
-    # Ghép các đoạn audio nhỏ lại thành 1 file duy nhất
     out_wav = torch.cat(wav_chunks, dim=0).unsqueeze(0).cpu()
     return out_wav
+
+# 6. Hàm chạy batch nhiều text
+def tts_batch(texts: list, language: str = "vi", output_dir: str = "output"):
+    """
+    texts: list các câu cần TTS
+    ví dụ: ["Xin chào!", "Tôi là Emily.", "Hôm nay trời đẹp."]
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    results = []
+
+    for idx, text in enumerate(texts):
+        print(f"\n[{idx+1}/{len(texts)}] Đang xử lý: {text[:50]}...")
+        
+        audio_tensor = tts(
+            model=XTTS_MODEL,
+            text=text,
+            language=language,
+            gpt_cond_latent=gpt_cond_latent,
+            speaker_embedding=speaker_embedding,
+        )
+        
+        output_path = os.path.join(output_dir, f"output_{idx+1}.wav")
+        torchaudio.save(output_path, audio_tensor, sample_rate=24000)
+        print(f"✅ Đã lưu: {output_path}")
+        results.append(output_path)
+
+    print(f"\n🎉 Hoàn thành! {len(results)} file đã được lưu tại '{output_dir}/'")
+    return results
+
 
 # ==========================================
 # THỰC THI CHƯƠNG TRÌNH
 # ==========================================
-input_text = "Xin chào, tôi là một hệ thống trí tuệ nhân tạo. Tôi có thể nói được tiếng Việt và tiếng Anh rất mượt mà."
+texts = [
+    "Chào bạn! Mình là Emily.",
+    "Chúng mình có thể chơi ở hành tinh phiêu lưu hoặc vương quốc bong bóng xà phòng cho vui nhé!",
+    "Hoặc nếu bạn thích, mình có thể nhảy múa trên mây nữa đó!",
+]
 
-audio_tensor = tts(
-    model=XTTS_MODEL,
-    text=input_text,
-    language="vi",
-    gpt_cond_latent=gpt_cond_latent,
-    speaker_embedding=speaker_embedding,
-)
-
-# Lưu kết quả ra file WAV thay vì dùng IPython Display
-output_filename = "ket_qua_tts.wav"
-torchaudio.save(output_filename, audio_tensor, sample_rate=24000)
-print(f"Hoàn thành! File âm thanh đã được lưu tại: {output_filename}")
+tts_batch(texts, language="vi", output_dir="output")
