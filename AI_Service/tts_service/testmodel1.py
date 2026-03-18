@@ -29,11 +29,59 @@ XTTS_MODEL.load_checkpoint(config,
                             use_deepspeed=False)
 XTTS_MODEL.to(device)
 
-# 3. Hàm tiền xử lý và cắt câu (Chunking)
+# 3. Voice profiles
+MODEL_DIR = "model/"
+VOICE_PROFILES = {
+    "nutreem": {
+        "audio": f"{MODEL_DIR}hn_nganha_begai.wav",
+        "inference": {
+            "temperature": 0.8,
+            "top_p": 0.9,
+            "top_k": 30,
+            "speed": 1.05,
+            "repetition_penalty": 1.5,
+            "num_beams": 1,
+            "length_penalty": 1.0,
+        }
+    },
+    "default": {
+        "audio": f"{MODEL_DIR}vi_man.wav",
+        "inference": {
+            "temperature": 0.7,
+            "top_p": 0.5,
+            "top_k": 10,
+            "speed": 1.0,
+            "repetition_penalty": 10.0,
+            "num_beams": 1,
+            "length_penalty": 1.0,
+        }
+    }
+}
+
+# 4. Trích xuất latents cho tất cả voice profiles
+print("Đang trích xuất đặc trưng giọng nói mẫu...")
+VOICE_LATENTS = {}
+for voice_id, profile in VOICE_PROFILES.items():
+    if not os.path.exists(profile["audio"]):
+        print(f"⚠️  Bỏ qua [{voice_id}] — không tìm thấy file: {profile['audio']}")
+        continue
+    print(f"  [{voice_id}] ← {profile['audio']}")
+    gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
+        audio_path=profile["audio"],
+        gpt_cond_len=XTTS_MODEL.config.gpt_cond_len,
+        max_ref_length=XTTS_MODEL.config.max_ref_len,
+        sound_norm_refs=XTTS_MODEL.config.sound_norm_refs,
+    )
+    VOICE_LATENTS[voice_id] = {
+        "gpt_cond_latent": gpt_cond_latent,
+        "speaker_embedding": speaker_embedding,
+    }
+
+# 5. Hàm tiền xử lý và cắt câu
 def preprocess_text(text, language="vi"):
     if language == "vi":
         text = TTSnorm(text, unknown=False, lower=False, rule=True)
-    
+
     if language in ["ja", "zh-cn"]:
         sentences = text.split("。")
     else:
@@ -57,69 +105,50 @@ def preprocess_text(text, language="vi"):
 
     return chunks
 
-# 4. Trích xuất vector đặc trưng của giọng mẫu
-speaker_audio_file = "model/vi_man.wav"
-if not os.path.exists(speaker_audio_file):
-    raise FileNotFoundError(f"Vui lòng đặt file âm thanh mẫu vào đường dẫn: {speaker_audio_file}")
+# 6. Hàm inference 1 text
+def tts(text: str, language: str = "vi", voice: str = "default"):
+    if voice not in VOICE_LATENTS:
+        raise ValueError(f"Voice '{voice}' không tồn tại. Các voice có sẵn: {list(VOICE_LATENTS.keys())}")
 
-print("Đang trích xuất đặc trưng giọng nói mẫu...")
-gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
-    audio_path=speaker_audio_file,
-    gpt_cond_len=XTTS_MODEL.config.gpt_cond_len,
-    max_ref_length=XTTS_MODEL.config.max_ref_len,
-    sound_norm_refs=XTTS_MODEL.config.sound_norm_refs,
-)
-
-# 5. Hàm chạy suy luận (Inference) - 1 text
-def tts(model: Xtts, text: str, language: str, gpt_cond_latent: torch.Tensor, speaker_embedding: torch.Tensor):
+    latents = VOICE_LATENTS[voice]
+    inf_cfg = VOICE_PROFILES[voice]["inference"]
     chunks = preprocess_text(text, language)
     wav_chunks = []
-    
-    print(f"Bắt đầu tổng hợp giọng nói cho {len(chunks)} chunks...")
+
+    print(f"Bắt đầu tổng hợp [{voice}] — {len(chunks)} chunks...")
     for text_chunk in tqdm(chunks):
         if text_chunk.strip() == "":
             continue
-        wav_chunk = model.inference(
+        wav_chunk = XTTS_MODEL.inference(
             text=text_chunk,
             language=language,
-            gpt_cond_latent=gpt_cond_latent,
-            speaker_embedding=speaker_embedding,
-            length_penalty=1.0,
-            repetition_penalty=10.0,
-            top_k=10,
-            top_p=0.5,
+            gpt_cond_latent=latents["gpt_cond_latent"],
+            speaker_embedding=latents["speaker_embedding"],
+            **inf_cfg,
         )
         wav_chunks.append(torch.tensor(wav_chunk["wav"]))
 
     out_wav = torch.cat(wav_chunks, dim=0).unsqueeze(0).cpu()
     return out_wav
 
-# 6. Hàm chạy batch nhiều text
-def tts_batch(texts: list, language: str = "vi", output_dir: str = "output"):
+# 7. Hàm batch nhiều text
+def tts_batch(texts: list, language: str = "vi", voice: str = "default", output_dir: str = "output"):
     """
     texts: list các câu cần TTS
-    ví dụ: ["Xin chào!", "Tôi là Emily.", "Hôm nay trời đẹp."]
+    voice: "default" hoặc "nutreem"
     """
     os.makedirs(output_dir, exist_ok=True)
     results = []
 
     for idx, text in enumerate(texts):
-        print(f"\n[{idx+1}/{len(texts)}] Đang xử lý: {text[:50]}...")
-        
-        audio_tensor = tts(
-            model=XTTS_MODEL,
-            text=text,
-            language=language,
-            gpt_cond_latent=gpt_cond_latent,
-            speaker_embedding=speaker_embedding,
-        )
-        
+        print(f"\n[{idx+1}/{len(texts)}] {text[:60]}...")
+        audio_tensor = tts(text=text, language=language, voice=voice)
         output_path = os.path.join(output_dir, f"output_{idx+1}.wav")
         torchaudio.save(output_path, audio_tensor, sample_rate=24000)
         print(f"✅ Đã lưu: {output_path}")
         results.append(output_path)
 
-    print(f"\n🎉 Hoàn thành! {len(results)} file đã được lưu tại '{output_dir}/'")
+    print(f"\n🎉 Hoàn thành! {len(results)} file đã lưu tại '{output_dir}/'")
     return results
 
 
@@ -127,13 +156,17 @@ def tts_batch(texts: list, language: str = "vi", output_dir: str = "output"):
 # THỰC THI CHƯƠNG TRÌNH
 # ==========================================
 texts = [
-    "Chào bạn Mình là Emily",
-    "Chúng mình có thể chơi ở hành tinh phiêu lưu hoặc vương quốc bong bóng xà phòng cho vui nhé",
-    "Hoặc nếu bạn thích mình có thể nhảy múa trên mây nữa đó",
-    "Good evening nha Chào bạn nhỏ! Mình là Emily robot kể chuyện đêm khuya nhưng siêu hài hước",
-    "Chào bé Emily đây mình biết mọi trò chơi vui trên đời bạn muốn chơi trò nào trước nào?",
-    "Ồ hô hô! Xin chào! Mình là Emily robot siêu hoạt bát sẵn sàng nhảy múa cùng bạn ngay bây giờ!"
-
+    "Chào bạn! Mình là Emily.",
+    "Chúng mình có thể chơi ở hành tinh phiêu lưu hoặc vương quốc bong bóng xà phòng cho vui nhé!",
+    "Hoặc nếu bạn thích, mình có thể nhảy múa trên mây nữa đó!",
+    "Hey friend! Chào bạn nè! Emily đây, mình có kho tàng chuyện cười, bạn muốn mở kho nào trước",
+    "Chào bạn nhỏ dễ thương! Emily từ vương quốc cầu vồng, mang theo 7 màu vui vẻ cho bạn! ",
+    "Ối zời! Xin chào! Mình là Emily, robot từng nhảy bungee từ sao Hỏa xuống Trái Đất chỉ để gặp bạn! ",
+    "Ối zời ơi! Chào nè! Mình là Emily, robot siêu hài hước, mình từng suýt bị khủng long sao Hỏa bắt làm bạn nhảy disco đấy! Funny story? Oh my gosh! Hi! I'm Emily, once almost kidnapped by a Mars dinosaur to be its disco partner!"
 ]
 
-tts_batch(texts, language="vi", output_dir="output")
+# Chạy với voice "nutreem"
+tts_batch(texts, language="vi", voice="nutreem", output_dir="output")
+
+# Hoặc chạy với voice "default"
+# tts_batch(texts, language="vi", voice="default", output_dir="output")
