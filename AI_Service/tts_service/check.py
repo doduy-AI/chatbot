@@ -10,7 +10,7 @@ from TTS.tts.models.xtts import Xtts
 
 # 1. Tải trọng số model từ Hugging Face (nếu chưa có)
 print("Đang kiểm tra và tải model...")
-snapshot_download(repo_id="anhnh2002/vnTTS", repo_type="model", local_dir="model/")
+snapshot_download(repo_id="capleaf/viXTTS", repo_type="model", local_dir="model/")
 
 # 2. Khởi tạo cấu hình và load model
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
