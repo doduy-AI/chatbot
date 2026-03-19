@@ -57,7 +57,8 @@ XTTS_MODEL.load_checkpoint(
     config,
     checkpoint_path=f"{MODEL_DIR}model.pth",
     vocab_path=f"{MODEL_DIR}vocab.json",
-    use_deepspeed=False
+    use_deepspeed=False,
+    eval=True
 )
 XTTS_MODEL.to(device)
 

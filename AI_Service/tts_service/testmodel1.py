@@ -27,7 +27,8 @@ XTTS_MODEL = Xtts.init_from_config(config)
 XTTS_MODEL.load_checkpoint(config,
                             checkpoint_path=xtts_checkpoint,
                             vocab_path=xtts_vocab,
-                            use_deepspeed=False)
+                            use_deepspeed=False,
+                            eval=True)
 XTTS_MODEL.to(device)
 
 # 3. Voice profiles
