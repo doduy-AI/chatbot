@@ -34,13 +34,13 @@ XTTS_MODEL.to(device)
 MODEL_DIR = "model/"
 VOICE_PROFILES = {
     "nutreem": {
-        "audio": f"{MODEL_DIR}hn_nganha_begai.wav",
+        "audio": f"{MODEL_DIR}nutrem.wav",
         "inference": {
-            "temperature": 0.1,
+            "temperature": 0.7,       
             "top_p": 0.85,
             "top_k": 50,
             "speed": 1.05,
-            "repetition_penalty": 1.5,
+            "repetition_penalty": 1.1,    
             "num_beams": 1,
             "length_penalty": 1.0,
         }
@@ -48,11 +48,11 @@ VOICE_PROFILES = {
     "default": {
         "audio": f"{MODEL_DIR}vi_man.wav",
         "inference": {
-            "temperature": 0.1,
+            "temperature": 0.7,         
             "top_p": 0.85,
             "top_k": 50,
             "speed": 1.0,
-            "repetition_penalty": 1.5,
+            "repetition_penalty": 1.1,  
             "num_beams": 1,
             "length_penalty": 1.0,
         }
