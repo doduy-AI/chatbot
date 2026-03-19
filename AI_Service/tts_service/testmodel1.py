@@ -9,90 +9,75 @@ from huggingface_hub import snapshot_download
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
-# 1. Tải trọng số model từ Hugging Face (nếu chưa có)
-print("Đang kiểm tra và tải model...")
-snapshot_download(repo_id="anhnh2002/vnTTS", repo_type="model", local_dir="model/")
-
-# 2. Khởi tạo cấu hình và load model
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-print(f"Đang load model lên {device}...")
-
-xtts_checkpoint = "model/model.pth"
-xtts_config = "model/config.json"
-xtts_vocab = "model/vocab.json"
-
-config = XttsConfig()
-config.load_json(xtts_config)
-XTTS_MODEL = Xtts.init_from_config(config)
-XTTS_MODEL.load_checkpoint(config,
-                            checkpoint_path=xtts_checkpoint,
-                            vocab_path=xtts_vocab,
-                            use_deepspeed=False,
-                            eval=True)
-XTTS_MODEL.to(device)
-
-# 3. Voice profiles
 MODEL_DIR = "model/"
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+xtts_checkpoint = f"{MODEL_DIR}model.pth"
+xtts_config = f"{MODEL_DIR}config.json"
+xtts_vocab = f"{MODEL_DIR}vocab.json"
+
 VOICE_PROFILES = {
-    "nutreem": {
+     "nutreem":{
         "audio": f"{MODEL_DIR}nutrem.wav",
         "inference": {
-            "temperature": 0.7,       
-            "top_p": 0.85,
-            "top_k": 50,
-            "speed": 1.05,
-            "repetition_penalty": 1.1,    
-            "num_beams": 1,
-            "length_penalty": 1.0,
-        }
+        "temperature": 0.7,
+        "top_p": 0.85,
+        "top_k": 8,
+        "speed": 1.0,
+        "repetition_penalty": 20.0,
+        "num_beams": 1,
+        "length_penalty": 1.0,
+    }
+
     },
     "default": {
         "audio": f"{MODEL_DIR}vi_man.wav",
         "inference": {
-            "temperature": 0.7,         
+            "temperature": 0.1,
             "top_p": 0.85,
             "top_k": 50,
             "speed": 1.0,
-            "repetition_penalty": 1.1,  
+            "repetition_penalty": 1.5,
             "num_beams": 1,
             "length_penalty": 1.0,
         }
     }
 }
 
-# 4. Trích xuất latents cho tất cả voice profiles
-print("Đang trích xuất đặc trưng giọng nói mẫu...")
-VOICE_LATENTS = {}
-for voice_id, profile in VOICE_PROFILES.items():
-    if not os.path.exists(profile["audio"]):
-        print(f"⚠️  Bỏ qua [{voice_id}] — không tìm thấy file: {profile['audio']}")
-        continue
-    print(f"  [{voice_id}] ← {profile['audio']}")
-    gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
-        audio_path=profile["audio"],
-        gpt_cond_len=XTTS_MODEL.config.gpt_cond_len,
-        max_ref_length=XTTS_MODEL.config.max_ref_len,
-        sound_norm_refs=XTTS_MODEL.config.sound_norm_refs,
-    )
-    VOICE_LATENTS[voice_id] = {
-        "gpt_cond_latent": gpt_cond_latent,
-        "speaker_embedding": speaker_embedding,
-    }
+def load_model():
+    config = XttsConfig()
+    config.load_json(xtts_config)
+    model = Xtts.init_from_config(config)
+    model.load_checkpoint(config,
+                          checkpoint_path=xtts_checkpoint,
+                          vocab_path=xtts_vocab,
+                          use_deepspeed=False)
+    model.to(device)
+    return model, config
 
-# 5. Hàm tiền xử lý và cắt câu
+def get_latents(model, config, voice):
+    audio_path = VOICE_PROFILES[voice]["audio"]
+    gpt_cond_latent, speaker_embedding = model.get_conditioning_latents(
+        audio_path=audio_path,
+        gpt_cond_len=config.gpt_cond_len,
+        max_ref_length=config.max_ref_len,
+        sound_norm_refs=config.sound_norm_refs,
+    )
+    return gpt_cond_latent, speaker_embedding
+
 def preprocess_text(text, language="vi"):
     if language == "vi":
-        text = TTSnorm(text, unknown=False, lower=False, rule=True)
+        text = TTSnorm(text, unknown=False, lower=False, rule=True)# ← đổi lại
 
     if language in ["ja", "zh-cn"]:
-        sentences = text.split("。")
+        sentences = text.split("。")# ← đổi lại
     else:
         sentences = sent_tokenize(text)
 
     chunks = []
-    chunk_i = ""
+    chunk_i = ""# ← đổi lại
     len_chunk_i = 0
-    for sentence in sentences:
+    for sentence in sentences:# ← đổi lại
         chunk_i += " " + sentence
         len_chunk_i += len(sentence.split())
         if len_chunk_i > 30:
@@ -107,65 +92,62 @@ def preprocess_text(text, language="vi"):
 
     return chunks
 
-# 6. Hàm inference 1 text
-def tts(text: str, language: str = "vi", voice: str = "default"):
-    if voice not in VOICE_LATENTS:
-        raise ValueError(f"Voice '{voice}' không tồn tại.")
-
-    latents = VOICE_LATENTS[voice]
+def tts_single(text: str, language: str = "vi", voice: str = "default"):
+    """Load model mới hoàn toàn cho mỗi câu"""
+    print(f"  🔄 Loading model...")
+    model, config = load_model()
+    gpt_cond_latent, speaker_embedding = get_latents(model, config, voice)
+    
     inf_cfg = VOICE_PROFILES[voice]["inference"]
     chunks = preprocess_text(text, language)
     wav_chunks = []
 
-    print(f"Bắt đầu tổng hợp [{voice}] — {len(chunks)} chunks...")
     for text_chunk in tqdm(chunks):
         if text_chunk.strip() == "":
             continue
-
         with torch.inference_mode():
-            wav_chunk = XTTS_MODEL.inference(
+            wav_chunk = model.inference(
                 text=text_chunk,
                 language=language,
-                gpt_cond_latent=latents["gpt_cond_latent"],
-                speaker_embedding=latents["speaker_embedding"],
+                gpt_cond_latent=gpt_cond_latent,
+                speaker_embedding=speaker_embedding,
                 **inf_cfg,
             )
-
         wav_chunks.append(torch.tensor(wav_chunk["wav"]))
-        torch.cuda.empty_cache()
-        gc.collect()
 
     out_wav = torch.cat(wav_chunks, dim=0).unsqueeze(0).cpu()
+
+    # Unload model khỏi VRAM
+    del model
+    del gpt_cond_latent
+    del speaker_embedding
+    torch.cuda.empty_cache()
+    gc.collect()
+
     return out_wav
 
-# 7. Hàm batch nhiều text
 def tts_batch(texts: list, language: str = "vi", voice: str = "default", output_dir: str = "output"):
     os.makedirs(output_dir, exist_ok=True)
     results = []
 
     for idx, text in enumerate(texts):
-        vram_used = torch.cuda.memory_allocated() / 1024**2
-        print(f"\n[{idx+1}/{len(texts)}] VRAM: {vram_used:.0f}MB")
-        print(f"Text: {text[:60]}...")
+        print(f"\n[{idx+1}/{len(texts)}] {text[:60]}...")
 
-        audio_tensor = tts(text=text, language=language, voice=voice)
+        audio_tensor = tts_single(text=text, language=language, voice=voice)
 
-        # Log duration và amplitude
         duration = audio_tensor.shape[-1] / 24000
         max_amp = audio_tensor.abs().max().item()
         print(f"⏱ Duration: {duration:.2f}s | Max amplitude: {max_amp:.4f}")
 
         if max_amp < 0.01:
-            print(f"🔴 CÂU NÀY BỊ ÂM CÂM!")
+            print(f" CÂU NÀY BỊ ÂM CÂM!")
 
         output_path = os.path.join(output_dir, f"output_{idx+1}.wav")
         torchaudio.save(output_path, audio_tensor, sample_rate=24000)
-        print(f"✅ Đã lưu: {output_path}")
+        print(f" Đã lưu: {output_path}")
         results.append(output_path)
 
-        # Release và cleanup
         del audio_tensor
-        torch.cuda.empty_cache()
         gc.collect()
 
     print(f"\n🎉 Hoàn thành! {len(results)} file đã lưu tại '{output_dir}/'")
@@ -175,6 +157,9 @@ def tts_batch(texts: list, language: str = "vi", voice: str = "default", output_
 # ==========================================
 # THỰC THI CHƯƠNG TRÌNH
 # ==========================================
+print("Đang kiểm tra và tải model...")
+snapshot_download(repo_id="anhnh2002/vnTTS", repo_type="model", local_dir=MODEL_DIR)
+
 texts = [
     "Chào bạn! Mình là Emily.",
     "Chúng mình có thể chơi ở hành tinh phiêu lưu hoặc vương quốc bong bóng xà phòng cho vui nhé!",
