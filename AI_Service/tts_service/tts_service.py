@@ -6,11 +6,8 @@ from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 import numpy as np
 import soundfile as sf
-output_dir = "/content/drive/MyDrive/git/debug_audio"
 
-# 2. Tạo thư mục nếu chưa có
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+
 
 MODEL_DIR = "model/"
 speaker_audio_file = f"{MODEL_DIR}giongnuhanoi6s.wav" 
@@ -90,22 +87,15 @@ def split_text_smartly(text, max_words=12):
     for i in range(0, len(sentences) - 1, 2):
         sentence = sentences[i].strip()
         punct = sentences[i+1]
-
         full_sentence = sentence + punct
-
-        # 👉 nếu câu ngắn → giữ nguyên
         if len(full_sentence.split()) <= max_words:
             chunks.append(full_sentence.strip())
         else:
-            # 👉 nếu dài → mới split theo dấu ,
             sub_chunks = re.split(r',', full_sentence)
-
             for sc in sub_chunks:
                 sc = sc.strip()
                 if not sc:
                     continue
-
-                # 💥 FIX QUAN TRỌNG: nếu kết thúc bằng dấu , → đổi thành .
                 if not sc.endswith('.'):
                     sc = sc.rstrip(',') + '.'
 
@@ -121,7 +111,6 @@ def clean_text(text):
 def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
     wav = np.array(wav, dtype=np.float32)
     
-    # Chỉ Fade-in ở chunk đầu tiên để tránh bị 'bụp' vào tai
     if is_first_chunk:
         fade_len = int(sample_rate * fade_ms / 1000)
         if len(wav) > fade_len:
@@ -135,7 +124,6 @@ def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_
 def generate_tts(text: str,voice:str):
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES[voice]["inference"]
-    # chunks = split_text_smartly(text)
     chunks = [clean_text(chunk) for chunk in split_text_smartly(text)]
 
     first_chunk = True
