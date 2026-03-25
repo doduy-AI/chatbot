@@ -1,0 +1,12 @@
+Tham chiếu mẫu giọng (clone / conditioning XTTS)
+================================================
+Đặt file âm thanh gốc vào thư mục model của tts_service (hoặc path trong VOICE_PROFILES).
+Định dạng: WAV/MP3 mono, ít nhiễu, 6–30s nói rõ.
+
+1) Tiếng Việt thuần — file gợi ý: audio.mp3
+Nội dung đọc (transcript):
+Xin chào, hôm nay là một ngày khá đặc biệt. Không phải vì có điều gì đó quá lớn lao xảy ra, mà đơn giản là tôi quyết định sẽ làm mọi thứ chậm lại một chút, để lắng nghe bản thân mình rõ hơn.
+
+2) Song ngữ (Việt–Anh) — file gợi ý: audio_song_ngu.mp3
+Nội dung đọc (transcript):
+Hê nhô, chào mừng các bạn đã đến với the most amazing science experiment ever, nơi mà chúng mình sẽ cùng nhau khám phá những bí ẩn của tự nhiên ngay tại phòng khách nhà mình nhé!

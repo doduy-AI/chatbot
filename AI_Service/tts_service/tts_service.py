@@ -1,47 +1,46 @@
-import os
-import json
 import torch
-import re , time
+import numpy as np
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
-import numpy as np
-import soundfile as sf
 
+from tts_pipeline import (
+    SAMPLE_RATE,
+    clean_text,
+    concat_wav_chunks,
+    split_text_smartly,
+    wav_to_pcm_stream,
+)
 
 
 MODEL_DIR = "model/"
-speaker_audio_file = f"{MODEL_DIR}giongnuhanoi6s.wav" 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-VOICE_PROFILES={
-    "nuhanoi":{
+VOICE_PROFILES = {
+    "nuhanoi": {
         "audio": f"{MODEL_DIR}giongnuhanoi6s.wav",
         "inference": {
             "temperature": 0.7,
             "top_p": 0.80,
             "top_k": 8,
             "speed": 1.0,
-            "repetition_penalty": 20.0,
+            "repetition_penalty": 5.0,
             "num_beams": 1,
             "length_penalty": 1.0,
-        }
-
+        },
     },
-    "nutreem":{
+    "nutreem": {
         "audio": f"{MODEL_DIR}nutrem.wav",
         "inference": {
-        "temperature": 0.7,
-        "top_p": 0.85,
-        "top_k": 8,
-        "speed": 1.0,
-        "repetition_penalty": 20.0,
-        "num_beams": 1,
-        "length_penalty": 1.0,
-    }
-    }
+            "temperature": 0.7,
+            "top_p": 0.85,
+            "top_k": 8,
+            "speed": 1.0,
+            "repetition_penalty": 5.0,
+            "num_beams": 1,
+            "length_penalty": 1.0,
+        },
+    },
 }
-
-
 
 
 print(" Đang khởi tạo mô hình XTTS...")
@@ -54,9 +53,8 @@ XTTS_MODEL.load_checkpoint(
     checkpoint_path=f"{MODEL_DIR}model.pth",
     vocab_path=f"{MODEL_DIR}vocab.json",
     use_deepspeed=False,
-    eval=True
+    eval=True,
 )
-
 XTTS_MODEL.to(device)
 
 print("Đang trích xuất đặc trưng giọng nói...")
@@ -74,82 +72,34 @@ for voice_id, profile in VOICE_PROFILES.items():
         "speaker_embedding": speaker_embedding,
     }
 
-# ----------------------------------------------
-
 print(" Mô hình XTTS đã sẵn sàng.")
 
 
-
-def split_text_smartly(text, max_words=12):
-    sentences = re.split(r'([.!?;])', text)
-    chunks = []
-
-    for i in range(0, len(sentences) - 1, 2):
-        sentence = sentences[i].strip()
-        punct = sentences[i+1]
-        full_sentence = sentence + punct
-        if len(full_sentence.split()) <= max_words:
-            chunks.append(full_sentence.strip())
-        else:
-            sub_chunks = re.split(r',', full_sentence)
-            for sc in sub_chunks:
-                sc = sc.strip()
-                if not sc:
-                    continue
-                if not sc.endswith('.'):
-                    sc = sc.rstrip(',') + '.'
-
-                chunks.append(sc)
-
-    return chunks
-
-def clean_text(text):
-    text = re.sub(r"[^\w\s.,]", "", text).strip()
-    text = re.sub(r'\.$', '_', text)
-    return text
-
-def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
-    wav = np.array(wav, dtype=np.float32)
-    
-    if is_first_chunk:
-        fade_len = int(sample_rate * fade_ms / 1000)
-        if len(wav) > fade_len:
-            fade = np.linspace(0, 1, fade_len, dtype=np.float32)
-            wav[:fade_len] *= fade
-
-    # Chuyển sang 16-bit PCM (chuẩn WAV)
-    pcm = (wav * 32767.0).astype(np.int16)
-    return pcm.tobytes()
-
-def generate_tts(text: str,voice:str):
+def generate_tts(text: str, voice: str):
+    """
+    Nhiều lần inference theo chunk → ghép sóng có crossfade → stream PCM.
+    """
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES[voice]["inference"]
-    chunks = [clean_text(chunk) for chunk in split_text_smartly(text)]
+    raw_chunks = split_text_smartly(text)
+    text_chunks = [clean_text(c) for c in raw_chunks if clean_text(c)]
 
-    first_chunk = True
+    if not text_chunks:
+        return
 
+    wav_parts = []
     with torch.inference_mode():
-        for text_chunk in chunks:
+        for text_chunk in text_chunks:
             print(text_chunk)
-            full_text = text_chunk.strip() + "..."
-
-            # 1. Chạy model
             outputs = XTTS_MODEL.inference(
-                text=full_text,
+                text=text_chunk.strip(),
                 language="vi",
                 gpt_cond_latent=latents["gpt_cond_latent"],
                 speaker_embedding=latents["speaker_embedding"],
                 **inf_cfg,
             )
+            wav_parts.append(outputs["wav"])
 
-            wav = outputs["wav"]
-            
-            # 2. Xử lý PCM bytes (đã tự bao gồm logic fade-in trong hàm)
-            audio_chunk = float_to_pcm_bytes(wav, is_first_chunk=first_chunk)
-
-            # 3. Yield thẳng ra queue, KHÔNG thêm gì khác
-            yield audio_chunk
-            
-            # 4. Đánh dấu để các chunk sau không bị fade-in nữa
-            first_chunk = False
-            
+    merged = concat_wav_chunks(wav_parts, sample_rate=SAMPLE_RATE)
+    for pcm_block in wav_to_pcm_stream(merged, sample_rate=SAMPLE_RATE):
+        yield pcm_block
