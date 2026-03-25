@@ -23,7 +23,7 @@ uploads/
 *.pth
 *.wav
 
-
+**/rnnoise/**
 __pycache__/
 
 **/__pycache__/**
