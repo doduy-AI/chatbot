@@ -20,7 +20,10 @@ qdrant_data/
 
 **/uploads/**
 uploads/
-
+*.pth
+*.wav
 
 
 __pycache__/
+
+**/__pycache__/**

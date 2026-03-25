@@ -1,5 +1,6 @@
 from google import genai
-import sys, os
+import sys
+import os
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 from sentence_transformers import SentenceTransformer
@@ -85,7 +86,7 @@ class AIEngine:
     def delete_session(self, uuid):
         if uuid in self.chat_sessions:
             del self.chat_sessions[uuid]
-            print(f"🗑 Xóa session: {uuid}")
+            print(f" Xóa session: {uuid}")
 
 if __name__ == "__main__":
     ai = AIEngine()
