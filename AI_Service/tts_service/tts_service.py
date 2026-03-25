@@ -38,7 +38,6 @@ VOICE_PROFILES={
         "num_beams": 1,
         "length_penalty": 1.0,
     }
-
     }
 }
 
@@ -57,6 +56,7 @@ XTTS_MODEL.load_checkpoint(
     use_deepspeed=False,
     eval=True
 )
+
 XTTS_MODEL.to(device)
 
 print("Đang trích xuất đặc trưng giọng nói...")
