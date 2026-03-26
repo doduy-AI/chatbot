@@ -6,6 +6,10 @@ yarn-error.log
 # Env
 .env
 
+# SSH keys — never commit
+*.pem
+mykey.pem
+
 # System
 .DS_Store
 .idea/

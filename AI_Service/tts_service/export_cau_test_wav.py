@@ -16,13 +16,18 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-# HERE = .../chatbot_voice/AI_Service/tts_service  ->  parents[1] = chatbot_voice
 REPO_ROOT = HERE.parents[1]
-MODEL_DIR = HERE / "model"
 
 os.chdir(HERE)
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(HERE / ".env")
+except ImportError:
+    pass
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -30,15 +35,22 @@ except Exception:
     pass
 
 
+def _model_dir() -> Path:
+    from tts_paths import model_dir_str  # noqa: E402
+
+    return Path(model_dir_str().rstrip("/"))
+
+
 def _required_model_files(voice: str) -> list[Path]:
+    md = _model_dir()
     refs = {
-        "nuhanoi": MODEL_DIR / "giongnuhanoi6s.wav",
-        "nutreem": MODEL_DIR / "nutrem.wav",
+        "nuhanoi": md / "giongnuhanoi6s.wav",
+        "nutreem": md / "nutrem.wav",
     }
     return [
-        MODEL_DIR / "model.pth",
-        MODEL_DIR / "config.json",
-        MODEL_DIR / "vocab.json",
+        md / "model.pth",
+        md / "config.json",
+        md / "vocab.json",
         refs[voice],
     ]
 

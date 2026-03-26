@@ -1,18 +1,30 @@
+import os
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass
+
 import torch
 import numpy as np
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
+from tts_paths import model_dir_str
 from tts_pipeline import (
     SAMPLE_RATE,
     clean_text,
     concat_wav_chunks,
+    merge_short_text_chunks,
     split_text_smartly,
     wav_to_pcm_stream,
 )
 
 
-MODEL_DIR = "model/"
+MODEL_DIR = model_dir_str()
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 VOICE_PROFILES = {
@@ -43,7 +55,7 @@ VOICE_PROFILES = {
 }
 
 
-print(" Đang khởi tạo mô hình XTTS...")
+print(f" Đang khởi tạo mô hình XTTS... (MODEL_DIR={MODEL_DIR})")
 
 config = XttsConfig()
 config.load_json(f"{MODEL_DIR}config.json")
@@ -82,6 +94,9 @@ def generate_tts(text: str, voice: str):
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES[voice]["inference"]
     raw_chunks = split_text_smartly(text)
+    min_w = int(os.environ.get("TTS_MIN_WORDS_PER_CHUNK", "0"))
+    if min_w > 1:
+        raw_chunks = merge_short_text_chunks(raw_chunks, min_w)
     text_chunks = [clean_text(c) for c in raw_chunks if clean_text(c)]
 
     if not text_chunks:

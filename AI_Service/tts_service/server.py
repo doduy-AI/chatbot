@@ -1,19 +1,31 @@
 import json
+import os
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass
+
 import torch
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import Xtts
 
+from tts_paths import model_dir_str
 from tts_pipeline import (
     SAMPLE_RATE,
     clean_text,
     concat_wav_chunks,
+    merge_short_text_chunks,
     split_text_smartly,
     wav_to_pcm_stream,
 )
 
-MODEL_DIR = "model/"
+MODEL_DIR = model_dir_str()
 latents_file = f"{MODEL_DIR}begai_lop_4_latents.pth"
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
@@ -52,7 +64,11 @@ class StreamingTTSHandler(BaseHTTPRequestHandler):
             self.send_header("Transfer-Encoding", "chunked")
             self.end_headers()
 
-            parts = [clean_text(c) for c in split_text_smartly(input_text) if clean_text(c)]
+            raw = split_text_smartly(input_text)
+            min_w = int(os.environ.get("TTS_MIN_WORDS_PER_CHUNK", "0"))
+            if min_w > 1:
+                raw = merge_short_text_chunks(raw, min_w)
+            parts = [clean_text(c) for c in raw if clean_text(c)]
             print(f"🚀 Bắt đầu Stream (sau ghép {len(parts)} chunk inference)...")
 
             wav_chunks = []

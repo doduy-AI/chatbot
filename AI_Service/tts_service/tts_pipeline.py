@@ -121,6 +121,29 @@ def _pack_subchunks(
         chunks.append(" ".join(buf).strip())
 
 
+def merge_short_text_chunks(chunks: List[str], min_words: int) -> List[str]:
+    """
+    Gộp các chunk liên tiếp cho đến khi đủ min_words (từ).
+    Dùng với viXTTS: model card cảnh báo câu tiếng Việt < ~10 từ dễ lỗi.
+    """
+    if min_words <= 1 or not chunks:
+        return chunks
+    merged: List[str] = []
+    i = 0
+    while i < len(chunks):
+        cur = chunks[i]
+        j = i + 1
+        while j < len(chunks) and len(cur.split()) < min_words:
+            cur = (cur + " " + chunks[j]).strip()
+            j += 1
+        merged.append(cur)
+        i = j
+    if len(merged) >= 2 and len(merged[-1].split()) < min_words:
+        merged[-2] = (merged[-2] + " " + merged[-1]).strip()
+        merged.pop()
+    return merged
+
+
 def concat_wav_chunks(
     chunks: List[np.ndarray],
     sample_rate: int = SAMPLE_RATE,
