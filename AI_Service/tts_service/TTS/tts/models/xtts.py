@@ -1,4 +1,5 @@
 import os
+import wave
 from dataclasses import dataclass
 
 import librosa
@@ -66,23 +67,68 @@ def wav_to_mel_cloning(
     return mel
 
 
+def _load_wav_pcm_wave(path: str):
+    """PCM WAV via stdlib only — avoids torio/FFmpeg (torchaudio.load crashes without ffmpeg)."""
+    import numpy as np
+
+    with wave.open(path, "rb") as wf:
+        n_channels = wf.getnchannels()
+        sampwidth = wf.getsampwidth()
+        sr = wf.getframerate()
+        n_frames = wf.getnframes()
+        raw = wf.readframes(n_frames)
+    if sampwidth == 2:
+        data = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768.0
+    elif sampwidth == 4:
+        data = np.frombuffer(raw, dtype="<i4").astype(np.float32) / 2147483648.0
+    elif sampwidth == 1:
+        data = (np.frombuffer(raw, dtype=np.uint8).astype(np.float32) - 128.0) / 128.0
+    else:
+        raise ValueError(f"unsupported sample width {sampwidth} (need 8/16/32-bit PCM)")
+    if n_channels > 1:
+        data = data.reshape(-1, n_channels)
+        audio = torch.from_numpy(data.T.copy())
+    else:
+        audio = torch.from_numpy(data.copy()).unsqueeze(0)
+    return audio, sr
+
+
 def load_audio(audiopath, sampling_rate):
     # better load setting following: https://github.com/faroit/python_audio_loading_benchmark
 
-    # torchaudio 2.x may route through torio/FFmpeg; minimal images often lack ffmpeg and crash in
-    # StreamingMediaDecoder. WAV/FLAC: use soundfile (libsndfile) first — no ffmpeg required.
-    path_lower = str(audiopath).lower()
-    if path_lower.endswith((".wav", ".flac")):
+    # torchaudio 2.x uses torio+FFmpeg; many servers have no ffmpeg → native C++ abort.
+    # For .wav: soundfile, then stdlib wave — never torchaudio.load for wav.
+    path = str(audiopath)
+    ext = os.path.splitext(path)[1].lower()
+
+    if ext == ".wav":
         try:
             import soundfile as sf
 
-            data, lsr = sf.read(str(audiopath), dtype="float32", always_2d=True)
+            data, lsr = sf.read(path, dtype="float32", always_2d=True)
             audio = torch.from_numpy(data.T)
         except Exception as exc:
-            print(f"soundfile load failed for {audiopath} ({exc}); trying torchaudio.load")
-            audio, lsr = torchaudio.load(audiopath)
+            print(f"[load_audio] soundfile failed ({exc}); trying stdlib wave")
+            try:
+                audio, lsr = _load_wav_pcm_wave(path)
+            except Exception as exc2:
+                raise RuntimeError(
+                    "Cannot load WAV (soundfile + stdlib wave failed). "
+                    "Use uncompressed PCM WAV, or: apt-get install -y ffmpeg"
+                ) from exc2
+    elif ext == ".flac":
+        try:
+            import soundfile as sf
+
+            data, lsr = sf.read(path, dtype="float32", always_2d=True)
+            audio = torch.from_numpy(data.T)
+        except Exception as exc:
+            raise RuntimeError(
+                "Cannot load FLAC without working libsndfile/ffmpeg. "
+                "Convert reference to WAV or: apt-get install -y ffmpeg"
+            ) from exc
     else:
-        audio, lsr = torchaudio.load(audiopath)
+        audio, lsr = torchaudio.load(path)
 
     # stereo to mono if needed
     if audio.size(0) != 1:
