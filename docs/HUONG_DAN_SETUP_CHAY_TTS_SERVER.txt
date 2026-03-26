@@ -1,0 +1,253 @@
+================================================================================
+  HƯỚNG DẪN SETUP VÀ CHẠY TTS (XTTS) — TỪ ĐẦU ĐẾN CUỐI
+  Repo: bytehomerepo/chatbot_voice — thư mục: AI_Service/tts_service
+  Cập nhật: bản ghi cho team / handoff (server GPU, Windows client)
+================================================================================
+
+MỤC LỤC NHANH
+  1. Chuẩn bị trên GitHub (quyền & kéo code)
+  2. Clone / git pull trên server
+  3. Môi trường Python (conda env "abc")
+  4. File cấu hình .env và model
+  5. Kiểm tra nhanh (check.py, dry-run)
+  6. Chạy HTTP server (port 8000, tmux)
+  7. Gọi API từ Windows (SSH tunnel + PowerShell)
+  8. Xuất 18 file test (docs/cau-test.txt)
+  9. Tải 18 file về Windows (scp)
+ 10. Lỗi thường gặp & cách xử
+
+
+--------------------------------------------------------------------------------
+1. GITHUB — QUYỀN VÀ KÉO CODE
+--------------------------------------------------------------------------------
+
+• Collaborator cần quyền đọc repo (Read) tối thiểu; ai quản lý Deploy key cần quyền Admin/Maintain trên repo.
+
+• Server KHÔNG dùng mật khẩu tài khoản GitHub để git pull (đã tắt). Chọn một trong hai:
+
+  A) SSH + Deploy key (khuyến nghị)
+     - Trên server: ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_github -N ""
+     - Dán public key (.pub) vào: Repo → Settings → Deploy keys (chỉ Read nếu chỉ pull)
+     - ~/.ssh/config:
+         Host github.com
+           HostName github.com
+           User git
+           IdentityFile ~/.ssh/id_ed25519_github
+           IdentitiesOnly yes
+     - git remote set-url origin git@github.com:bytehomerepo/chatbot_voice.git
+
+  B) HTTPS + Personal Access Token (PAT)
+     - Username: tài khoản GitHub; Password: dán PAT (không phải mật khẩu web)
+
+• Private key (.pem) SSH vào máy cloud: KHÔNG commit lên git; giữ ngoài repo.
+
+
+--------------------------------------------------------------------------------
+2. CLONE / GIT PULL TRÊN SERVER
+--------------------------------------------------------------------------------
+
+  cd /workspace    # hoặc thư mục làm việc của dịch vụ
+  git clone git@github.com:bytehomerepo/chatbot_voice.git
+  cd chatbot_voice
+  git pull origin main
+  git log -1 --oneline    # ghi lại commit khi bàn giao / nghiệm thu
+
+• File rác Windows (*:Zone.Identifier) nếu có trên Linux:
+    find /workspace/chatbot_voice -name '*:Zone.Identifier' -delete
+
+
+--------------------------------------------------------------------------------
+3. MÔI TRƯỜNG PYTHON
+--------------------------------------------------------------------------------
+
+• Khuyến nghị: Python 3.10, GPU CUDA (XTTS nặng).
+
+• Nhiều máy dùng conda, prompt hiển thị (abc):
+    conda activate abc
+
+• KHÔNG giả định đường dẫn /venv/abc/bin/activate — trên một số image không tồn tại.
+  Kiểm tra:
+    which python3
+    python3 -c "import sys; print(sys.executable)"
+
+• Cài dependency (sau mỗi lần git pull nên chạy lại):
+
+    cd /workspace/chatbot_voice/AI_Service/tts_service
+    pip install -r requirements.txt
+
+
+--------------------------------------------------------------------------------
+4. FILE .env VÀ THƯ MỤC MODEL
+--------------------------------------------------------------------------------
+
+• Tạo .env từ mẫu (trong AI_Service/tts_service):
+
+    cp .env.example .env
+
+• .env.example có gợi ý:
+    TTS_MIN_WORDS_PER_CHUNK=10   (hợp với chunk ngắn / viXTTS sau này)
+    TTS_MODEL_DIR=...            (nếu model không nằm ở model/ mặc định)
+
+• Trong thư mục model (mặc định AI_Service/tts_service/model/) cần tối thiểu:
+    model.pth
+    config.json
+    vocab.json
+    giongnuhanoi6s.wav          — giọng mẫu "nuhanoi"
+
+• Tùy chọn:
+    nutrem.wav                   — nếu có mới bật giọng "nutreem"; thiếu file thì service vẫn chạy chỉ với nuhanoi.
+
+• Không commit private key .pem; .env thường không commit (đã .gitignore).
+
+
+--------------------------------------------------------------------------------
+5. KIỂM TRA NHANH
+--------------------------------------------------------------------------------
+
+  cd /workspace/chatbot_voice/AI_Service/tts_service
+  conda activate abc            # nếu cần
+  python3 check.py              # smoke test, ra ket_qua_tts.wav (ở cwd)
+
+• Chỉ kiểm tra tách câu / chunk, không cần load model nặng:
+
+    python3 export_cau_test_wav.py --dry-run
+
+• Bộ câu chuẩn 18 dòng: docs/cau-test.txt (từ root repo).
+
+
+--------------------------------------------------------------------------------
+6. CHẠY HTTP SERVER (API TTS)
+--------------------------------------------------------------------------------
+
+• File: server.py — listen 0.0.0.0:8000, POST JSON {"text":"..."}, trả WAV.
+
+• Nên chạy nền bằng tmux (tránh tắt khi đóng SSH):
+
+    tmux new -s tts
+    cd /workspace/chatbot_voice/AI_Service/tts_service
+    python3 server.py
+
+  Thoát khỏi tmux nhưng giữ process: Ctrl+B, rồi D
+  Vào lại: tmux attach -t tts
+  Tắt server: trong session đó Ctrl+C
+
+• Tránh "tmux trong tmux" (nested): nếu đã ở trong tmux, unset TMUX hoặc dùng session hiện có.
+
+• Kiểm tra trên chính server:
+
+    curl -sS http://127.0.0.1:8000/health
+
+• Cài ffmpeg trên OS (tùy chọn): một số đường torchaudio cần; WAV giọng mẫu đã được ưu tiên đọc bằng soundfile/stdlib để giảm phụ thuộc ffmpeg.
+
+
+--------------------------------------------------------------------------------
+7. GỌI API TỪ WINDOWS (SSH TUNNEL + POWERSHELL)
+--------------------------------------------------------------------------------
+
+• Trên Windows, mở SSH có forward cổng 8000 tới localhost của server:
+
+    ssh -i .\mykey.pem -P 42039 root@<IP_SERVER> -L 8000:localhost:8000
+
+  (Đổi đường key, port SSH, user, IP cho đúng máy.)
+
+• CHỈ bật tunnel sau khi server.py đã in dòng "Server đang chạy tại http://localhost:8000".
+
+• PowerShell: KHÔNG dùng curl với JSON kiểu -d "{\"text\":...}" dễ lỗi parse → curl báo "URL rejected".
+
+  Nên dùng một trong hai:
+
+  (1) Invoke-WebRequest + ConvertTo-Json:
+
+    $body = @{ text = "Xin chào" } | ConvertTo-Json -Compress
+    Invoke-WebRequest -Uri "http://127.0.0.1:8000/" -Method POST `
+      -Body $body -ContentType "application/json; charset=utf-8" `
+      -OutFile "$env:USERPROFILE\Desktop\tts_test.wav"
+
+  (2) curl.exe + JSON trong nháy đơn:
+
+    curl.exe -sS -X POST "http://127.0.0.1:8000/" `
+      -H "Content-Type: application/json" `
+      --data-raw '{"text":"Xin chao"}' `
+      -o ($env:USERPROFILE + "\Desktop\tts_test.wav")
+
+• Nếu file tải về chỉ ~1 KB và mở ra là {"error":...} → đó là JSON lỗi, không phải WAV; sửa cách gửi body hoặc xem log server.
+
+
+--------------------------------------------------------------------------------
+8. XUẤT 18 FILE WAV (KIỂM THỬ VỠ GIỌNG / HỤT HƠI)
+--------------------------------------------------------------------------------
+
+• Script: export_cau_test_wav.py
+• Input mặc định: docs/cau-test.txt
+• KHÔNG dùng --dry-run nếu muốn ra file âm thanh.
+
+• QUAN TRỌNG: server.py và export đều load full model lên GPU. Tránh chạy song song — TẮT server.py trước khi export:
+
+    tmux attach -t tts
+    Ctrl+C
+    Ctrl+B, D
+
+• Chạy export:
+
+    cd /workspace/chatbot_voice/AI_Service/tts_service
+    conda activate abc
+    python3 export_cau_test_wav.py --out /workspace/chatbot_voice/tts_test_output/sau_fix_$(date +%Y%m%d)
+
+• Kiểm tra đủ 18 file:
+
+    ls -1 /workspace/chatbot_voice/tts_test_output/sau_fix_YYYYMMDD/*.wav | wc -l
+
+• Xong export → bật lại server nếu cần API.
+
+
+--------------------------------------------------------------------------------
+9. TẢI THƯ MỤC 18 FILE VỀ WINDOWS (SCP)
+--------------------------------------------------------------------------------
+
+  cd C:\Users\phamt\Desktop\chatbot_voice
+  scp -i .\mykey.pem -P 42039 -r root@<IP>:/workspace/chatbot_voice/tts_test_output/sau_fix_YYYYMMDD "%USERPROFILE%\Desktop\"
+
+• Đổi IP, port, key path, tên thư mục sau_fix_YYYYMMDD đúng trên server.
+
+
+--------------------------------------------------------------------------------
+10. LỖI THƯỜNG GẶP
+--------------------------------------------------------------------------------
+
+• git pull: Authentication failed (HTTPS)
+    → Dùng PAT hoặc chuyển SSH + deploy key.
+
+• Permission denied (publickey) với git@github.com
+    → Tạo key, thêm ~/.ssh/config IdentityFile, add deploy key lên repo.
+
+• Connection refused (127.0.0.1:8000) trên server
+    → server.py chưa chạy hoặc chưa load xong model.
+
+• channel X: open failed: Connection refused (trên SSH)
+    → Tunnel trỏ tới cổng không có dịch vụ (ví dụ -L 8080 nhưng không có app :8080). Chỉ forward cổng đang dùng (8000 cho TTS).
+
+• FileNotFoundError nutrem.wav khi import tts_service (bản code cũ)
+    → Bản mới: thiếu nutrem.wav thì bỏ qua giọng nutreem; chỉ cần giongnuhanoi6s.wav cho nuhanoi.
+
+• torch / torio / FFmpeg crash khi load WAV
+    → Code đã ưu tiên soundfile + wave cho .wav; vẫn lỗi thì: apt-get install -y ffmpeg (Linux).
+
+• curl Empty reply / PowerShell JSON invalid
+    → Xem mục 7; dùng Invoke-WebRequest hoặc --data-raw với nháy đơn.
+
+• OOM khi vừa server vừa export
+    → Tắt server trước khi export.
+
+
+--------------------------------------------------------------------------------
+TÀI LIỆU LIÊN QUAN TRONG REPO
+--------------------------------------------------------------------------------
+
+  docs/cau-test.txt              — 18 câu test
+  docs/VIXTTS_SETUP.txt          — hướng viXTTS (nếu triển khai sau)
+  docs/BAN_GIAO_KIEM_THU_VO_GIONG.txt — ngữ cảnh bàn giao
+  AI_Service/tts_service/.env.example
+
+
+================================================================================
+Hết.
