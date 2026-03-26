@@ -55,6 +55,27 @@ VOICE_PROFILES = {
 }
 
 
+def _voice_profiles_with_files() -> dict:
+    """Chỉ giữ profile có file giọng mẫu (tránh crash khi thiếu nutrem.wav trên server)."""
+    out = {}
+    for vid, profile in VOICE_PROFILES.items():
+        ap = Path(profile["audio"])
+        if ap.is_file():
+            out[vid] = profile
+        else:
+            print(f"  [bỏ qua {vid}] không thấy file: {ap}")
+    if not out:
+        raise FileNotFoundError(
+            f"Không có giọng nào khả dụng. Cần ít nhất một file trong {MODEL_DIR} "
+            "(vd. giongnuhanoi6s.wav hoặc nutrem.wav)."
+        )
+    return out
+
+
+VOICE_PROFILES_LOADED = _voice_profiles_with_files()
+DEFAULT_VOICE = "nuhanoi" if "nuhanoi" in VOICE_PROFILES_LOADED else next(iter(VOICE_PROFILES_LOADED))
+AVAILABLE_VOICES = tuple(VOICE_PROFILES_LOADED.keys())
+
 print(f" Đang khởi tạo mô hình XTTS... (MODEL_DIR={MODEL_DIR})")
 
 config = XttsConfig()
@@ -71,7 +92,7 @@ XTTS_MODEL.to(device)
 
 print("Đang trích xuất đặc trưng giọng nói...")
 VOICE_LATENTS = {}
-for voice_id, profile in VOICE_PROFILES.items():
+for voice_id, profile in VOICE_PROFILES_LOADED.items():
     print(f"  [{voice_id}] ← {profile['audio']}")
     gpt_cond_latent, speaker_embedding = XTTS_MODEL.get_conditioning_latents(
         audio_path=profile["audio"],
@@ -84,15 +105,20 @@ for voice_id, profile in VOICE_PROFILES.items():
         "speaker_embedding": speaker_embedding,
     }
 
-print(" Mô hình XTTS đã sẵn sàng.")
+print(f" Mô hình XTTS đã sẵn sàng. Giọng: {', '.join(AVAILABLE_VOICES)} (mặc định: {DEFAULT_VOICE})")
 
 
 def generate_tts(text: str, voice: str):
     """
     Nhiều lần inference theo chunk → ghép sóng có crossfade → stream PCM.
     """
+    if voice not in VOICE_LATENTS:
+        raise KeyError(
+            f"Giọng {voice!r} không có (thiếu file mẫu hoặc chưa load). "
+            f"Có sẵn: {list(VOICE_LATENTS)}"
+        )
     latents = VOICE_LATENTS[voice]
-    inf_cfg = VOICE_PROFILES[voice]["inference"]
+    inf_cfg = VOICE_PROFILES_LOADED[voice]["inference"]
     raw_chunks = split_text_smartly(text)
     min_w = int(os.environ.get("TTS_MIN_WORDS_PER_CHUNK", "0"))
     if min_w > 1:

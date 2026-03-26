@@ -11,7 +11,7 @@ except ImportError:
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from tts_service import generate_tts
+from tts_service import AVAILABLE_VOICES, DEFAULT_VOICE, generate_tts
 
 
 class StreamingTTSHandler(BaseHTTPRequestHandler):
@@ -21,9 +21,9 @@ class StreamingTTSHandler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             request_json = json.loads(post_data.decode("utf-8"))
             input_text = request_json.get("text", "")
-            voice = request_json.get("voice", "nuhanoi")
-            if voice not in ("nuhanoi", "nutreem"):
-                voice = "nuhanoi"
+            voice = request_json.get("voice", DEFAULT_VOICE)
+            if voice not in AVAILABLE_VOICES:
+                voice = DEFAULT_VOICE
 
             self.send_response(200)
             self.send_header("Content-type", "audio/wav")
