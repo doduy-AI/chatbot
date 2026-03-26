@@ -240,12 +240,69 @@ MỤC LỤC NHANH
 
 
 --------------------------------------------------------------------------------
-TÀI LIỆU LIÊN QUAN TRONG REPO
+11. NGHIỆM THỬ & BÀN GIAO (VỠ GIỌNG / HỤT HƠI)
 --------------------------------------------------------------------------------
 
-  docs/cau-test.txt              — 18 câu test
-  docs/VIXTTS_SETUP.txt          — hướng viXTTS (nếu triển khai sau)
-  docs/BAN_GIAO_KIEM_THU_VO_GIONG.txt — ngữ cảnh bàn giao
+Mục tiêu chứng minh
+  • Đoạn dài đọc trơn hơn, không gãy rõ ở chỗ nối chunk.
+  • Không còn: nối ba chấm sau mỗi chunk, repetition penalty không phù hợp, nối PCM thô từng đoạn.
+
+Quy trình có số (khuyến nghị)
+  0) Chưa có model: python export_cau_test_wav.py --dry-run → tts_test_output/dry_run_chunk_report.txt
+  1) Baseline (nếu còn): commit cũ → export vào tts_test_output/truoc_fix/
+  2) Sau sửa: git hiện tại → export vào tts_test_output/sau_fix_YYYYMMDD/ (xem mục 8)
+  3) Nghe A/B: cùng 001.wav … 018.wav; ghi dòng nào còn lỗi (số 00x + mô tả ngắn).
+
+Deliverables gợi ý để chốt
+  • Mã: commit có tts_pipeline.py, tts_service.py, server.py (nếu dùng API).
+  • Script + input: export_cau_test_wav.py + docs/cau-test.txt.
+  • Kết quả: folder 001.wav … 018.wav (hoặc zip).
+  • Báo cáo ngắn: trước/sau (nghe được), câu nào vẫn yếu + lý do.
+
+Ngoài phạm vi giai đoạn này (ghi nhận)
+  • Song ngữ sâu (G2P / tách EN-VI) — giai đoạn sau.
+  • Train lại checkpoint XTTS.
+
+Lưu ý: AI không nghe thay được; “pass” do người nghe / PO ký nhận.
+
+
+--------------------------------------------------------------------------------
+12. viXTTS (CAPLEAF / HUGGING FACE) — TÙY CHỌN SAU NÀY
+--------------------------------------------------------------------------------
+
+Model: https://huggingface.co/capleaf/viXTTS
+Cần: model.pth, config.json, vocab.json (bộ từ HF).
+
+Tải (ví dụ):
+  pip install -U huggingface_hub
+  cd AI_Service/tts_service
+  mkdir -p model_vixtts
+  huggingface-cli download capleaf/viXTTS config.json model.pth vocab.json --local-dir model_vixtts
+
+Chạy với checkpoint viXTTS
+  • .env: TTS_MODEL_DIR=model_vixtts  (path tương đối thư mục tts_service)
+  • TTS_MIN_WORDS_PER_CHUNK=10 — viXTTS dễ lỗi với chunk tiếng Việt quá ngắn (~<10 từ).
+
+Lưu ý: card HF có thể ghi không tương thích 100% Coqui TTS gốc; nếu load lỗi thử đúng phiên bản đi kèp project. Sau khi đổi model, chạy lại đủ 18 câu docs/cau-test.txt để so A/B.
+
+
+--------------------------------------------------------------------------------
+13. GỢI Ý THU ÂM GIỌNG MẪU (CONDITIONING)
+--------------------------------------------------------------------------------
+
+Đặt WAV/MP3 mono, ít nhiễu, khoảng 6–30s, nói rõ; file đặt trong model/ hoặc path trong VOICE_PROFILES.
+
+Gợi ý nội dung đọc (transcript) nếu tự thu:
+  • Tiếng Việt thuần: “Xin chào, hôm nay là một ngày khá đặc biệt. Không phải vì có điều gì đó quá lớn lao xảy ra, mà đơn giản là tôi quyết định sẽ làm mọi thứ chậm lại một chút, để lắng nghe bản thân mình rõ hơn.”
+  • Song ngữ mẫu: “Hê nhô, chào mừng các bạn đã đến với the most amazing science experiment ever, nơi mà chúng mình sẽ cùng nhau khám phá những bí ẩn của tự nhiên ngay tại phòng khách nhà mình nhé!”
+
+
+--------------------------------------------------------------------------------
+TÀI LIỆU CÒN LẠI TRONG docs/
+--------------------------------------------------------------------------------
+
+  docs/cau-test.txt              — 18 câu test (input mặc định export)
+  docs/HUONG_DAN_SETUP_CHAY_TTS_SERVER.txt — file này (runbook tổng hợp)
   AI_Service/tts_service/.env.example
 
 
