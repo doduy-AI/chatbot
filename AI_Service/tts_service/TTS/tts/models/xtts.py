@@ -69,8 +69,20 @@ def wav_to_mel_cloning(
 def load_audio(audiopath, sampling_rate):
     # better load setting following: https://github.com/faroit/python_audio_loading_benchmark
 
-    # torchaudio should chose proper backend to load audio depending on platform
-    audio, lsr = torchaudio.load(audiopath)
+    # torchaudio 2.x may route through torio/FFmpeg; minimal images often lack ffmpeg and crash in
+    # StreamingMediaDecoder. WAV/FLAC: use soundfile (libsndfile) first — no ffmpeg required.
+    path_lower = str(audiopath).lower()
+    if path_lower.endswith((".wav", ".flac")):
+        try:
+            import soundfile as sf
+
+            data, lsr = sf.read(str(audiopath), dtype="float32", always_2d=True)
+            audio = torch.from_numpy(data.T)
+        except Exception as exc:
+            print(f"soundfile load failed for {audiopath} ({exc}); trying torchaudio.load")
+            audio, lsr = torchaudio.load(audiopath)
+    else:
+        audio, lsr = torchaudio.load(audiopath)
 
     # stereo to mono if needed
     if audio.size(0) != 1:
