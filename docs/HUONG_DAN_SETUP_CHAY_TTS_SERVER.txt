@@ -15,6 +15,9 @@ MỤC LỤC NHANH
   8. Xuất 18 file test (docs/cau-test.txt)
   9. Tải 18 file về Windows (scp)
  10. Lỗi thường gặp & cách xử
+ 11. Nghiệm thử & bàn giao (vỡ giọng / hụt hơi) — chi tiết
+ 12. viXTTS (capleaf / Hugging Face) — tùy chọn triển khai sau
+ 13. Thu âm giọng mẫu (conditioning XTTS) — chi tiết
 
 
 --------------------------------------------------------------------------------
@@ -240,71 +243,140 @@ MỤC LỤC NHANH
 
 
 --------------------------------------------------------------------------------
-11. NGHIỆM THỬ & BÀN GIAO (VỠ GIỌNG / HỤT HƠI)
+11. NGHIỆM THỬ & BÀN GIAO (VỠ GIỌNG / HỤT HƠI) — CHI TIẾT
 --------------------------------------------------------------------------------
 
-Mục tiêu chứng minh
-  • Đoạn dài đọc trơn hơn, không gãy rõ ở chỗ nối chunk.
-  • Không còn: nối ba chấm sau mỗi chunk, repetition penalty không phù hợp, nối PCM thô từng đoạn.
+11.1. Mục tiêu chứng minh (định nghĩa “đạt” phần pipeline)
+  • Đoạn dài (nhiều chunk) đọc trơn hơn: không gãy rõ, không “khựng” tại chỗ nối hai đoạn inference.
+  • Giảm/không còn các triệu chứng đã xử lý trong code: nối ký tự “...” sau mỗi chunk; repetition_penalty không phù hợp;
+    ghép sóng PCM thô từng đoạn không crossfade (nếu phiên bản hiện tại đã có concat + crossfade trong tts_pipeline).
+  • “Đạt” cuối cùng do người nghe (PO / QA) xác nhận sau khi nghe bộ 18 file; không thay thế bằng chỉ số tự động.
 
-Quy trình có số (khuyến nghị)
-  0) Chưa có model: python export_cau_test_wav.py --dry-run → tts_test_output/dry_run_chunk_report.txt
-  1) Baseline (nếu còn): commit cũ → export vào tts_test_output/truoc_fix/
-  2) Sau sửa: git hiện tại → export vào tts_test_output/sau_fix_YYYYMMDD/ (xem mục 8)
-  3) Nghe A/B: cùng 001.wav … 018.wav; ghi dòng nào còn lỗi (số 00x + mô tả ngắn).
+11.2. Chuẩn bị môi trường (checklist trước khi test)
+  • git pull đúng nhánh/commit cần nghiệm thu; ghi lại: git log -1 --oneline.
+  • conda activate abc (hoặc đúng env); pip install -r AI_Service/tts_service/requirements.txt.
+  • torch / torchaudio cùng dòng phiên bản theo requirements.txt (tránh lệch bản dễ lỗi runtime).
+  • Thư mục model đủ: model.pth, config.json, vocab.json, giongnuhanoi6s.wav (và nutrem.wav nếu test giọng tre).
 
-Deliverables gợi ý để chốt
-  • Mã: commit có tts_pipeline.py, tts_service.py, server.py (nếu dùng API).
+11.3. Bộ dữ liệu test cố định
+  • File: docs/cau-test.txt — 18 dòng, mỗi dòng một đoạn thoại tiếng Việt (độ dài đa dạng, có dấu câu, có câu rất dài).
+  • Script: AI_Service/tts_service/export_cau_test_wav.py
+    - Input mặc định trỏ tới docs/cau-test.txt (đường dẫn tính từ root repo).
+    - Output: thư mục do --out chỉ định, file 001.wav … 018.wav tương ứng thứ tự dòng.
+
+11.4. Bước 0 — Dry-run (không cần GPU đầy đủ cho inference)
+  • Mục đích: xem pipeline tách chunk / gộp chunk ngắn (TTS_MIN_WORDS_PER_CHUNK) trên đúng 18 dòng, không sinh WAV.
+  • Lệnh:
+      cd AI_Service/tts_service
+      python3 export_cau_test_wav.py --dry-run
+  • Kết quả: tts_test_output/dry_run_chunk_report.txt (số chunk từng dòng, preview text). Dùng để đối chiếu khi đổi tham số .env.
+
+11.5. Baseline vs sau sửa (A/B có số)
+  • Baseline: nếu còn commit/tag cũ trước khi sửa pipeline — checkout tạm thời, chạy export vào một thư mục cố định, ví dụ:
+      tts_test_output/truoc_fix/
+  • Sau sửa: checkout commit hiện tại, export vào thư mục có ngày để không đè, ví dụ:
+      tts_test_output/sau_fix_YYYYMMDD/
+  • Lệnh export có model (nhớ TẮT server.py trước đó để tránh OOM — xem mục 8):
+      python3 export_cau_test_wav.py --out /đường/dẫn/tts_test_output/sau_fix_YYYYMMDD --voice nuhanoi
+  • Kiểm tra đủ file:
+      ls -1 .../sau_fix_YYYYMMDD/*.wav | wc -l   → kỳ vọng 18
+
+11.6. Cách nghe và ghi nhận
+  • So sánh cùng số thứ tự: 001.wav baseline vs 001.wav sau fix (cùng nội dung câu trong cau-test.txt).
+  • Ghi biên bản ngắn theo từng dòng: OK / vẫn cắt giữa chừng / hụt cuối / click nối / khác (mô tả 1 dòng).
+  • Nếu gửi khách: nén folder + ghi rõ commit hash và ngày export.
+
+11.7. Deliverables gợi ý khi chốt hạ mục TTS pipeline
+  • Mã nguồn: nhánh/commit có tts_pipeline.py, tts_service.py, server.py (nếu dùng API), tts_paths.py, .env.example.
   • Script + input: export_cau_test_wav.py + docs/cau-test.txt.
-  • Kết quả: folder 001.wav … 018.wav (hoặc zip).
-  • Báo cáo ngắn: trước/sau (nghe được), câu nào vẫn yếu + lý do.
+  • Âm thanh: 001.wav … 018.wav (hoặc file zip).
+  • Báo cáo: 1 trang trước/sau (nghe được), liệt kê câu còn yếu và giả thuyết nguyên nhân (nếu có).
 
-Ngoài phạm vi giai đoạn này (ghi nhận)
-  • Song ngữ sâu (G2P / tách EN-VI) — giai đoạn sau.
-  • Train lại checkpoint XTTS.
-
-Lưu ý: AI không nghe thay được; “pass” do người nghe / PO ký nhận.
+11.8. Ngoài phạm vi giai đoạn này (ghi rõ để tránh hiểu nhầm)
+  • Song ngữ sâu (G2P, tách câu EN–VI tự động ổn định) — giai đoạn sau.
+  • Fine-tune / train lại checkpoint XTTS — giai đoạn sau.
 
 
 --------------------------------------------------------------------------------
-12. viXTTS (CAPLEAF / HUGGING FACE) — TÙY CHỌN SAU NÀY
+12. viXTTS (CAPLEAF / HUGGING FACE) — TÙY CHỌN TRIỂN KHAI SAU
 --------------------------------------------------------------------------------
 
-Model: https://huggingface.co/capleaf/viXTTS
-Cần: model.pth, config.json, vocab.json (bộ từ HF).
+12.1. Mục đích
+  • Checkpoint tiếng Việt viXTTS (capleaf) có thể thay thế hoặc song song với model Bytehome hiện tại, tùy chất lượng A/B trên 18 câu.
 
-Tải (ví dụ):
-  pip install -U huggingface_hub
-  cd AI_Service/tts_service
-  mkdir -p model_vixtts
-  huggingface-cli download capleaf/viXTTS config.json model.pth vocab.json --local-dir model_vixtts
+12.2. Nguồn model
+  • Trang Hugging Face: https://huggingface.co/capleaf/viXTTS
+  • Trong repo model thường có ít nhất: model.pth, config.json, vocab.json (kiểm tra tab Files trên HF).
 
-Chạy với checkpoint viXTTS
-  • .env: TTS_MODEL_DIR=model_vixtts  (path tương đối thư mục tts_service)
-  • TTS_MIN_WORDS_PER_CHUNK=10 — viXTTS dễ lỗi với chunk tiếng Việt quá ngắn (~<10 từ).
+12.3. Cách 1 — huggingface-cli (khuyến nghị)
+  • Cài:
+      pip install -U huggingface_hub
+  • Tải vào thư mục riêng (không đè model/ mặc định):
+      cd AI_Service/tts_service
+      mkdir -p model_vixtts
+      huggingface-cli download capleaf/viXTTS config.json model.pth vocab.json --local-dir model_vixtts
 
-Lưu ý: card HF có thể ghi không tương thích 100% Coqui TTS gốc; nếu load lỗi thử đúng phiên bản đi kèp project. Sau khi đổi model, chạy lại đủ 18 câu docs/cau-test.txt để so A/B.
+12.4. Cách 2 — tải tay
+  • Trên web HF → Files → tải từng file → copy 3 file vào model_vixtts/ (cùng cấp với nhau).
+
+12.5. Giọng tham chiếu (speaker conditioning)
+  • Vẫn cần file WAV giọng mẫu phù hợp (xem mục 13). Có thể đặt trong model_vixtts/ hoặc giữ trong model/ và chỉnh VOICE_PROFILES / đường dẫn trong code nếu dự án có biến môi trường — hiện tại ưu tiên dùng TTS_MODEL_DIR trỏ thư mục chứa checkpoint + đủ file ref theo cấu hình service.
+
+12.6. Biến môi trường khi chạy với viXTTS
+  • Trong .env (hoặc export trước khi chạy):
+      TTS_MODEL_DIR=model_vixtts
+      TTS_MIN_WORDS_PER_CHUNK=10
+  • TTS_MIN_WORDS_PER_CHUNK=10: theo gợi ý từ thực tế/viXTTS, chunk tiếng Việt quá ngắn (khoảng dưới ~10 từ) dễ lỗi; pipeline gộp chunk ngắn trước khi inference.
+
+12.7. Chạy service / worker
+  • Sau khi .env đúng, chạy lại server.py hoặc wordker.py như bình thường (từ thư mục AI_Service/tts_service).
+  • Linux/mac: export TTS_MODEL_DIR=... trước khi chạy nếu không dùng file .env.
+
+12.8. Lưu ý tương thích
+  • Model card HF có thể ghi không tương thích 100% với bản Coqui TTS fork trong repo; nếu load lỗi: đối chiếu phiên bản thư viện trong requirements.txt, xem log traceback.
+  • Sau khi đổi sang viXTTS, bắt buộc chạy lại đủ 18 câu (mục 8 + 11) để so sánh với bản cũ.
 
 
 --------------------------------------------------------------------------------
-13. GỢI Ý THU ÂM GIỌNG MẪU (CONDITIONING)
+13. THU ÂM GIỌNG MẪU (CONDITIONING XTTS) — CHI TIẾT
 --------------------------------------------------------------------------------
 
-Đặt WAV/MP3 mono, ít nhiễu, khoảng 6–30s, nói rõ; file đặt trong model/ hoặc path trong VOICE_PROFILES.
+13.1. Vai trò file giọng mẫu
+  • XTTS dùng vài giây âm thanh người nói để tạo “embedding / latents” — chất lượng và đặc tính giọng phụ thuộc trực tiếp file này.
+  • Trong code hiện tại: nuhanoi → giongnuhanoi6s.wav; nutreem → nutrem.wav (nếu file tồn tại).
 
-Gợi ý nội dung đọc (transcript) nếu tự thu:
-  • Tiếng Việt thuần: “Xin chào, hôm nay là một ngày khá đặc biệt. Không phải vì có điều gì đó quá lớn lao xảy ra, mà đơn giản là tôi quyết định sẽ làm mọi thứ chậm lại một chút, để lắng nghe bản thân mình rõ hơn.”
-  • Song ngữ mẫu: “Hê nhô, chào mừng các bạn đã đến với the most amazing science experiment ever, nơi mà chúng mình sẽ cùng nhau khám phá những bí ẩn của tự nhiên ngay tại phòng khách nhà mình nhé!”
+13.2. Yêu cầu kỹ thuật gợi ý
+  • Định dạng: ưu tiên WAV PCM; MP3 có thể dùng nhưng dễ phụ thuộc ffmpeg/torchaudio — nên chuẩn hóa WAV 16-bit mono nếu có thể.
+  • Độ dài: khoảng 6–30 giây nói rõ, ít nền ồn, ít reverb; tránh nhạc nền lấn.
+  • Nội dung: nói tự nhiên, đúng ngôn ngữ mục tiêu (tiếng Việt cho sản phẩm tiếng Việt).
+
+13.3. Đặt file trên server
+  • Copy vào AI_Service/tts_service/model/ (hoặc thư mục trỏ bởi TTS_MODEL_DIR nếu cấu hình tập trung model ở đó).
+  • Đảm bảo tên file trùng với VOICE_PROFILES trong tts_service.py (hoặc chỉnh code đồng bộ tên).
+
+13.4. Gợi ý kịch bản đọc (transcript) để thu mới
+  • Tiếng Việt thuần (một đoạn liền, giọng ổn định):
+    “Xin chào, hôm nay là một ngày khá đặc biệt. Không phải vì có điều gì đó quá lớn lao xảy ra,
+     mà đơn giản là tôi quyết định sẽ làm mọi thứ chậm lại một chút, để lắng nghe bản thân mình rõ hơn.”
+
+  • Đoạn có xen tiếng Anh (nếu sản phẩm sau này cần test song ngữ — không bắt buộc cho 18 câu hiện tại):
+    “Hê nhô, chào mừng các bạn đã đến với the most amazing science experiment ever,
+     nơi mà chúng mình sẽ cùng nhau khám phá những bí ẩn của tự nhiên ngay tại phòng khách nhà mình nhé!”
+
+13.5. Sau khi thay file giọng mẫu
+  • Khởi động lại server.py (hoặc process load tts_service) để get_conditioning_latents chạy lại.
+  • Nghe thử một câu ngắn qua API hoặc check.py trước khi chạy bộ 18 file.
 
 
 --------------------------------------------------------------------------------
-TÀI LIỆU CÒN LẠI TRONG docs/
+TÀI LIỆU TRONG docs/ SAU KHI GỘP
 --------------------------------------------------------------------------------
 
-  docs/cau-test.txt              — 18 câu test (input mặc định export)
-  docs/HUONG_DAN_SETUP_CHAY_TTS_SERVER.txt — file này (runbook tổng hợp)
+  docs/cau-test.txt                         — 18 câu test
+  docs/HUONG_DAN_SETUP_CHAY_TTS_SERVER.txt  — runbook đầy đủ (file này)
   AI_Service/tts_service/.env.example
 
 
 ================================================================================
 Hết.
+
