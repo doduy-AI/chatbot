@@ -15,4 +15,4 @@ WARN_NO_PARAMDOC       = YES
 JAVADOC_AUTOBRIEF      = YES
 SORT_MEMBER_DOCS       = NO
 
-HAVE_DOT               = yes
+HAVE_DOT               = no

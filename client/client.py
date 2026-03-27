@@ -21,10 +21,10 @@ from STT import (
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
 
-BASE_URL = "http://192.168.1.35:3000"
-WS_URL = "ws://192.168.1.35:3000"
+BASE_URL = "http://192.168.1.12:3000"
+WS_URL = "ws://192.168.1.12:3000"
 USER_DATA = {
-    "username": "emily",
+    "username": "BHXH",
     "password": "123456"
 }
 
