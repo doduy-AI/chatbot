@@ -25,6 +25,8 @@ Bắt buộc cài đặt trên Raspberry Pi (hoặc Ubuntu/Debian) để lấy �
 sudo apt-get update
 sudo apt-get install portaudio19-dev python3-pyaudio libasound-dev
 sudo apt install autoconf automake libtool pkg-config build-essential
+sudo make install
+sudo ldconfig
 ```
 
 ### 2. Biên dịch thư viện RNNoise từ mã nguồn
