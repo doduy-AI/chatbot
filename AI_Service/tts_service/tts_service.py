@@ -35,7 +35,7 @@ VOICE_PROFILES = {
             "top_p": 0.80,
             "top_k": 8,
             "speed": 1.0,
-            "repetition_penalty": 5.0,
+            "repetition_penalty": 15.0,
             "num_beams": 1,
             "length_penalty": 1.0,
         },
@@ -47,7 +47,7 @@ VOICE_PROFILES = {
             "top_p": 0.85,
             "top_k": 8,
             "speed": 1.0,
-            "repetition_penalty": 5.0,
+            "repetition_penalty": 15.0,
             "num_beams": 1,
             "length_penalty": 1.0,
         },
@@ -120,9 +120,8 @@ def generate_tts(text: str, voice: str):
     latents = VOICE_LATENTS[voice]
     inf_cfg = VOICE_PROFILES_LOADED[voice]["inference"]
     raw_chunks = split_text_smartly(text)
-    min_w = int(os.environ.get("TTS_MIN_WORDS_PER_CHUNK", "0"))
-    if min_w > 1:
-        raw_chunks = merge_short_text_chunks(raw_chunks, min_w)
+    min_w = int(os.environ.get("TTS_MIN_WORDS_PER_CHUNK", "15"))
+    raw_chunks = merge_short_text_chunks(raw_chunks, min_w)
     text_chunks = [clean_text(c) for c in raw_chunks if clean_text(c)]
 
     if not text_chunks:
