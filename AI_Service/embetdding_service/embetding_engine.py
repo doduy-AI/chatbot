@@ -58,7 +58,7 @@ def process_embedding_for_user(user_id, group_id, base):
     # Duyệt từng file trong thư mục
     for file_path in user_dir.glob("*"):
         if file_path.suffix.lower() in [".txt", ".docx"]:
-            print(f" 📑 Đang xử lý: {file_path.name}")
+            print(f"  Đang xử lý: {file_path.name}")
             content = extract_text(file_path)
             
             if not content.strip():
@@ -84,7 +84,7 @@ def process_embedding_for_user(user_id, group_id, base):
                     }
                 ))
 
-            # --- SỬA ĐỔI CHÍNH: LƯU VÀO QDRANT NGAY SAU MỖI FILE ---
+            # --- LƯU VÀO QDRANT NGAY SAU MỖI FILE ---
             if current_file_points:
                 try:
                     client.upsert(

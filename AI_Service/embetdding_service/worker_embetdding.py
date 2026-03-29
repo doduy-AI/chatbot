@@ -3,7 +3,10 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from embetdding_service.redis_manager import redis_manager
 from embetding_engine import process_embedding_for_user
+from pathlib import Path
+import shutil
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 def main():
   
@@ -21,12 +24,19 @@ def main():
                 
 
 
-                # print(u_id)
                 if u_id:
                     print(f" Nhận yêu cầu Embedding cho User: {u_id}")
                     
-
-                    process_embedding_for_user(u_id ,groupId,base)
+                    process_embedding_for_user(u_id, groupId, base)
+                    
+                    src_dir = BASE_DIR / "upload" / u_id
+                    dest_dir = BASE_DIR / "processed" / u_id
+                    
+                    dest_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    for file in src_dir.iterdir():
+                        if file.is_file():
+                            shutil.move(str(file), dest_dir / file.name)
                     
                     print(f" Hoàn thành xử lý cho {u_id}")
                 else:
