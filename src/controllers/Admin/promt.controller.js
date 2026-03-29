@@ -1,5 +1,7 @@
 
-const Prompt = require('../../model/group_prompt.model')
+const { JSON } = require('sequelize');
+const { Group, Prompt } = require('../../model/index'); // file chứa association
+
 const create = async (req,res)=>{
   try {
         const {groupId , promptName ,content} = req.body
@@ -36,4 +38,30 @@ const create = async (req,res)=>{
 
 }
 
-module.exports = {create}
+const edit = async(req,res) => {
+    console.log("oke")
+}
+
+const group = async(req,res) =>{
+    try {
+        const data  = await Group.findAll({
+            attributes:['groupId','groupName'],
+            include:[{
+                model:Prompt,
+                as:'prompt',
+                attributes:['id','promptName','content']
+                
+            }],
+            // logging: console.log
+        })
+
+        const result = data.map(item => item.toJSON())
+        res.status(200).json(result)
+
+} catch (error) {
+        console.error("Lỗi Controller:", error);
+        res.status(500).send(error.message);
+    }
+}
+
+module.exports = {create,edit,group}

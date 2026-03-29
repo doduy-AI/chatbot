@@ -27,9 +27,11 @@ User.belongsTo(Group,{
 
 
 Group.hasOne(Prompt,{
-    foreignKey:'groupId'
+    foreignKey:'groupId',
+    sourceKey:'groupId',
+    as:'prompt'
 })
-Prompt.belongsTo(Group, { foreignKey: 'groupId' });
+Prompt.belongsTo(Group, { foreignKey: 'groupId' ,targetKey:'groupId', as:'group' });
 
 module.exports = { 
     sequelize ,

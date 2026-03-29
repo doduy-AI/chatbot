@@ -6,4 +6,5 @@ router.post('/create',groupController.create)
 router.get('/list',groupController.getAllGroup)
 router.post('/prompt/create',promptController.create)
 
+
 module.exports =router
