@@ -24,17 +24,27 @@ from huggingface_hub import hf_hub_download
 
 from f5_tts.api import F5TTS
 
-# ckpt_file phải là ĐƯỜNG DẪN FILE .pt — không truyền repo_id (torch.load sẽ FileNotFoundError).
+# Checkpoint + vocab cùng repo HF (xem README hynt/F5-TTS-Vietnamese-ViVoice).
+# Nếu chỉ truyền ckpt mà dùng vocab mặc định gói f5_tts → lỗi size mismatch embedding (2567 vs 2546).
 _REPO = "hynt/F5-TTS-Vietnamese-ViVoice"
-_CKPT_NAME = "model_last.pt"
 ckpt_path = os.environ.get("F5TTS_CKPT") or hf_hub_download(
     repo_id=_REPO,
-    filename=_CKPT_NAME,
+    filename="model_last.pt",
+)
+vocab_path = os.environ.get("F5TTS_VOCAB") or hf_hub_download(
+    repo_id=_REPO,
+    filename="config.json",
 )
 
 print("Khởi tạo F5-TTS Vietnamese...")
 print(f"  checkpoint: {ckpt_path}")
-tts = F5TTS(model_type="F5-TTS", ckpt_file=ckpt_path)
+print(f"  vocab:      {vocab_path}")
+# README repo Việt: --model F5TTS_Base --vocab_file .../config.json (file config.json trên HF là bảng token).
+tts = F5TTS(
+    model="F5TTS_Base",
+    ckpt_file=ckpt_path,
+    vocab_file=vocab_path,
+)
 print("Model loaded OK!")
 
 # Đọc 18 câu test tiếng Việt
