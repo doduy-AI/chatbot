@@ -1,5 +1,5 @@
 
-const { JSON } = require('sequelize');
+const { JSON, json } = require('sequelize');
 const { Group, Prompt } = require('../../model/index'); // file chứa association
 
 const create = async (req,res)=>{
@@ -39,7 +39,28 @@ const create = async (req,res)=>{
 }
 
 const edit = async(req,res) => {
-    console.log("oke")
+   try {
+        const {id} = req.params
+        const {content} = req.body
+        console.log(id,content)
+        const prompt = await Prompt.findByPk(id)
+        if (!prompt) {
+            return res.status(404).json({
+                success:false,
+                message:"Khong ton tai prompt nay"
+            })
+        }
+
+        await prompt.update({content})
+        return res.status(200).json({
+                success: true,
+                message: "Cập nhật thành công!",
+                data: prompt 
+            });
+   } catch (error) {
+        res.status(500).json({ error: error.message });
+   }
+    
 }
 
 const group = async(req,res) =>{
