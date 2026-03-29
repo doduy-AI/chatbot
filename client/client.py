@@ -21,8 +21,8 @@ from STT import (
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
 
-BASE_URL = "http://localhost:4000"
-WS_URL = "ws://localhost:4000"
+BASE_URL = "http://118.70.187.211:4000"
+WS_URL = "ws://118.70.187.211:4000"
 USER_DATA = {
     "username": "BHXH1",
     "password": "123456"

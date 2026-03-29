@@ -22,6 +22,8 @@ tmp/
 
 qdrant_data/
 
+**/processed/**
+processed/
 **/uploads/**
 uploads/
 *.pth

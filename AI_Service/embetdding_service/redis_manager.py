@@ -9,6 +9,8 @@ class RedisManager:
             port=settings.REDIS_PORT,
             decode_responses=True
         )
+        print(settings.REDIS_HOST)
+        print(settings.REDIS_PORT)
 
     def listen_tasks(self, queue_name):
         return self.client.brpop(queue_name, timeout=0)
