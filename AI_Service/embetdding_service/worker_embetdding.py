@@ -29,7 +29,7 @@ def main():
                     
                     process_embedding_for_user(u_id, groupId, base)
                     
-                    src_dir = BASE_DIR / "upload" / u_id
+                    src_dir = BASE_DIR / "uploads" / u_id
                     dest_dir = BASE_DIR / "processed" / u_id
                     
                     dest_dir.mkdir(parents=True, exist_ok=True)
