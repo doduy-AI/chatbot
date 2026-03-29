@@ -1,6 +1,7 @@
 
 const { JSON, json } = require('sequelize');
 const { Group, Prompt } = require('../../model/index'); // file chứa association
+const cacheRedis = require('../../services/redisService')
 
 const create = async (req,res)=>{
   try {
@@ -42,16 +43,19 @@ const edit = async(req,res) => {
    try {
         const {id} = req.params
         const {content} = req.body
-        console.log(id,content)
+
         const prompt = await Prompt.findByPk(id)
+        console.log(prompt)
         if (!prompt) {
             return res.status(404).json({
                 success:false,
                 message:"Khong ton tai prompt nay"
             })
         }
-
+        
         await prompt.update({content})
+        const cacheKey = `group:${prompt.groupId}:content`;
+        cacheRedis.delCache(cacheKey)
         return res.status(200).json({
                 success: true,
                 message: "Cập nhật thành công!",
