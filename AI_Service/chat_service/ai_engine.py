@@ -55,7 +55,7 @@ class AIEngine:
                     )
                 ]
             ),
-                limit=3
+                limit=10
             )
             contexts = [hit.payload.get("text", "") for hit in response.points]
             return "\n".join(contexts)
