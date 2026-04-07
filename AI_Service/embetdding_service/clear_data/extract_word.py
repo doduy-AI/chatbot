@@ -1,6 +1,8 @@
 import docx
+from pathlib import Path
 
-def extract_word(file_path: str) -> str:
+
+def word_to_markdown(file_path: str) -> str:
     try:
         doc = docx.Document(file_path)
         result = []
@@ -48,3 +50,16 @@ def table_to_markdown(table) -> str:
             rows.append("| " + " | ".join(["---"] * len(cells)) + " |")
     
     return "\n".join(rows)
+
+
+if __name__ == "__main__":
+    file_path = "/home/doduy/Downloads/data_cminh/TT 29-1995 HD ND 45 LLVT.docx"
+    
+    md_content = word_to_markdown(file_path)
+    
+    output_path = Path(file_path).with_suffix(".md")
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(md_content)
+    
+    print(f"Đã lưu: {output_path}")
+    print(f"Nội dung:\n{md_content[:500]}...") 
