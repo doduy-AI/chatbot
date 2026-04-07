@@ -4,7 +4,7 @@ import requests
 # --- CẤU HÌNH ---
 API_URL = 'http://118.70.187.211:4000/api/admin/rag/uploadfile'
 TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcxMWRkYTNmLTYyNGMtNDVkMi04NTNkLTgxM2E3N2U1ZmMzNSIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzQ4MDQ2MzYsImV4cCI6MTc3NzM5NjYzNn0.4f7GHbt4BNCANYwTcber10Pgkmv2l-CgGS7pWStBU-Y'  # Dán token của bạn vào đây
-TARGET_DIR = '/home/duydo/Downloads/abc'  # Thư mục chứa 1000 file (có folder con)
+TARGET_DIR = '/home/duydo/Downloads/data_cminh'  # Thư mục chứa 1000 file (có folder con)
 GROUP_ID = 'fc543786-0ce0-4d4e-a3a8-2bca0978a2ce' # Thêm GroupID của bạn vào đây
 
 def get_all_files_recursive(directory):
