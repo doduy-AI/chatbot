@@ -4,12 +4,12 @@ def classify_file(file_path: str) -> str:
     ext = Path(file_path).suffix.lower()
     
     # Doc/Docx
-    if ext in [".doc", ".docx"]:
+    if ext in [".doc", ".docx" ,".txt"]:
         return "word"
     
     # Ảnh
     elif ext in [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp"]:
-        return "image"
+        return "pdf_scan"
     
     # PDF → cần detect thêm
     elif ext == ".pdf":

@@ -1,5 +1,10 @@
 import pymupdf4llm
 from pathlib import Path
+import os
+import sys
+import asyncio
+from llama_parse import LlamaParse
+from config.config import settings
 
 def pdf_word_to_markdown(filepath: str) -> str:
     try:
@@ -11,15 +16,18 @@ def pdf_word_to_markdown(filepath: str) -> str:
     
 def pdf_scan_to_markdown(filepath: str) ->str:
     print("dã cjayujk vào đây")
+    print(settings)
 
 
 if __name__ == "__main__":
-    file_path = "/home/doduy/Downloads/audio_test/41-2024-qh15.pdf"
+    # file_path = "/home/doduy/Downloads/audio_test/41-2024-qh15.pdf"
     
-    md_content = pdf_word_to_markdown(file_path)
+    # md_content = pdf_word_to_markdown(file_path)
     
-    output_path = Path(file_path).with_suffix(".md")
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(md_content)
+    # output_path = Path(file_path).with_suffix(".md")
+    # with open(output_path, "w", encoding="utf-8") as f:
+    #     f.write(md_content)
     
-    print(f"Đã lưu: {output_path}")
+    # print(f"Đã lưu: {output_path}")
+
+    pdf_scan_to_markdown("abc")

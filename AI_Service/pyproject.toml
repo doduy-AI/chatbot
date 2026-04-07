@@ -1,0 +1,22 @@
+[project]
+name = "ai-service"
+version = "0.1.0"
+requires-python = "==3.10.*"
+dependencies = [
+    "qdrant-client",
+    "sentence-transformers",
+    "python-docx",
+    "pymupdf",
+    "pymupdf4llm",
+    "llama-parse",
+    "openai",
+    "httpx",
+    "python-dotenv",
+    "redis>=7.4.0",
+    "pydantic-settings>=2.13.1",
+    "typeguard>=4.5.1",
+    "llama-index>=0.14.20",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
