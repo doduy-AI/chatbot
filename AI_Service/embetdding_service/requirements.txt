@@ -5,3 +5,6 @@ sentence-transformers
 typeguard
 python-docx
 qdrant-client
+pymupdf4llm
+llama-parse 
+llama-index

@@ -5,7 +5,7 @@ yarn-error.log
 
 # Env
 .env
-
+.venv
 # SSH keys — never commit
 *.pem
 mykey.pem
