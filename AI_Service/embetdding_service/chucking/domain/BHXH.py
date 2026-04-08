@@ -1,6 +1,6 @@
 import re
 from .base import chunk_by_paragraph ,chunk_by_sentence
-
+import os
 
 def detect_luat_type(text: str) -> str:
     if re.search(r'Điều\s+\d+', text):
@@ -50,4 +50,17 @@ class BHXH:
         self.process_folder()
 
     def process_folder(self):
-        print(self.folder_path)
+        if not os.path.exists(self.folder_path):
+            print("[CHUKING] forder không tồn tại ")
+            return
+        for filename in os.listdir(self.folder_path):
+            path = os.path.join(self.folder_path, filename)
+            if os.path.isfile(path):
+                with open(path,'r',encoding='utf-8') as f :
+                    content = f.read()
+                    print(chunk_luat(content))
+            else:
+                print(f"[ERR] Đường dẫn {path} không phải là 1 file ")
+            print(path)
+
+        print("đã vào đến đây",self.folder_path)
