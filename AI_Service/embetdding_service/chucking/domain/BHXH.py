@@ -1,7 +1,7 @@
 import re
 from .base import chunk_by_paragraph ,chunk_by_sentence
 import os
-
+from embetdding_service.embetding.embedding_engine import process_embedding_for_user as embedding
 def detect_luat_type(text: str) -> str:
     if re.search(r'Điều\s+\d+', text):
         return "dieu"
@@ -60,6 +60,7 @@ class BHXH:
                 with open(path,'r',encoding='utf-8') as f :
                     content = f.read()
                     chunks =  chunk_luat(content)
+                    embedding("a","b","c",chunks)
                     if isinstance(chunks, list):
                         num_chunks = len(chunks)
                         self.total_chunks += num_chunks 
