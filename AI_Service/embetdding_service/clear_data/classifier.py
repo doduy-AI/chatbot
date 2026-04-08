@@ -4,7 +4,7 @@ def classify_file(file_path: str) -> str:
     ext = Path(file_path).suffix.lower()
     
     # Doc/Docx
-    if ext in [".doc", ".docx" ,".txt"]:
+    if ext in [".doc", ".docx" ,".txt",".md"]:
         return "word"
     
     # Ảnh
