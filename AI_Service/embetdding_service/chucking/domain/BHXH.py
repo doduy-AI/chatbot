@@ -23,12 +23,15 @@ def chunk_luat(text: str, chunk_size=500, overlap=100) -> list[str]:
         chunks = []
         for part in parts:
             part = part.strip()
-            if not part:
-                continue
-            if len(part) > chunk_size * 2:
-                chunks.extend(chunk_by_sentence(part, chunk_size, overlap))
-            else:
+            if not part: continue
+            
+            # Nếu Điều luật không quá dài (dưới 2000 ký tự), ĐỪNG CẮT NỮA. 
+            # Giữ nguyên cả Điều để AI hiểu trọn vẹn ngữ cảnh.
+            if len(part) < 2000: 
                 chunks.append(part)
+            else:
+                # Nếu bắt buộc phải cắt, hãy dùng overlap cao (ví dụ 200)
+                chunks.extend(chunk_by_sentence(part, chunk_size=800, overlap=200))
         return chunks
     
     elif van_ban_type == "danh_sach":
@@ -44,10 +47,13 @@ def chunk_luat(text: str, chunk_size=500, overlap=100) -> list[str]:
 
 
 class BHXH:
-    def __init__(self, folder_path: str):
+    def __init__(self, folder_path: str,u_id: str, groupId: str, base: str):
         self.folder_path = folder_path
         self.final_results = []
         self.total_chunks = 0
+        self.u_id = u_id
+        self.groupId = groupId
+        self.base = base
         self.process_folder()
 
     def process_folder(self):
@@ -60,11 +66,14 @@ class BHXH:
                 with open(path,'r',encoding='utf-8') as f :
                     content = f.read()
                     chunks =  chunk_luat(content)
-                    embedding("a","b","c",chunks)
                     if isinstance(chunks, list):
                         num_chunks = len(chunks)
                         self.total_chunks += num_chunks 
                         print(f"File {filename}: có {num_chunks} chunks")
+                        userIdBase = "base" if self.base == 'yes' else self.user_id
+
+                        for individual_chunk in chunks:
+                            embedding(self.u_id,self.groupId, userIdBase, individual_chunk)
                     else:
                         # Nếu chunk_luat trả về kết quả khác list, xử lý tùy trường hợp
                         self.total_chunks += 1

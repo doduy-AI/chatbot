@@ -29,11 +29,29 @@ def init_storage():
 
 init_storage()
 
-def process_embedding_for_user(userid , group_id,base ,chuck):
-    print(f"USER {userid}")
-    print(f"USER {group_id}")
-    print(f"USER {base}")
-    print(f"USER {chuck}")
+def process_embedding_for_user(userid, group_id, base, chuck):
+    if not chuck or not chuck.strip():
+        return
+    vector = model.encode([chuck])[0].tolist() 
+    point = PointStruct(
+        id=str(uuid.uuid4()),
+        vector=vector,
+        payload={
+            "userId": userid,
+            "groupId": group_id,
+            "base": base,
+            "text": chuck 
+        }
+    )
+    try:
+        client.upsert(
+            collection_name=COLLECTION_NAME,
+            points=[point]
+        )
+        # In ra một đoạn ngắn để debug cho đỡ rối màn hình
+        print(f"✓ Đã nạp 1 chunk cho User: {userid} | Content: {chuck[:50]}...")
+    except Exception as e:
+        print(f"❌ Lỗi khi đẩy lên Qdrant: {e}")
 
 
     

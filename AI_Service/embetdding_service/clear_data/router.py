@@ -22,8 +22,9 @@ def extract_text(file_path: str) -> str:
     
     return extractor[file_type]()
 
-def process_folder_to_markdown(folder_path: str,folder_clean:str):
+def process_folder_to_markdown(folder_path: str,folder_path_clean:str):
     print(f"[OCR] Đang bắt đầu quyét thư mục {folder_path}")
+    print("[ABC]{folder_path_clean}")
     if not os.path.isdir(folder_path):
         print(f"[ROUTER_CLEAR_DATA] : Không tìm thấy thư mục {folder_path}")
         return 
@@ -37,12 +38,12 @@ def process_folder_to_markdown(folder_path: str,folder_clean:str):
             
             if markdown_content:
                 if markdown_content == "CLEAR":
-                    shutil.copy2(os.path.join(folder_path,file_name),folder_clean)
+                    shutil.copy2(os.path.join(folder_path,file_name),folder_path_clean)
                     continue
                 else:
                     file_stem = Path(file_name).stem 
                     output_file_name = f"{file_stem}.md"
-                    output_path = os.path.join(folder_clean, output_file_name)
+                    output_path = os.path.join(folder_path_clean, output_file_name)
                     with open(output_path, "w", encoding="utf-8") as f:
                         f.write(markdown_content)
                     
