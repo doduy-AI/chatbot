@@ -7,7 +7,7 @@ def smart_chuck_domain(forder_path:str ,title: str) -> str:
     # print(domain,file_path)
 
     DOMAIN = {
-        "BHXH" : lambda file_path: BHXH(folder_path)
+        "BHXH" : lambda file_path: BHXH(file_path)
     }
 
     if domain in DOMAIN:

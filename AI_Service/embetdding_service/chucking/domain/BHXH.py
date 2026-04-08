@@ -47,6 +47,7 @@ class BHXH:
     def __init__(self, folder_path: str):
         self.folder_path = folder_path
         self.final_results = []
+        self.total_chunks = 0
         self.process_folder()
 
     def process_folder(self):
@@ -58,7 +59,14 @@ class BHXH:
             if os.path.isfile(path):
                 with open(path,'r',encoding='utf-8') as f :
                     content = f.read()
-                    print(chunk_luat(content))
+                    chunks =  chunk_luat(content)
+                    if isinstance(chunks, list):
+                        num_chunks = len(chunks)
+                        self.total_chunks += num_chunks 
+                        print(f"File {filename}: có {num_chunks} chunks")
+                    else:
+                        # Nếu chunk_luat trả về kết quả khác list, xử lý tùy trường hợp
+                        self.total_chunks += 1
             else:
                 print(f"[ERR] Đường dẫn {path} không phải là 1 file ")
             print(path)
