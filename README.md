@@ -155,3 +155,6 @@ docker exec -it redis_ai_service redis-cli MONITORdocker exec -it redis_ai_servi
 ---
 
 > ⭐ *Nếu bạn thấy dự án hữu ích, hãy để lại một star để ủng hộ nhé!*
+
+sudo apt install pandoc
+
