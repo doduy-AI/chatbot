@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatMessagePromptTemplate , MessagesPlacehold
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_qdrant import QdrantVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.messages import HumanMessage ,SystemMessage
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter , FieldCondition , MatchValue
 from sentence_transformers import SentenceTransformer
@@ -60,10 +61,10 @@ class AIEngine:
             context = self.get_context(userId,group_Id,text)
             messages = [
                 SystemMessage(content=prompt),
-                HumanMessage(content=f"THÔNG TIN HỖ TRỢ:\n{context}\n\nCÂU HỎI: {text}")
+                HumanMessage(content=f"THÔNG TIN HỖ TRỢ:\n{context}\n\n{prompt}\n\nCÂU HỎI: {text}")
             ]
-            print(context)
-            print(prompt)
+            response = self.model.invoke(messages)
+            return response.content
         except Exception as e :
             print(f"[ERR_RESPONE]{e}")
             return ""
