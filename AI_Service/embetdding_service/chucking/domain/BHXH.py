@@ -73,7 +73,7 @@ class BHXH:
                         userIdBase = "base" if self.base == 'yes' else self.user_id
 
                         for individual_chunk in chunks:
-                            embedding(self.u_id,self.groupId, userIdBase, individual_chunk)
+                            embedding(self.u_id,self.groupId, userIdBase, individual_chunk,filename)
                     else:
                         # Nếu chunk_luat trả về kết quả khác list, xử lý tùy trường hợp
                         self.total_chunks += 1
