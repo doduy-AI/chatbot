@@ -1,14 +1,10 @@
 import json 
 import os 
 import  sys
-from redis_manager import redis_manager
-
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from chat_service.redis_manager import redis_manager
 from config.config import settings
-
-
 from concurrent.futures import ThreadPoolExecutor
-from ai_engine import AIEngine 
+from chat_service.ai_engine import AIEngine 
 executor = ThreadPoolExecutor(max_workers=10)
 ai = AIEngine() 
 
@@ -20,10 +16,10 @@ def handle_task(data):
     group_id = data.get("groupId")
     voice = data.get("voice")
     if text == "disconectuser":
-        ai.delete_session(user_id)
+        ai.clear_session(user_id)
         return
-
-    reply = ai.generate_respone(text, user_id, group_id)
+    prompt = redis_manager.get_cache(f"group:{group_id}:content")
+    reply = ai.generate_respone(text,prompt ,user_id, group_id)
     print("[BYTEHOME]", reply)
 
     redis_manager.publish("tts_tasks", {
