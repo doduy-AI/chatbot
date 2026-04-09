@@ -28,7 +28,7 @@ processed/
 uploads/
 *.pth
 *.wav
-
+clean/**
 **/rnnoise/**
 __pycache__/
 

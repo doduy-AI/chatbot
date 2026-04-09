@@ -2,10 +2,10 @@ import os
 import requests
 
 # --- CẤU HÌNH ---
-API_URL = 'http://localhost:4000/api/admin/rag/uploadfile'
-TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE0ZDQyMzZlLTM3Y2UtNDc5MC1hMzc3LTc4MzdiYjVkYTk5OCIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzU3MDY2MzIsImV4cCI6MTc3ODI5ODYzMn0.Ey_LQFHKrBe-bNqliPgZvfEOp5IAlRuWHB3qe02iwuA'
+API_URL = 'http://118.70.187.211:4000/api/admin/rag/uploadfile'
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcxMWRkYTNmLTYyNGMtNDVkMi04NTNkLTgxM2E3N2U1ZmMzNSIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzU3MTA1MDEsImV4cCI6MTc3ODMwMjUwMX0.kWCvVHf8mvb-g9yup22876y23cvuPKH9wkjTtgcYhdM'
 TARGET_DIR = '/home/doduy/Downloads/data_cminh'  
-GROUP_ID = 'f4486348-955d-4667-aacb-362a6bcda483' 
+GROUP_ID = 'fc543786-0ce0-4d4e-a3a8-2bca0978a2ce' 
 
 def get_all_files_recursive(directory):
     """Quét sạch mọi file trong mọi ngóc ngách thư mục con"""

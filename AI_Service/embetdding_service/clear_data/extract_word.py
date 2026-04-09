@@ -46,13 +46,12 @@ def word_to_markdown(file_path: str) -> str:
     try:
         file_path_obj = Path(file_path)
         
-        # Convert .doc → .docx nếu cần
         if file_path_obj.suffix.lower() == ".doc":
             docx_path, tmp_dir = convert_doc_to_docx(file_path)
         else:
             docx_path = file_path
         
-        # Dùng pandoc convert sang plain text (không giữ table markup)
+        # Dùng -t plain để pandoc tự bỏ hết table markup
         result = subprocess.run(
             ["pandoc", docx_path, "-t", "plain", "--wrap=none"],
             capture_output=True, text=True, timeout=120
@@ -61,21 +60,7 @@ def word_to_markdown(file_path: str) -> str:
         if result.returncode != 0:
             raise RuntimeError(f"Pandoc lỗi: {result.stderr}")
         
-        text = result.stdout
-        
-        # Dọn dẹp: bỏ dòng "Về đầu trang" và các dòng rác từ layout cũ
-        lines = text.splitlines()
-        cleaned = []
-        for line in lines:
-            stripped = line.strip()
-            # Bỏ các dòng rác phổ biến trong file .doc chuyển đổi
-            if stripped in ("Về đầu trang", ""):
-                if cleaned and cleaned[-1] != "":
-                    cleaned.append("")  # Giữ lại 1 dòng trắng
-                continue
-            cleaned.append(stripped)
-        
-        return "\n".join(cleaned).strip()
+        return clean_text(result.stdout)
     
     except Exception as e:
         print(f"  Lỗi đọc file word {file_path}: {e}")
@@ -86,6 +71,27 @@ def word_to_markdown(file_path: str) -> str:
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
+def clean_text(text: str) -> str:
+    lines = text.splitlines()
+    cleaned = []
+    
+    for line in lines:
+        stripped = line.strip()
+        
+        # Bỏ dòng chỉ có ký tự table rác: |, +, -, =, khoảng trắng
+        if re.fullmatch(r'[\|\+\-\=\s]*', stripped):
+            continue
+        
+        # Bỏ dòng rác navigation
+        if stripped in ("Về đầu trang",):
+            continue
+        
+        cleaned.append(stripped)
+    
+    # Gộp nhiều dòng trắng liên tiếp thành 1
+    result = re.sub(r'\n{3,}', '\n\n', "\n".join(cleaned))
+    
+    return result.strip()
 if __name__ == "__main__":
     file_path = "/home/doduy/Downloads/data_cminh/Luât BHXH 07.doc"
     
