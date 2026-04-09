@@ -3,8 +3,8 @@ import requests
 
 # --- CẤU HÌNH ---
 API_URL = 'http://localhost:4000/api/admin/rag/uploadfile'
-TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE0ZDQyMzZlLTM3Y2UtNDc5MC1hMzc3LTc4MzdiYjVkYTk5OCIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzU3MDIxNzAsImV4cCI6MTc3ODI5NDE3MH0.0m_dBs6QHK_rGKwn6MAouqLaAxUyeSnOlm5iXxyZGaU'
-TARGET_DIR = '/home/doduy/Downloads/data_new1/data_new12'  
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE0ZDQyMzZlLTM3Y2UtNDc5MC1hMzc3LTc4MzdiYjVkYTk5OCIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzU3MDY2MzIsImV4cCI6MTc3ODI5ODYzMn0.Ey_LQFHKrBe-bNqliPgZvfEOp5IAlRuWHB3qe02iwuA'
+TARGET_DIR = '/home/doduy/Downloads/data_cminh'  
 GROUP_ID = 'f4486348-955d-4667-aacb-362a6bcda483' 
 
 def get_all_files_recursive(directory):

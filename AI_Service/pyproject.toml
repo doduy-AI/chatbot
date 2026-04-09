@@ -16,6 +16,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "typeguard>=4.5.1",
     "llama-index>=0.14.20",
+    "pandoc>=2.4",
 ]
 
 [tool.setuptools.packages.find]
