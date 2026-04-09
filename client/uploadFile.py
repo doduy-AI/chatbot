@@ -7,6 +7,7 @@ TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcxMWRkYTNmLTYyNGMtNDVkMi
 TARGET_DIR = '/home/doduy/Downloads/data_cminh'  
 GROUP_ID = 'fc543786-0ce0-4d4e-a3a8-2bca0978a2ce' 
 
+
 def get_all_files_recursive(directory):
     """Quét sạch mọi file trong mọi ngóc ngách thư mục con"""
     file_list = []
