@@ -29,7 +29,8 @@ def init_storage():
 
 init_storage()
 
-def process_embedding_for_user(userid, group_id, base, chuck):
+def process_embedding_for_user(userid, group_id, base, chuck,path):
+
     if not chuck or not chuck.strip():
         return
     vector = model.encode([chuck])[0].tolist() 
@@ -37,9 +38,9 @@ def process_embedding_for_user(userid, group_id, base, chuck):
         id=str(uuid.uuid4()),
         vector=vector,
         payload={
-            "userId": userid,
             "groupId": group_id,
-            "base": base,
+            "userId": base,
+            "filename":path,
             "text": chuck 
         }
     )
