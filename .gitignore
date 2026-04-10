@@ -20,6 +20,7 @@ dist/
 tmp/
 *.log
 
+
 qdrant_data/
 
 **/processed/**
@@ -28,6 +29,7 @@ processed/
 uploads/
 *.pth
 *.wav
+*.mp3
 clean/**
 **/rnnoise/**
 __pycache__/
