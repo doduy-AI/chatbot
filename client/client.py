@@ -378,11 +378,11 @@ class WebSocketHandler:
                 
                 if audio_url:
                     print(f"{CYAN}[Audio URL]: {audio_url}{RESET}")
-                    # threading.Thread(
-                    #     target=play_audio_stream,
-                    #     args=(audio_url, self.is_playing_event),
-                    #     daemon=True
-                    # ).start()
+                    threading.Thread(
+                        target=play_audio_stream,
+                        args=(audio_url, self.is_playing_event),
+                        daemon=True
+                    ).start()
             
             elif msg_type == "AI_VOICE_DONE":
                 print(f"{CYAN}[Bot] Hoan thanh phan hoi{RESET}")
