@@ -17,7 +17,7 @@ def worker_process_task(folder_path: str, title: str , folder_path_clean : str, 
     chucking_router(folder_path_clean,title,u_id,groupId,base)
 
 
-if __name__ == "__main__":
+def main():
     while True:
         task_data = redis_manager.listen_tasks("embedding_tasks")
         print(task_data)
@@ -54,3 +54,9 @@ if __name__ == "__main__":
                     print(f" Hoàn thành xử lý cho {u_id}")
         except Exception  as e : 
             print(f"Lỗi khi xử lý task ",e)
+
+
+
+if __name__ == "__main__":
+    main()
+    

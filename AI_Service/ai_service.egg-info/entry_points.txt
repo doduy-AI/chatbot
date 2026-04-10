@@ -1,0 +1,3 @@
+[console_scripts]
+chat = chat_service.worker:main
+embetdding = embetdding_service.worker:main
