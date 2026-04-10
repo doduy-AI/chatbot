@@ -1,0 +1,4 @@
+chat_service
+config
+embetdding_service
+tts_service

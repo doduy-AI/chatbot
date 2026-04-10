@@ -23,5 +23,16 @@ dependencies = [
     "langchain-core>=1.2.28",
 ]
 
+[project.scripts]
+embetdding = "embetdding_service.worker:main"
+chat = "chat_service.worker:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = true
+
 [tool.setuptools.packages.find]
 where = ["."]
