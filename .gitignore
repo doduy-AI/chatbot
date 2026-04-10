@@ -33,6 +33,8 @@ uploads/
 clean/**
 **/rnnoise/**
 __pycache__/
+**/models/*
+**/models/**
 
 **/__pycache__/**
 
