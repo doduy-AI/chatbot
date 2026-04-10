@@ -2,6 +2,7 @@ import os
 from huggingface_hub import snapshot_download
 from config.config import settings
 import logging
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 def dowload_checkpoint_bytehomeTTS():
         repo_id = settings.MODEL_NAME
         model_dir = "./models"
@@ -18,9 +19,5 @@ def dowload_checkpoint_bytehomeTTS():
                 logging.info(f"[TTS] Tải model thành công về thư mục: {model_dir}")
         except Exception as e:
                 logging.error(f"[TTS]  Lỗi tải model từ HF {e}")
-
-
-        
-
 if __name__ == "__main__":
         dowload_checkpoint_bytehomeTTS()
