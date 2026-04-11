@@ -39,3 +39,6 @@ __pycache__/
 **/__pycache__/**
 
 tts_test_output/
+
+
+**/.cache/**
