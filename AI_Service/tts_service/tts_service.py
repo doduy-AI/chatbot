@@ -6,17 +6,25 @@ import os
 import torch
 import torchaudio
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+from input.voice_profiles import VOICE_PROFILE
+import argparse
+
 
 def get_best_device():
     if torch.cuda.is_available(): return "cuda"
     return "cpu"
-def run_inference():
+
+
+def run_inference(text: str , voice: str ):
     MODEL_PATH = "./models"
     OUTPUT_PATH = "./output/audio.wav"
-    REF_AUDIO = "./input/audio.wav"
-    REF_TEXT = "Hey, even though it's raining heavily and the wind is blowing strongly outside the window, we can still sit here, read books together and drink a warm cup of hot cocoa."
 
     device = get_best_device()
+    profile = VOICE_PROFILE.get(voice)
+    if profile is None:
+        available = list(VOICE_PROFILE.keys())
+        logging.error(f"[TTS Service] Giọng {voice} không được hỗ trợ . các giọng được hộ trợ hiện có :{available}")
+        raise ValueError(f"Giọng {voice} không tồn tại")
 
     logging.info(f"[TTS] Đang khởi tạo BYTEHOME_TTS_SERVICE trên {device}")
 
@@ -25,16 +33,14 @@ def run_inference():
         device_map = device,
         dtype=torch.float16 if device == "cuda" else torch.float32   
           )
-    text_to_speak = "Today is September 23"
     
-    logging.info(f" Đang nhái giọng từ file mẫu: {REF_AUDIO}")
+    logging.info(f" Đang xuất giọng từ file mẫu: {profile['ref_text']}")
     
     audios = model.generate(
-        text=text_to_speak,
-        ref_audio=REF_AUDIO,
-        ref_text=REF_TEXT,
+        text=text,
+        ref_audio=profile["ref_audio"],
+        ref_text=profile["ref_text"],
         num_step=32,      
-        language="en",
         guidance_scale=2.0,
         speed=1.0           
     )
@@ -45,7 +51,17 @@ def run_inference():
     logging.info(f" Đã lưu giọng nói tại: {OUTPUT_PATH}")
 
 
+def main():
+    parser = argparse.ArgumentParser(description="TTS Service")
+    parser.add_argument("--voice", type=str, default="nuhanoi",help="Tên giọng đọc")
+    parser.add_argument("--text",required=True , help="Vắn Bản cần đọc")
+    parser.add_argument("--output", type=str , default="./output/audio.wav" , help="Đường dẫn audio")
+
+    run = parser.parse_args()
+
+    run_inference(run.text,run.voice)
+
+
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    run_inference()
+    main()
