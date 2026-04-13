@@ -1,12 +1,22 @@
 import os
+from huggingface_hub import hf_hub_download, snapshot_download
 _DIR = os.path.dirname(os.path.abspath(__file__))
 import os 
-from huggingface_hub import hf_hub_download
 from config.config import settings
 import logging
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 HF_REPO = "doduy1911/audio_TTS"
+HF_MODEL_REPO = "doduy1911/bytehome_omi_voice"
+MODEL_PATH = os.path.join(_DIR, "..", "models")
+if not os.path.exists(MODEL_PATH) or not os.listdir(MODEL_PATH):
+    logging.info("[TTS] Đang tải model weights từ HuggingFace...")
+    snapshot_download(
+        repo_id=HF_MODEL_REPO,
+        local_dir=MODEL_PATH,
+        token=settings.TOKEN_HF
+    )
+    logging.info("[TTS] Tải model xong.")
 
 def get_voice_path(filename: str) -> str: 
     local_path = os.path.join(_DIR, filename)
