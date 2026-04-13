@@ -11,7 +11,6 @@ import asyncio
 import json
 STREAM_GET_TIMEOUT = settings.STREAM_GET_TIMEOUT
 EXTERNAL_HOST = settings.EXTERNAL_HOST
-EXTERNAL_PORT = settings.EXTERNAL_PORT
 QUEUE_MAXSIZE = settings.QUEUE_MAXSIZE
 
 app = FastAPI()
