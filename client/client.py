@@ -11,7 +11,7 @@ import speech_recognition as sr
 import requests
 import websocket
 import pyaudio
-voice="giongnuhanoi"
+voice="nutreem"
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
@@ -21,10 +21,10 @@ from STT import (
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
 
-BASE_URL = "http://118.70.187.211:4000"
-WS_URL = "ws://118.70.187.211:4000"
+BASE_URL = "http://localhost:4000"
+WS_URL = "ws://localhost:4000"
 USER_DATA = {
-    "username": "BHXH1",
+    "username": "emily",
     "password": "123456"
 }
 
@@ -297,58 +297,72 @@ import requests
 import pyaudio
 from pydub import AudioSegment
 import io
+
+
+
 def play_audio_stream(url, is_playing_event):
     try:
         is_playing_event.set()
-        print(f"{CYAN}[TTS] Dang phat audio MP3...{RESET}")
+        print(f"{CYAN}[TTS] Dang phat audio MP3 streaming...{RESET}")
 
-        # Khởi tạo PyAudio
         p = pyaudio.PyAudio()
         stream = None
+        buffer = b""
+        MIN_BUFFER = 16384  # ~16KB trước khi bắt đầu phát
 
-        # Request stream từ server
         with requests.get(url, stream=True, timeout=10) as r:
             if r.status_code != 200:
                 print(f"{RED}[TTS] Loi tai audio: {r.status_code}{RESET}")
                 is_playing_event.clear()
                 return
 
-            # Gom các chunk lại để decode (MP3 cần một lượng dữ liệu nhất định mới decode được)
-            # Nếu muốn streaming mượt hơn, bạn có thể dùng một buffer nhỏ
-            audio_data = io.BytesIO()
             for chunk in r.iter_content(chunk_size=4096):
-                if chunk:
-                    audio_data.write(chunk)
-            
-            # Quay lại đầu buffer để đọc
-            audio_data.seek(0)
-            
-            # Giải mã MP3 sang dữ liệu thô (PCM)
-            segment = AudioSegment.from_mp3(audio_data)
-            
-            # Mở stream dựa trên thông số của file MP3 vừa tải
-            stream = p.open(
-                format=p.get_format_from_width(segment.sample_width),
-                channels=segment.channels,
-                rate=segment.frame_rate,
-                output=True
-            )
+                if not chunk:
+                    continue
 
-            # Phát audio
-            stream.write(segment.raw_data)
+                buffer += chunk
 
-            # Lưu file (Lưu đúng dạng mp3)
-            os.makedirs("output", exist_ok=True)
-            filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".mp3"
-            save_path = os.path.join("output", filename)
-            segment.export(save_path, format="mp3")
+                # Đợi đủ buffer tối thiểu rồi mới bắt đầu decode và phát
+                if len(buffer) < MIN_BUFFER:
+                    continue
+
+                try:
+                    segment = AudioSegment.from_mp3(io.BytesIO(buffer))
+
+                    if stream is None:
+                        stream = p.open(
+                            format=p.get_format_from_width(segment.sample_width),
+                            channels=segment.channels,
+                            rate=segment.frame_rate,
+                            output=True
+                        )
+
+                    stream.write(segment.raw_data)
+                    buffer = b""  # reset buffer sau khi phát
+                except Exception:
+                    pass  # chưa đủ data để decode MP3, tiếp tục gom
+
+            # Phát phần còn lại
+            if buffer:
+                try:
+                    segment = AudioSegment.from_mp3(io.BytesIO(buffer))
+                    if stream is None:
+                        stream = p.open(
+                            format=p.get_format_from_width(segment.sample_width),
+                            channels=segment.channels,
+                            rate=segment.frame_rate,
+                            output=True
+                        )
+                    stream.write(segment.raw_data)
+                except Exception as e:
+                    print(f"{RED}[TTS] Loi phat phan cuoi: {e}{RESET}")
 
         if stream:
             stream.stop_stream()
             stream.close()
         p.terminate()
-        
-        print(f"{GREEN}[TTS] Phat xong! Da luu: {save_path}{RESET}")
+
+        print(f"{GREEN}[TTS] Phat xong!{RESET}")
         time.sleep(0.3)
         is_playing_event.clear()
 
