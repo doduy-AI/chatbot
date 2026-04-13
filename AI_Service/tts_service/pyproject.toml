@@ -24,6 +24,7 @@ dependencies = [
     "numpy",
     "soundfile",
     "pydantic-settings>=2.13.1",
+    "redis>=7.4.0",
 ]
 
 [project.scripts]

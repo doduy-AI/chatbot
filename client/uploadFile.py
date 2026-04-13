@@ -3,9 +3,9 @@ import requests
 
 # --- CẤU HÌNH ---
 API_URL = 'http://118.70.187.211:4000/api/admin/rag/uploadfile'
-TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcxMWRkYTNmLTYyNGMtNDVkMi04NTNkLTgxM2E3N2U1ZmMzNSIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzU2NjczNTgsImV4cCI6MTc3ODI1OTM1OH0.DZMgizBwjOM5BYsCVpYYCBcjQbv13ZgkwNechuYrv3w'  # Dán token của bạn vào đây
-TARGET_DIR = '/home/duydo/Downloads/data_new/data_new1'  
-GROUP_ID = 'fc543786-0ce0-4d4e-a3a8-2bca0978a2ce' 
+TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcxMWRkYTNmLTYyNGMtNDVkMi04NTNkLTgxM2E3N2U1ZmMzNSIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3NzYwNTAzMjMsImV4cCI6MTc3ODY0MjMyM30.gKnqdTY2PaBQ-PlYYiu3n5_FyAT9uU03j0NYC5rKYeQ' 
+TARGET_DIR = '/home/doduy/Downloads/data_new1'  
+GROUP_ID = 'd5a3ee64-3ec3-4624-a5b3-1597b957b060' 
 
 def get_all_files_recursive(directory):
     """Quét sạch mọi file trong mọi ngóc ngách thư mục con"""
