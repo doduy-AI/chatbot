@@ -40,13 +40,13 @@ class RedisService {
 
                 if (pattern === this.voiceResponsePattern) {
                     const userId = channel.split(':')[1];
-                    // console.log(`[Redis] 🎤 Audio ready for User: ${userId}`);
+                    // console.log(`[Redis]  Audio ready for User: ${userId}`);
                     if (this.voiceCallback) this.voiceCallback(userId, data);
                 }
 
                 // else if (pattern === this.embeddingResponsePattern) {
                 //     const userId = channel.split(':')[1];
-                //     console.log(`[Redis] 🧠 Embedding done for User: ${userId}`);
+                //     console.log(`[Redis]  Embedding done for User: ${userId}`);
                 //     if (this.embeddingCallback) this.embeddingCallback(userId, data);
                 // }
             } catch (err) {

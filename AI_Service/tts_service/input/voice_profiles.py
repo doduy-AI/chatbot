@@ -7,8 +7,11 @@ import logging
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 HF_REPO = "doduy1911/audio_TTS"
-HF_MODEL_REPO = "doduy1911/bytehome_omi_voice"
+HF_MODEL_REPO = settings.MODEL_NAME
 MODEL_PATH = os.path.join(_DIR, "..", "models")
+
+
+
 if not os.path.exists(MODEL_PATH) or not os.listdir(MODEL_PATH):
     logging.info("[TTS] Đang tải model weights từ HuggingFace...")
     snapshot_download(
