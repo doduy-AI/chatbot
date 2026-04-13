@@ -1,6 +1,6 @@
 
-from .chucking.router import smart_chuck_domain as chucking_router
 from .clear_data.router import process_folder_to_markdown as clear_data_router
+from .chucking.chucking import chunk_text
 import os 
 import json
 import sys
@@ -10,11 +10,12 @@ import shutil
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-def worker_process_task(folder_path: str, title: str , folder_path_clean : str, u_id: str, groupId: str , base: str):
+def worker_process_task(folder_path: str, folder_path_clean : str, u_id: str, groupId: str , base: str):
     print("--- ĐANG BẮT ĐẦU CLEAR DATA ---")
     clear_data_router(folder_path,folder_path_clean)
     print("--- CLEAR DATA XONG. BẮT ĐẦU CHUNKING ---")
-    chucking_router(folder_path_clean,title,u_id,groupId,base)
+    chunk_text(folder_path_clean,u_id,groupId,base)
+
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
                 folder_path_clean.mkdir(parents=True, exist_ok=True)
 
 
-                worker_process_task(src_dir,"BHXH",folder_path_clean,u_id, groupId,base)
+                worker_process_task(src_dir,folder_path_clean,u_id, groupId,base)
                 folder_path_clean_process = dest_dir / "clear" /u_id
                 folder_path_clean_process.mkdir(parents=True, exist_ok=True)
                 folder_path_uploads_process = dest_dir / "uploads" /u_id

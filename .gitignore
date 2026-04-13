@@ -24,12 +24,20 @@ tmp/
 qdrant_data/
 
 **/processed/**
+
 processed/
+
 **/uploads/**
+
 uploads/
+
 *.pth
+
 *.wav
+
 *.mp3
+=======
+
 clean/**
 **/rnnoise/**
 __pycache__/
@@ -38,7 +46,10 @@ __pycache__/
 
 **/__pycache__/**
 
+**/model/**
+
 tts_test_output/
 
 
 **/.cache/**
+AI_Service/tts_service/models/
