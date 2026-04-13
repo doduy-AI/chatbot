@@ -45,10 +45,10 @@ def run_inference(text: str , voice: str ):
         speed=1.0           
     )
 
-    # 4. Lưu kết quả
     os.makedirs(os.path.dirname(os.path.abspath(OUTPUT_PATH)), exist_ok=True)
     torchaudio.save(OUTPUT_PATH, audios[0], model.sampling_rate)
     logging.info(f" Đã lưu giọng nói tại: {OUTPUT_PATH}")
+    
 
 
 def main():
