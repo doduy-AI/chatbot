@@ -45,22 +45,30 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
     return merged
 
 
-def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
-    wav = np.array(wav, dtype=np.float32)
+def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=50, is_first_chunk=False):
+    wav = np.asarray(wav, dtype=np.float32).squeeze()
     
-    # Chỉ Fade-in ở chunk đầu tiên để tránh bị 'bụp' vào tai
+    if len(wav) < 512:
+        return b""
+    
     if is_first_chunk:
         fade_len = int(sample_rate * fade_ms / 1000)
         if len(wav) > fade_len:
-            fade = np.linspace(0, 1, fade_len, dtype=np.float32)
+            fade = np.linspace(0.0, 1.0, fade_len, dtype=np.float32)
             wav[:fade_len] *= fade
-
-    # Chuyển sang 16-bit PCM (chuẩn WAV)
+    
+    # Fade-out nhẹ ở cuối mọi chunk để nối mượt hơn
+    fade_len = int(sample_rate * 20 / 1000)
+    if len(wav) > fade_len * 2:
+        fade_out = np.linspace(1.0, 0.0, fade_len, dtype=np.float32)
+        wav[-fade_len:] *= fade_out
+    
+    np.clip(wav, -1.0, 1.0, out=wav)
     pcm = (wav * 32767.0).astype(np.int16)
     return pcm.tobytes()
 
 
-def generate_tts_stream(text: str, voice: str):
+def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
     profile = VOICE_PROFILE.get(voice)
     if profile is None:
         raise ValueError(f"Giọng '{voice}' không tồn tại. Có sẵn: {list(VOICE_PROFILE)}")
@@ -70,19 +78,44 @@ def generate_tts_stream(text: str, voice: str):
 
     with torch.inference_mode():
         first_chunk = True
-        for text_chunk in chunks:
-            print(text_chunk)
-            outputs = OmniVoice.generate(
+        
+        for i, text_chunk in enumerate(chunks):
+            print(f"[TTS Chunk {i+1}/{len(chunks)}]: {text_chunk}")
+            
+            outputs = OMNIVOICE_MODEL.generate(        
                 text=text_chunk,
                 ref_audio=profile["ref_audio"],
                 ref_text=profile["ref_text"],
-                num_step=8,
+                num_step=8,        
                 guidance_scale=2.0,
                 speed=1.0
             )
-        wav = outputs["wav"]
-        audio_chunk = float_to_pcm_bytes(wav,is_first_chunk=first_chunk)
-        yield audio_chunk
             
-        first_chunk = False
+ 
+            if isinstance(outputs, dict):
+                wav = outputs.get("wav") or outputs.get("audio")
+            elif isinstance(outputs, list):
+                wav = outputs[0] if outputs else np.zeros(0)
+            else:
+                wav = outputs  # fallback
+
+            if wav is None:
+                logging.warning(f"Chunk {i+1} trả về None")
+                continue
+
+            # Chuyển thành numpy nếu cần
+            if torch.is_tensor(wav):
+                wav = wav.squeeze().cpu().numpy()
+            elif not isinstance(wav, np.ndarray):
+                wav = np.array(wav, dtype=np.float32)
+
+            audio_chunk = float_to_pcm_bytes(
+                wav, 
+                sample_rate=OMNIVOICE_MODEL.sampling_rate,  
+                fade_ms=50,                                 
+                is_first_chunk=first_chunk
+            )
+            
+            yield audio_chunk
+            first_chunk = False  
             
