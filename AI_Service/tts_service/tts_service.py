@@ -24,16 +24,9 @@ logging.info("[TTS] Model đã sẵn sàng.")
 
 
 def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[str]:
-    """
-    Cắt text thành các câu theo dấu câu.
-    - Split theo dấu câu kết thúc VÀ dấu phẩy/chấm phẩy nếu câu quá dài
-    - Merge câu quá ngắn vào câu liền trước (không phải câu sau)
-    """
-    # Bước 1: Split theo dấu kết câu trước
     raw = re.split(r'(?<=[.!?…])\s+|\n+', text.strip())
     raw = [s.strip() for s in raw if s.strip()]
 
-    # Bước 2: Với câu quá dài, split thêm theo dấu , ; :
     sub_chunks = []
     for sentence in raw:
         if len(sentence.split()) > max_words:
@@ -42,7 +35,6 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
         else:
             sub_chunks.append(sentence)
 
-    # Bước 3: Merge câu quá ngắn vào câu TRƯỚC (không phải sau)
     merged = []
     for chunk in sub_chunks:
         if merged and len(chunk.split()) < min_words:
@@ -53,26 +45,22 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
     return merged
 
 
-def wav_numpy_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20):
+def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
     wav = np.array(wav, dtype=np.float32)
-    fade_len = int(sample_rate * fade_ms / 1000)
     
-    if len(wav) > 2 * fade_len:
-        # Làm mượt đầu chunk
-        fade_in = np.linspace(0, 1, fade_len, dtype=np.float32)
-        wav[:fade_len] *= fade_in
-        # Làm mượt cuối chunk (Quan trọng để hết rẹt)
-        fade_out = np.linspace(1, 0, fade_len, dtype=np.float32)
-        wav[-fade_len:] *= fade_out
+    # Chỉ Fade-in ở chunk đầu tiên để tránh bị 'bụp' vào tai
+    if is_first_chunk:
+        fade_len = int(sample_rate * fade_ms / 1000)
+        if len(wav) > fade_len:
+            fade = np.linspace(0, 1, fade_len, dtype=np.float32)
+            wav[:fade_len] *= fade
 
-    return (wav * 32767.0).astype(np.int16).tobytes()
+    # Chuyển sang 16-bit PCM (chuẩn WAV)
+    pcm = (wav * 32767.0).astype(np.int16)
+    return pcm.tobytes()
 
 
-def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
-    """
-    Cắt text → inference từng chunk → yield từng đoạn mp3 bytes.
-    Dùng cho streaming.
-    """
+def generate_tts_stream(text: str, voice: str):
     profile = VOICE_PROFILE.get(voice)
     if profile is None:
         raise ValueError(f"Giọng '{voice}' không tồn tại. Có sẵn: {list(VOICE_PROFILE)}")
@@ -82,25 +70,19 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
 
     with torch.inference_mode():
         first_chunk = True
-        for i, chunk in enumerate(chunks):
-            t0 = time.time()
-            audios = OMNIVOICE_MODEL.generate(
-                text=chunk,
+        for text_chunk in chunks:
+            print(text_chunk)
+            outputs = OmniVoice.generate(
+                text=text_chunk,
                 ref_audio=profile["ref_audio"],
                 ref_text=profile["ref_text"],
                 num_step=8,
                 guidance_scale=2.0,
                 speed=1.0
             )
-            t_infer = time.time()
-            wav = audios[0].squeeze().cpu().numpy()
-            t_encode = time.time()
-            logging.info(
-                f"[TTS] Chunk {i+1}/{len(chunks)} | "
-                f"infer={t_infer-t0:.2f}s | "
-                f"encode={t_encode-t_infer:.3f}s | "
-                f"total={t_encode-t0:.2f}s | "
-                f"{len(chunk.split())} words"
-            )
-            yield wav_numpy_to_pcm_bytes(wav, 
-                                      sample_rate=OMNIVOICE_MODEL.sampling_rate)
+        wav = outputs["wav"]
+        audio_chunk = float_to_pcm_bytes(wav,is_first_chunk=first_chunk)
+        yield audio_chunk
+            
+        first_chunk = False
+            

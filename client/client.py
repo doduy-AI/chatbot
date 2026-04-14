@@ -11,7 +11,7 @@ import speech_recognition as sr
 import requests
 import websocket
 import pyaudio
-voice="nutrem"
+voice="nuhanoi"
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
@@ -20,11 +20,11 @@ from STT import (
 
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
-
-BASE_URL = "http://192.168.1.22:4000"
-WS_URL = "ws://192.168.1.22:4000"
+base_local = "118.70.187.211"
+BASE_URL = f"http://{base_local}:3000"
+WS_URL = f"ws://{base_local}:3000"
 USER_DATA = {
-    "username": "emily",
+    "username": "BHXH1",
     "password": "123456"
 }
 
