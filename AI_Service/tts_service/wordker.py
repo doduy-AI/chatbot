@@ -39,6 +39,8 @@ def create_wav_header(sample_rate=24000, bits_per_sample=16, channels=1):
 @app.get("/stream-voice/{task_id}")
 async def stream_voice(task_id: str):
     async def stream_generator():
+        connect_time = time.time()
+        print(f"[STREAM START] Client kết nối lúc: {connect_time:.3f}")
         q = audio_buffers.get(task_id)
         if not q:
             raise HTTPException(status_code=404, detail="task not found")
@@ -54,6 +56,7 @@ async def stream_voice(task_id: str):
                 if chunk == "DONE": return
                 if isinstance(chunk, bytes):
                     first_chunk = chunk
+                    print(f"[STREAM FIRST CHUNK] Nhận chunk đầu sau: {time.time() - connect_time:.3f}s")
             except:
                 return # Timeout hoặc lỗi
         
@@ -65,7 +68,9 @@ async def stream_voice(task_id: str):
         while True:
             try:
                 chunk = await asyncio.wait_for(q.get(), timeout=STREAM_GET_TIMEOUT)
-                if chunk == "DONE": break
+                if chunk == "DONE": 
+                    print(f"[STREAM END] Tổng stream: {time.time() - connect_time:.3f}s")
+                    break
                 if isinstance(chunk, bytes):
                     yield chunk
             except:
@@ -129,6 +134,8 @@ async def redis_listener():
             voice_url = f"{EXTERNAL_HOST}/stream-voice/{task_id}"
             print(voice_url)
             # Gửi thông báo cho client
+            print(f"[PUBLISH] Gửi URL lúc: {time.time():.3f}")
+
             redis_manager.publish(f"voice_ready:{user_id}", {
                 "type": "AI_VOICE_REPLY",
                 "text": text,
@@ -136,7 +143,10 @@ async def redis_listener():
             })
 
             # Submit task cho thread pool
+            start_time = time.time()
             await process_tts_task(user_id, text, task_id, q,voice)
+            print(f"[TTS DONE] Tổng thời gian TTS: {time.time() - start_time:.3f}s")
+
 
         except Exception as e:
             print(f"[ERR] Redis listener: {e}")
