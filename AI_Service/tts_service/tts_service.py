@@ -9,6 +9,7 @@ import torchaudio
 from typing import Generator
 from pydub import AudioSegment
 import numpy as np
+import time
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 from input.voice_profiles import VOICE_PROFILE
 import argparse
@@ -84,7 +85,7 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
 
     with torch.inference_mode():
         for i, chunk in enumerate(chunks):
-            logging.info(f"[TTS] Chunk {i+1}/{len(chunks)}: {chunk!r}")
+            t0 = time.time()
             audios = OMNIVOICE_MODEL.generate(
                 text=chunk,
                 ref_audio=profile["ref_audio"],
@@ -93,8 +94,20 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 guidance_scale=2.0,
                 speed=1.0
             )
+            t_infer = time.time()
             wav = audios[0].squeeze().cpu().numpy()
-            yield wav_numpy_to_mp3_bytes(wav, OMNIVOICE_MODEL.sampling_rate)
+            mp3 = wav_numpy_to_mp3_bytes(wav, OMNIVOICE_MODEL.sampling_rate)
+            t_encode = time.time()
+            logging.info(
+                f"[TTS] Chunk {i+1}/{len(chunks)} | "
+                f"infer={t_infer-t0:.2f}s | "
+                f"encode={t_encode-t_infer:.2f}s | "
+                f"total={t_encode-t0:.2f}s | "
+                f"{len(chunk.split())} words"
+            )
+
+
+            yield mp3
 
 
 def run_inference(text: str, voice: str, output_path: str = OUTPUT_PATH):
@@ -116,7 +129,7 @@ def main():
     parser.add_argument("--output", type=str , default="./output/audio.wav" , help="Đường dẫn audio")
 
     run = parser.parse_args()
-    
+
     chunks = split_sentences(run.text)
     print(f"Số chunk: {len(chunks)}")
     for i, c in enumerate(chunks):
