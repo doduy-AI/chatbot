@@ -7,7 +7,7 @@ import time
 import asyncio
 from config.redis_maneger import redis_manager
 from tts_service import generate_tts_stream as  generate_tts
-from config import settings
+from config.config import settings
 
 EXTERNAL_HOST = settings.EXTERNAL_HOST
 QUEUE_MAXSIZE = settings.QUEUE_MAXSIZE

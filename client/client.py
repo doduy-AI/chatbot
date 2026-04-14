@@ -5,15 +5,13 @@ import signal
 import io
 import wave
 import json
-import struct
 
 import numpy as np
 import speech_recognition as sr
 import requests
 import websocket
 import pyaudio
-
-voice = "nutrem"
+voice="nutreem"
 
 from STT import (
     init_rnnoise, init_silero, SileroVAD,
@@ -23,8 +21,8 @@ from STT import (
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
 
-BASE_URL = "http://localhost:4000"
-WS_URL = "ws://localhost:4000"
+BASE_URL = "http://192.168.1.35:3000"
+WS_URL = "ws://192.168.1.35:3000"
 USER_DATA = {
     "username": "emily",
     "password": "123456"
@@ -134,13 +132,17 @@ class EndpointDetector:
     def try_extend_buffer(self, buffer, new_text):
         if not buffer:
             return False
+
         last = buffer[-1].lower()
         new_lower = new_text.lower()
+
         if new_lower.startswith(last) and len(new_text) > len(buffer[-1]):
             buffer[-1] = new_text
             return True
+
         if last.startswith(new_lower):
             return True
+
         return False
 
     def check_punctuation(self, text):
@@ -165,30 +167,38 @@ class EndpointDetector:
     def get_silence_threshold(self, merged_text):
         words = merged_text.split()
         n = len(words)
+
         base = self.SILENCE_MAX
         for max_words, timeout in self.SILENCE_TABLE:
             if n <= max_words:
                 base = timeout
                 break
+
         if n > 0 and words[-1].lower() in self.CONNECTORS:
             base += self.CONNECTOR_BONUS
+
         return base
 
     def should_finalize_silence(self, merged_text, voice_elapsed,
                                  stt_is_busy, audio_q_empty, mic_is_recording):
         if stt_is_busy:
             return False
+
         if not audio_q_empty:
             return False
+
         if mic_is_recording:
             return False
+
         threshold = self.get_silence_threshold(merged_text)
         n = len(merged_text.split())
+
         if n > self.TEXT_AGE_WORD_THRESHOLD:
             text_age = self._text_cooldown_elapsed()
             effective = min(voice_elapsed, text_age)
         else:
             effective = voice_elapsed
+
         return effective > threshold
 
     def reset(self):
@@ -201,17 +211,23 @@ class EndpointDetector:
 def mic_worker(audio_queue, mic, rnn_lib, rnn_state, silero_vad,
                voice_timer, stop_event, mic_recording, is_playing_event):
     while not stop_event.is_set():
+        # --- Pause mic while audio is playing ---
         if is_playing_event.is_set():
             time.sleep(0.1)
             continue
+
         try:
             audio = capture_audio(mic, rnn_lib, rnn_state, silero_vad, audio_queue, voice_timer, mic_recording)
+
             if isinstance(audio, str) and audio == "__NO_VOICE__":
                 time.sleep(0.5)
                 continue
+
             if audio is None:
                 continue
+
             voice_timer.touch()
+
             try:
                 audio_queue.put_nowait(audio)
             except queue.Full:
@@ -220,6 +236,7 @@ def mic_worker(audio_queue, mic, rnn_lib, rnn_state, silero_vad,
                 except queue.Empty:
                     pass
                 audio_queue.put_nowait(audio)
+
         except Exception as e:
             if not stop_event.is_set():
                 print(f"\n[Mic] Loi: {e}")
@@ -232,6 +249,7 @@ def stt_worker(audio_queue, text_queue, stop_event, stt_busy):
             audio = audio_queue.get(timeout=1.0)
         except queue.Empty:
             continue
+
         stt_busy.set()
         try:
             t0 = time.time()
@@ -273,79 +291,45 @@ def login_and_get_token():
 
 
 def play_audio_stream(url, is_playing_event):
-    """
-    Stream WAV audio từ server với length-prefix protocol.
-    Format mỗi chunk: [4 bytes size big-endian] + [WAV bytes]
-    """
     try:
         is_playing_event.set()
-        t_start = time.time()
-        first_audio = True
-
-        p = pyaudio.PyAudio()
-        stream = None
-        buffer = b""
+        print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
+        
+        stream = _pyaudio.open(
+            format=pyaudio.paInt16,
+            channels=TTS_CHANNELS,
+            rate=TTS_RATE,
+            output=True
+        )
 
         with requests.get(url, stream=True, timeout=10) as r:
             if r.status_code != 200:
                 print(f"{RED}[TTS] Loi tai audio: {r.status_code}{RESET}")
+                stream.close()
                 is_playing_event.clear()
                 return
 
-            for raw in r.iter_content(chunk_size=4096):
-                if not raw:
+            first_chunk = True
+            for chunk in r.iter_content(chunk_size=4096):
+                if not chunk:
                     continue
-                buffer += raw
 
-                # Đọc từng WAV chunk theo length-prefix
-                while len(buffer) >= 4:
-                    # Đọc 4 bytes đầu để lấy size
-                    size = struct.unpack('>I', buffer[:4])[0]
+                if first_chunk:
+                    chunk = chunk[44:]
+                    first_chunk = False
+                    if not chunk:
+                        continue
 
-                    # Chưa đủ 1 chunk hoàn chỉnh → đợi thêm
-                    if len(buffer) < 4 + size:
-                        break
+                stream.write(chunk)
 
-                    wav_data = buffer[4:4 + size]
-                    buffer = buffer[4 + size:]
-
-                    # Decode WAV và phát
-                    try:
-                        wav_buf = io.BytesIO(wav_data)
-                        with wave.open(wav_buf, 'rb') as wf:
-                            frames = wf.readframes(wf.getnframes())
-                            sample_width = wf.getsampwidth()
-                            channels = wf.getnchannels()
-                            frame_rate = wf.getframerate()
-
-                        if stream is None:
-                            stream = p.open(
-                                format=p.get_format_from_width(sample_width),
-                                channels=channels,
-                                rate=frame_rate,
-                                output=True
-                            )
-
-                        if first_audio:
-                            print(f"{CYAN}[TTS] Chunk đầu phát sau {time.time()-t_start:.2f}s{RESET}")
-                            first_audio = False
-
-                        stream.write(frames)
-
-                    except Exception as e:
-                        print(f"{RED}[TTS] Loi decode WAV chunk: {e}{RESET}")
-
-        if stream:
-            stream.stop_stream()
-            stream.close()
-        p.terminate()
-
-        print(f"{GREEN}[TTS] Phat xong! Tong {time.time()-t_start:.2f}s{RESET}")
-        time.sleep(0.3)
-        is_playing_event.clear()
-
+        stream.stop_stream()
+        stream.close()
+        print(f"{GREEN}[TTS] Phat xong!{RESET}")
+        time.sleep(0.3)  # small delay before resuming mic
+        
     except Exception as e:
-        print(f"{RED}[TTS] Loi: {e}{RESET}")
+        print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
+    finally:
         is_playing_event.clear()
 
 
@@ -356,19 +340,19 @@ class WebSocketHandler:
         self.ws = None
         self.connected = False
         self.is_playing_event = is_playing_event
-
+        
     def on_message(self, ws, message):
         try:
             data = json.loads(message)
             msg_type = data.get("type")
-
+            
             if msg_type == "AI_VOICE_REPLY":
                 bot_text = data.get("text")
                 audio_url = data.get("audioUrl")
-
+                
                 if bot_text:
                     print(f"\n{GREEN}[Bot]: {bot_text}{RESET}")
-
+                
                 if audio_url:
                     print(f"{CYAN}[Audio URL]: {audio_url}{RESET}")
                     threading.Thread(
@@ -376,27 +360,27 @@ class WebSocketHandler:
                         args=(audio_url, self.is_playing_event),
                         daemon=True
                     ).start()
-
+            
             elif msg_type == "AI_VOICE_DONE":
                 print(f"{CYAN}[Bot] Hoan thanh phan hoi{RESET}")
-
+                
             elif msg_type != "STATUS":
                 print(f"{YELLOW}[WS] Event: {msg_type}{RESET}")
-
+                
         except Exception as e:
             print(f"{RED}[WS] Loi xu ly message: {e}{RESET}")
-
+    
     def on_error(self, ws, error):
         print(f"{RED}[WS] Loi: {error}{RESET}")
-
+    
     def on_close(self, ws, close_status_code, close_msg):
         print(f"{YELLOW}[WS] Ket noi dong{RESET}")
         self.connected = False
-
+    
     def on_open(self, ws):
         print(f"{GREEN}[WS] Ket noi thanh cong!{RESET}")
         self.connected = True
-
+    
     def connect(self):
         self.ws = websocket.WebSocketApp(
             self.ws_url,
@@ -406,14 +390,14 @@ class WebSocketHandler:
             on_close=self.on_close
         )
         return self.ws
-
+    
     def send_text(self, text, timestamp, duration):
         if self.ws and self.connected:
             try:
                 data = {
                     "text": text,
                     "language": "VI",
-                    "voice": voice,
+                    "voice":voice,
                     "timestamp": timestamp,
                     "duration": duration
                 }
@@ -430,30 +414,30 @@ def finalize_sentence(buffer, detector, reason, start_time, ws_handler=None):
         buffer.clear()
         detector.reset()
         return
-
+    
     end_time = time.time()
     duration = end_time - start_time if start_time else 0
     timestamp = int(start_time) if start_time else int(time.time())
-
+    
     print(f"\n{GREEN}>> Cau hoan chinh [{reason}]{RESET}")
     print(f"   {clean}")
     print(f"   duration: {duration:.2f}s")
-
+    
     data = {
         "text": clean,
         "language": "VI",
         "timestamp": timestamp,
         "duration": round(duration, 2)
     }
-
+    
     print(f"\n{YELLOW}[DATA]{RESET}")
     print(json.dumps(data, ensure_ascii=False, indent=2))
-
+    
     if ws_handler:
         ws_handler.send_text(clean, timestamp, round(duration, 2))
-
+    
     print("=" * 50)
-
+    
     buffer.clear()
     detector.reset()
 
@@ -462,14 +446,14 @@ def main():
     print("=" * 50)
     print("  Voice AI Client — STT Pipeline")
     print("=" * 50)
-
+    
     token = login_and_get_token()
     if not token:
         print(f"\n{RED}[Error] Khong the lay token. Thoat.{RESET}\n")
         return
-
+    
     is_playing_event = threading.Event()
-
+    
     ws_handler = WebSocketHandler(token, is_playing_event)
     ws = ws_handler.connect()
     ws_thread = threading.Thread(
@@ -529,13 +513,16 @@ def main():
         was_playing = False
 
         while not stop_event.is_set():
+            # --- Wait until audio playback finishes ---
             if is_playing_event.is_set():
                 was_playing = True
                 time.sleep(0.1)
                 continue
 
+            # --- Flush stale data after playback ends ---
             if was_playing:
                 was_playing = False
+                # Discard any audio/text captured during playback (echo)
                 while not audio_queue.empty():
                     try:
                         audio_queue.get_nowait()
@@ -615,7 +602,7 @@ def main():
 
     t_mic.join(timeout=3.0)
     t_stt.join(timeout=3.0)
-
+    
     if ws_handler and ws_handler.ws:
         ws_handler.ws.close()
     if ws_thread:
