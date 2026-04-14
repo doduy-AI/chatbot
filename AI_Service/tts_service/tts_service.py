@@ -26,27 +26,32 @@ OMNIVOICE_MODEL = OmniVoice.from_pretrained(
 logging.info("[TTS] Model đã sẵn sàng.")
 
 
-def split_sentences(text: str, min_words: int = 10) -> list[str]:
+def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[str]:
     """
     Cắt text thành các câu theo dấu câu.
-    Merge câu quá ngắn vào câu tiếp theo để tránh artifact.
+    - Split theo dấu câu kết thúc VÀ dấu phẩy/chấm phẩy nếu câu quá dài
+    - Merge câu quá ngắn vào câu liền trước (không phải câu sau)
     """
+    # Bước 1: Split theo dấu kết câu trước
     raw = re.split(r'(?<=[.!?…])\s+|\n+', text.strip())
     raw = [s.strip() for s in raw if s.strip()]
 
-    merged = []
-    buffer = ""
+    # Bước 2: Với câu quá dài, split thêm theo dấu , ; :
+    sub_chunks = []
     for sentence in raw:
-        buffer = (buffer + " " + sentence).strip()
-        if len(buffer.split()) >= min_words:
-            merged.append(buffer)
-            buffer = ""
-
-    if buffer:
-        if merged:
-            merged[-1] += " " + buffer
+        if len(sentence.split()) > max_words:
+            parts = re.split(r'(?<=[,;:])\s+', sentence)
+            sub_chunks.extend([p.strip() for p in parts if p.strip()])
         else:
-            merged.append(buffer)
+            sub_chunks.append(sentence)
+
+    # Bước 3: Merge câu quá ngắn vào câu TRƯỚC (không phải sau)
+    merged = []
+    for chunk in sub_chunks:
+        if merged and len(chunk.split()) < min_words:
+            merged[-1] += " " + chunk  # gắn vào câu trước
+        else:
+            merged.append(chunk)
 
     return merged
 
@@ -111,8 +116,13 @@ def main():
     parser.add_argument("--output", type=str , default="./output/audio.wav" , help="Đường dẫn audio")
 
     run = parser.parse_args()
+    
+    chunks = split_sentences(run.text)
+    print(f"Số chunk: {len(chunks)}")
+    for i, c in enumerate(chunks):
+        print(f"  [{i+1}] {c!r}")
 
-    run_inference(run.text,run.voice)
+    # run_inference(run.text,run.voice)
 
 
 
