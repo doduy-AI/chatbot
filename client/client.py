@@ -21,8 +21,8 @@ from STT import (
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
 
-BASE_URL = "http://192.168.1.22:4000"
-WS_URL = "ws://192.168.1.22:4000"
+BASE_URL = "http://118.70.187.211:4000"
+WS_URL = "ws://118.70.187.211:4000"
 USER_DATA = {
     "username": "emily",
     "password": "123456"
@@ -299,7 +299,7 @@ from pydub import AudioSegment
 import io
 
 
-def play_audio_stream(url, is_playing_event):
+def play_audio_stream(url, is_playing_event,start_time):
     try:
         is_playing_event.set()
         print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
@@ -320,6 +320,7 @@ def play_audio_stream(url, is_playing_event):
 
             buffer = b""
             first_chunk = True  # ✅ Khai báo ở đây trước
+            latency_measured = False
 
             for chunk in r.iter_content(chunk_size=4096):
                 if not chunk:
@@ -336,6 +337,10 @@ def play_audio_stream(url, is_playing_event):
                 buffer += chunk
                 usable = len(buffer) - (len(buffer) % 2)
                 if usable > 0:
+                    end_time = time.time()
+                    latency = end_time - start_time
+                    print(f"[LATENCY] Time to Sound: {latency:.3f}s{RESET}")
+                    latency_measured = True
                     stream.write(buffer[:usable])
                     buffer = buffer[usable:]
             
@@ -373,10 +378,11 @@ class WebSocketHandler:
                     print(f"\n{GREEN}[Bot]: {bot_text}{RESET}")
                 
                 if audio_url:
+                    start_time = time.time()
                     print(f"{CYAN}[Audio URL]: {audio_url}{RESET}")
                     threading.Thread(
                         target=play_audio_stream,
-                        args=(audio_url, self.is_playing_event),
+                        args=(audio_url, self.is_playing_event,start_time),
                         daemon=True
                     ).start()
             
