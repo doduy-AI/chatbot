@@ -20,10 +20,9 @@ from STT import (
 
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
-base_local = "192.168.1.22"
-base_port = "4000"
-BASE_URL = f"http://{base_local}:{base_port}"
-WS_URL = f"ws://{base_local}:{base_port}"
+
+BASE_URL = "http://192.168.1.22:4000"
+WS_URL = "ws://192.168.1.22:4000"
 USER_DATA = {
     "username": "emily",
     "password": "123456"
@@ -290,6 +289,15 @@ def login_and_get_token():
         print(f"{RED}[Auth] Loi: {e}{RESET}")
         return None
 
+import os
+import time
+import wave
+from datetime import datetime
+import requests
+import pyaudio
+from pydub import AudioSegment
+import io
+
 
 def play_audio_stream(url, is_playing_event):
     try:
@@ -343,7 +351,6 @@ def play_audio_stream(url, is_playing_event):
         print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
     finally:
         is_playing_event.clear()
-
 
 class WebSocketHandler:
     def __init__(self, token, is_playing_event):
