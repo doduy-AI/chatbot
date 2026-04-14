@@ -53,13 +53,22 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
     return merged
 
 
-def wav_numpy_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
+def wav_numpy_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20):
     wav = np.array(wav, dtype=np.float32)
-    if is_first_chunk:
-        fade_len = int(sample_rate * fade_ms / 1000)
-        if len(wav) > fade_len:
-            fade = np.linspace(0, 1, fade_len, dtype=np.float32)
-            wav[:fade_len] *= fade
+    
+    # Số lượng mẫu cần để fade
+    fade_len = int(sample_rate * fade_ms / 1000)
+    
+    if len(wav) > 2 * fade_len:
+        # Fade In: Tránh tiếng lẹt xẹt lúc bắt đầu chunk
+        fade_in = np.linspace(0, 1, fade_len, dtype=np.float32)
+        wav[:fade_len] *= fade_in
+        
+        # Fade Out: Cực kỳ quan trọng để nối chunk mượt mà
+        fade_out = np.linspace(1, 0, fade_len, dtype=np.float32)
+        wav[-fade_len:] *= fade_out
+
+    # Ép kiểu sang Int16 để giảm dung lượng stream và đúng chuẩn PCM
     return (wav * 32767.0).astype(np.int16).tobytes()
 
 
