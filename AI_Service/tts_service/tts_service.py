@@ -55,20 +55,16 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
 
 def wav_numpy_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20):
     wav = np.array(wav, dtype=np.float32)
-    
-    # Số lượng mẫu cần để fade
     fade_len = int(sample_rate * fade_ms / 1000)
     
     if len(wav) > 2 * fade_len:
-        # Fade In: Tránh tiếng lẹt xẹt lúc bắt đầu chunk
+        # Làm mượt đầu chunk
         fade_in = np.linspace(0, 1, fade_len, dtype=np.float32)
         wav[:fade_len] *= fade_in
-        
-        # Fade Out: Cực kỳ quan trọng để nối chunk mượt mà
+        # Làm mượt cuối chunk (Quan trọng để hết rẹt)
         fade_out = np.linspace(1, 0, fade_len, dtype=np.float32)
         wav[-fade_len:] *= fade_out
 
-    # Ép kiểu sang Int16 để giảm dung lượng stream và đúng chuẩn PCM
     return (wav * 32767.0).astype(np.int16).tobytes()
 
 
@@ -107,5 +103,4 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 f"{len(chunk.split())} words"
             )
             yield wav_numpy_to_pcm_bytes(wav, 
-                                      sample_rate=OMNIVOICE_MODEL.sampling_rate,
-                                      is_first_chunk=first_chunk)
+                                      sample_rate=OMNIVOICE_MODEL.sampling_rate)
