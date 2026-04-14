@@ -1,13 +1,9 @@
 from omnivoice.models.omnivoice import OmniVoice
 import argparse
 import logging
-import os
 import re
 import torch
-import io
-import torchaudio
 from typing import Generator
-from pydub import AudioSegment
 import numpy as np
 import time
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -57,18 +53,14 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
     return merged
 
 
-def wav_numpy_to_mp3_bytes(wav: np.ndarray, sample_rate: int) -> bytes:
-    """Chuyển numpy array → mp3 bytes."""
-    pcm = (wav * 32767).astype(np.int16)
-    audio_segment = AudioSegment(
-        pcm.tobytes(),
-        frame_rate=sample_rate,
-        sample_width=2,
-        channels=1
-    )
-    buf = io.BytesIO()
-    audio_segment.export(buf, format="mp3", bitrate="128k")
-    return buf.getvalue()
+def wav_numpy_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=20, is_first_chunk=False):
+    wav = np.array(wav, dtype=np.float32)
+    if is_first_chunk:
+        fade_len = int(sample_rate * fade_ms / 1000)
+        if len(wav) > fade_len:
+            fade = np.linspace(0, 1, fade_len, dtype=np.float32)
+            wav[:fade_len] *= fade
+    return (wav * 32767.0).astype(np.int16).tobytes()
 
 
 def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
@@ -84,6 +76,7 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
     logging.info(f"[TTS] Tổng {len(chunks)} chunk: {chunks}")
 
     with torch.inference_mode():
+        first_chunk = True
         for i, chunk in enumerate(chunks):
             t0 = time.time()
             audios = OMNIVOICE_MODEL.generate(
@@ -96,48 +89,14 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
             )
             t_infer = time.time()
             wav = audios[0].squeeze().cpu().numpy()
-            mp3 = wav_numpy_to_mp3_bytes(wav, OMNIVOICE_MODEL.sampling_rate)
             t_encode = time.time()
             logging.info(
                 f"[TTS] Chunk {i+1}/{len(chunks)} | "
                 f"infer={t_infer-t0:.2f}s | "
-                f"encode={t_encode-t_infer:.2f}s | "
+                f"encode={t_encode-t_infer:.3f}s | "
                 f"total={t_encode-t0:.2f}s | "
                 f"{len(chunk.split())} words"
             )
-
-
-            yield mp3
-
-
-def run_inference(text: str, voice: str, output_path: str = OUTPUT_PATH):
-    """Gom toàn bộ chunk lại, lưu thành 1 file mp3."""
-    output_path = re.sub(r'\.wav$', '.mp3', output_path)
-
-    all_bytes = b"".join(generate_tts_stream(text, voice))
-
-    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
-    with open(output_path, "wb") as f:
-        f.write(all_bytes)
-    logging.info(f"[TTS] Đã lưu tại: {output_path}")
-
-
-def main():
-    parser = argparse.ArgumentParser(description="TTS Service")
-    parser.add_argument("--voice", type=str, default="nuhanoi",help="Tên giọng đọc")
-    parser.add_argument("--text",required=True , help="Vắn Bản cần đọc")
-    parser.add_argument("--output", type=str , default="./output/audio.wav" , help="Đường dẫn audio")
-
-    run = parser.parse_args()
-
-    chunks = split_sentences(run.text)
-    print(f"Số chunk: {len(chunks)}")
-    for i, c in enumerate(chunks):
-        print(f"  [{i+1}] {c!r}")
-
-    # run_inference(run.text,run.voice)
-
-
-
-if __name__ == "__main__":
-    main()
+            yield wav_numpy_to_pcm_bytes(wav, 
+                                      sample_rate=OMNIVOICE_MODEL.sampling_rate,
+                                      is_first_chunk=first_chunk)
