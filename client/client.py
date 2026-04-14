@@ -310,24 +310,35 @@ def play_audio_stream(url, is_playing_event):
                 is_playing_event.clear()
                 return
 
-            first_chunk = True
+            buffer = b""
+            first_chunk = True  # ✅ Khai báo ở đây trước
+
             for chunk in r.iter_content(chunk_size=4096):
                 if not chunk:
                     continue
-
+                
                 if first_chunk:
+                    print(f"[DEBUG] First chunk size: {len(chunk)} bytes")
+                    print(f"[DEBUG] First 100 bytes: {chunk[:100].hex()}")
                     chunk = chunk[44:]
                     first_chunk = False
                     if not chunk:
                         continue
-
-                stream.write(chunk)
+                
+                buffer += chunk
+                usable = len(buffer) - (len(buffer) % 2)
+                if usable > 0:
+                    stream.write(buffer[:usable])
+                    buffer = buffer[usable:]
+            
+            if len(buffer) >= 2:
+                stream.write(buffer[:len(buffer) - len(buffer) % 2])
 
         stream.stop_stream()
         stream.close()
         print(f"{GREEN}[TTS] Phat xong!{RESET}")
-        time.sleep(0.3)  # small delay before resuming mic
-        
+        time.sleep(0.3)
+
     except Exception as e:
         print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
     finally:
