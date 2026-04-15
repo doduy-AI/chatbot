@@ -21,8 +21,10 @@ from STT import (
 AUDIO_QUEUE_MAX = 5
 TEXT_QUEUE_MAX = 10
 
-BASE_URL = "http://118.70.187.211:4000"
-WS_URL = "ws://118.70.187.211:4000"
+
+
+BASE_URL = "http://192.168.1.22:4000"
+WS_URL = "ws://192.168.1.22:4000"
 USER_DATA = {
     "username": "emily",
     "password": "123456"
@@ -299,6 +301,7 @@ from pydub import AudioSegment
 import io
 
 
+
 def play_audio_stream(url, is_playing_event,start_time):
     try:
         is_playing_event.set()
@@ -356,6 +359,7 @@ def play_audio_stream(url, is_playing_event,start_time):
         print(f"{RED}[TTS] Loi phat audio: {e}{RESET}")
     finally:
         is_playing_event.clear()
+
 
 class WebSocketHandler:
     def __init__(self, token, is_playing_event):

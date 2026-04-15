@@ -1,6 +1,7 @@
 import json 
 import os 
 import  sys
+import time
 from chat_service.redis_manager import redis_manager
 from config.config import settings
 from concurrent.futures import ThreadPoolExecutor
@@ -10,7 +11,6 @@ ai = AIEngine()
 
 
 def handle_task(data):
-    print("check2")
     user_id = data.get("userId")
     text = data.get("text")
     group_id = data.get("groupId")
@@ -19,7 +19,9 @@ def handle_task(data):
         ai.clear_session(user_id)
         return
     prompt = redis_manager.get_cache(f"group:{group_id}:content")
+    strart_time = time.time()
     reply = ai.generate_respone(text,prompt ,user_id, group_id)
+    print(f"[CHAT_Service] time {time.time() - strart_time} ")
     print("[BYTEHOME]", reply)
 
     redis_manager.publish("tts_tasks", {

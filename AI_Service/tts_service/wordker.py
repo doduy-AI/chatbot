@@ -17,25 +17,6 @@ STREAM_GET_TIMEOUT = settings.STREAM_GET_TIMEOUT
 app = FastAPI()
 
 audio_buffers = {}
-
-
-
-def create_wav_header(sample_rate=24000, bits_per_sample=16, channels=1):
-    o = bytes("RIFF", "ascii")
-    o += struct.pack("<I", 0)  # Sửa từ 0xFFFFFFFF thành 0
-    o += bytes("WAVE", "ascii")
-    o += bytes("fmt ", "ascii")
-    o += struct.pack("<I", 16)
-    o += struct.pack("<H", 1)
-    o += struct.pack("<H", channels)
-    o += struct.pack("<I", sample_rate)
-    o += struct.pack("<I", sample_rate * channels * bits_per_sample // 8)
-    o += struct.pack("<H", channels * bits_per_sample // 8)
-    o += struct.pack("<H", bits_per_sample)
-    o += bytes("data", "ascii")
-    o += struct.pack("<I", 0)  # Sửa từ 0xFFFFFFFF thành 0
-    return o
-
 @app.get("/stream-voice/{task_id}")
 async def stream_voice(task_id: str):
     async def stream_generator():
@@ -44,27 +25,17 @@ async def stream_voice(task_id: str):
         q = audio_buffers.get(task_id)
         if not q:
             raise HTTPException(status_code=404, detail="task not found")
-        
-        # --- BƯỚC QUAN TRỌNG: GOM DỮ LIỆU ĐẦU TIÊN ---
-        # Đợi cho đến khi nhận được ít nhất 1 chunk dữ liệu thực sự
-        # Việc này giúp khi Header gửi đi, trình phát có dữ liệu "lót" ngay lập tức
         first_chunk = None
         while first_chunk is None:
             try:
-                # Lấy chunk đầu tiên
                 chunk = await asyncio.wait_for(q.get(), timeout=STREAM_GET_TIMEOUT)
                 if chunk == "DONE": return
                 if isinstance(chunk, bytes):
                     first_chunk = chunk
                     print(f"[STREAM FIRST CHUNK] Nhận chunk đầu sau: {time.time() - connect_time:.3f}s")
             except:
-                return # Timeout hoặc lỗi
-        
-        # Bây giờ mới bắt đầu gửi Header + Chunk đầu tiên
-        yield create_wav_header()
+                return   
         yield first_chunk
-        
-        # --- TIẾP TỤC STREAM NHƯ BÌNH THƯỜNG ---
         while True:
             try:
                 chunk = await asyncio.wait_for(q.get(), timeout=STREAM_GET_TIMEOUT)
@@ -77,7 +48,7 @@ async def stream_voice(task_id: str):
                 break
         audio_buffers.pop(task_id, None)
 
-    return StreamingResponse(stream_generator(), media_type="audio/wav")
+    return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
 
 async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
     """Chạy generate_tts trong executor, đẩy chunk vào asyncio.Queue"""

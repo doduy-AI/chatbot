@@ -45,28 +45,25 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
     return merged
 
 
-def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=50, is_first_chunk=False):
+def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=50, is_last_chunk=False):
     wav = np.asarray(wav, dtype=np.float32).squeeze()
     
     if len(wav) < 512:
         return b""
     
-    if is_first_chunk:
-        fade_len = int(sample_rate * fade_ms / 1000)
-        if len(wav) > fade_len:
-            fade = np.linspace(0.0, 1.0, fade_len, dtype=np.float32)
-            wav[:fade_len] *= fade
+    fade_len = int(sample_rate * fade_ms / 1000)
     
-    # Fade-out nhẹ ở cuối mọi chunk để nối mượt hơn
-    fade_len = int(sample_rate * 20 / 1000)
-    if len(wav) > fade_len * 2:
+    if len(wav) > fade_len:
+        fade_in = np.linspace(0.0, 1.0, fade_len, dtype=np.float32)
+        wav[:fade_len] *= fade_in
+    
+    if is_last_chunk and len(wav) > fade_len * 2:
         fade_out = np.linspace(1.0, 0.0, fade_len, dtype=np.float32)
         wav[-fade_len:] *= fade_out
     
     np.clip(wav, -1.0, 1.0, out=wav)
     pcm = (wav * 32767.0).astype(np.int16)
     return pcm.tobytes()
-
 
 def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
     profile = VOICE_PROFILE.get(voice)
