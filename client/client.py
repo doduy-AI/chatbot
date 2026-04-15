@@ -11,6 +11,7 @@ import speech_recognition as sr
 import requests
 import websocket
 import pyaudio
+
 voice="nutrem"
 
 from STT import (
@@ -291,29 +292,7 @@ def login_and_get_token():
         print(f"{RED}[Auth] Loi: {e}{RESET}")
         return None
 
-import os
-import time
-import wave
-from datetime import datetime
-import requests
-import pyaudio
-from pydub import AudioSegment
-import io
-
-
-
 def play_audio_stream(url, is_playing_event, start_time):
-    import numpy as np
-    import time
-    import requests
-    import pyaudio
-
-    def has_audio_energy(chunk, threshold=500):
-        if len(chunk) < 2:
-            return False
-        audio = np.frombuffer(chunk, dtype=np.int16)
-        return np.abs(audio).mean() > threshold
-
     try:
         is_playing_event.set()
         print(f"{CYAN}[TTS] Dang phat audio...{RESET}")
@@ -324,15 +303,12 @@ def play_audio_stream(url, is_playing_event, start_time):
             rate=TTS_RATE,
             output=True
         )
-
         with requests.get(url, stream=True, timeout=10) as r:
             if r.status_code != 200:
                 print(f"{RED}[TTS] Loi tai audio: {r.status_code}{RESET}")
                 return
-
             buffer = b""
             header_skipped = False
-
             first_byte_time = None
             first_sound_time = None
 
@@ -340,14 +316,12 @@ def play_audio_stream(url, is_playing_event, start_time):
                 if not chunk:
                     continue
 
-                # 🧪 1. First byte latency
                 if first_byte_time is None:
                     first_byte_time = time.time()
                     print(f"[LATENCY] First byte: {first_byte_time - start_time:.3f}s")
 
                 buffer += chunk
 
-                # 🧠 Skip WAV header an toàn
                 if not header_skipped:
                     if len(buffer) < 44:
                         continue
@@ -355,34 +329,27 @@ def play_audio_stream(url, is_playing_event, start_time):
                     buffer = buffer[44:]
                     header_skipped = True
 
-                # đảm bảo align int16
                 usable = len(buffer) - (len(buffer) % 2)
                 if usable <= 0:
                     continue
 
                 data = buffer[:usable]
 
-                # 🧪 DEBUG energy
                 audio_np = np.frombuffer(data, dtype=np.int16)
                 energy = np.abs(audio_np).mean()
                 print(f"[DEBUG] energy: {energy:.2f}")
 
-                # 🧪 2. First REAL sound latency
                 if first_sound_time is None and energy > 500:
                     first_sound_time = time.time()
                     print(f"{GREEN}[LATENCY] First REAL sound: {first_sound_time - start_time:.3f}s{RESET}")
-
-                # ❗ Skip silence chunk (giảm delay cảm nhận)
                 if energy < 200:
                     buffer = buffer[usable:]
                     continue
 
-                # 🧪 3. Write to audio
                 stream.write(data)
 
                 buffer = buffer[usable:]
 
-            # flush phần còn lại
             if len(buffer) >= 2:
                 usable = len(buffer) - (len(buffer) % 2)
                 if usable > 0:

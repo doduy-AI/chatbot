@@ -105,6 +105,8 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 wav = wav.squeeze().cpu().numpy()
             elif not isinstance(wav, np.ndarray):
                 wav = np.array(wav, dtype=np.float32)
+            print(f"[TTS] wav shape: {wav.shape}, sample_rate: {OMNIVOICE_MODEL.sampling_rate}")
+
 
             audio_chunk = float_to_pcm_bytes(
                 wav, 
