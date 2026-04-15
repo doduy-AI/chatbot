@@ -6,7 +6,6 @@ import torch
 from typing import Generator
 import numpy as np
 import time
-import scipy.signal as sps
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 from input.voice_profiles import VOICE_PROFILE
 import argparse
@@ -46,19 +45,13 @@ def split_sentences(text: str, max_words: int = 30, min_words: int = 5) -> list[
     return merged
 
 
-def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, target_rate=48000, fade_ms=50, is_last_chunk=False):
+def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=50, is_last_chunk=False):
     wav = np.asarray(wav, dtype=np.float32).squeeze()
     
     if len(wav) < 512:
         return b""
     
-
-    if sample_rate != target_rate:
-        num_samples = int(len(wav) * target_rate / sample_rate)
-        wav = sps.resample(wav, num_samples)
-        wav = wav.astype(np.float32)
-    
-    fade_len = int(target_rate * fade_ms / 1000)  
+    fade_len = int(sample_rate * fade_ms / 1000)
     
     if len(wav) > fade_len:
         fade_in = np.linspace(0.0, 1.0, fade_len, dtype=np.float32)
@@ -112,7 +105,7 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 wav = wav.squeeze().cpu().numpy()
             elif not isinstance(wav, np.ndarray):
                 wav = np.array(wav, dtype=np.float32)
-            print(f"[TTS] wav shape: {wav.shape}, sample_rate: {OMNIVOICE_MODEL.sampling_rate}")
+                print(f"[TTS] wav shape: {wav.shape}, sample_rate: {OMNIVOICE_MODEL.sampling_rate}")
 
 
             audio_chunk = float_to_pcm_bytes(

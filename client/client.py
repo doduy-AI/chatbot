@@ -32,7 +32,7 @@ USER_DATA = {
 }
 
 TTS_CHANNELS = 1
-TTS_RATE = 48000
+TTS_RATE = 24000
 
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
@@ -342,12 +342,9 @@ def play_audio_stream(url, is_playing_event, start_time):
                 if first_sound_time is None and energy > 500:
                     first_sound_time = time.time()
                     print(f"{GREEN}[LATENCY] First REAL sound: {first_sound_time - start_time:.3f}s{RESET}")
-                if energy < 200:
-                    buffer = buffer[usable:]
-                    continue
 
+                # Bỏ if energy < 200, write hết
                 stream.write(data)
-
                 buffer = buffer[usable:]
 
             if len(buffer) >= 2:
