@@ -301,7 +301,8 @@ def play_audio_stream(url, is_playing_event, start_time):
             format=pyaudio.paInt16,
             channels=TTS_CHANNELS,
             rate=TTS_RATE,
-            output=True
+            output=True,
+            frames_per_buffer=4096
         )
         with requests.get(url, stream=True, timeout=10) as r:
             if r.status_code != 200:
