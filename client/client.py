@@ -313,7 +313,7 @@ def play_audio_stream(url, is_playing_event, start_time):
             first_byte_time = None
             first_sound_time = None
 
-            for chunk in r.iter_content(chunk_size=4096):
+            for chunk in r.iter_content(chunk_size=5000):
                 if not chunk:
                     continue
 
