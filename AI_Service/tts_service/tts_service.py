@@ -110,7 +110,6 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 wav, 
                 sample_rate=OMNIVOICE_MODEL.sampling_rate,  
                 fade_ms=50,                                 
-                is_first_chunk=first_chunk
             )
             
             yield audio_chunk
