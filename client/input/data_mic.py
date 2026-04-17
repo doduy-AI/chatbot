@@ -34,7 +34,6 @@ class MicStreamer:
             if self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 self.audio_queue.put(data)
-                print(len(data))
             else:
                 time.sleep(0.01)
 

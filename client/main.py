@@ -1,6 +1,15 @@
 from login import Login
+from input.data_mic import MicStreamer
+from output.sound import Speaker
+import time
 import websocket
-AUTH = Login
+AUTH = Login()
+MIC = MicStreamer()
+sound = Speaker()
+MIC.start()
+MIC.start_recording()
+
+
 
 # class WebSocketHandler:
 #     def __init__(self):
@@ -21,3 +30,18 @@ AUTH = Login
 #         return self.ws
     
 
+
+if __name__ == "__main__":
+    try:
+        while True:
+            if not MIC.audio_queue.empty():
+                frame = MIC.audio_queue.get()
+                sound.play(frame)
+            else:
+                    time.sleep(0.001)
+                    
+    except KeyboardInterrupt:
+            print("\nĐang dừng...")
+    finally:
+            MIC.stop_recording()
+            MIC.shutdown()
