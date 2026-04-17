@@ -8,7 +8,7 @@ LOGIN = Login()
 
 class WSClient:
     def __init__(self):
-        self.username = "emily"
+        self.username = "chiko2"
         self.password = "123456"
         self.url = LOGIN.login_and_get_token(self.username,self.password)
         self.ws =None
