@@ -8,7 +8,7 @@ class MicStreamer:
         self.CHUNK = 320
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
-        self.RATE = 16000
+        self.RATE = 48000
 
         self.p = pyaudio.PyAudio()
 
