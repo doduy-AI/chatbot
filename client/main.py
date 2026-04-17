@@ -8,9 +8,15 @@ MIC = MicStreamer()
 MIC.start()
 MIC.start_recording()
 
+info = {
+        "voice":"nuhanoi",
+    }
+
 if __name__ == "__main__":
     WS.connect()
     print("[SYSTEM] Robot Chiko2 đang lắng nghe và gửi dữ liệu...")
+    time.sleep(1)
+    WS.send_json(info)
     try:
         while True:
             frame = MIC.audio_queue.get()  

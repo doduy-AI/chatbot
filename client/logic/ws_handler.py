@@ -1,5 +1,6 @@
 import websocket
 import threading
+import json
 from .login import Login 
 
 
@@ -8,7 +9,7 @@ LOGIN = Login()
 
 class WSClient:
     def __init__(self):
-        self.username = "chiko2"
+        self.username = "chiko"
         self.password = "123456"
         self.url = LOGIN.login_and_get_token(self.username,self.password)
         self.ws =None
@@ -41,3 +42,11 @@ class WSClient:
     def send_bytes(self, data):
         if self.is_connected:
             self.ws.send(data, opcode=websocket.ABNF.OPCODE_BINARY)
+
+    def send_json(self, data):
+        try:
+            json_data = json.dumps(data)
+            self.ws.send(json_data)
+            
+        except Exception as e:
+            print(f"[ERROR] Không thể gửi JSON: {e}")

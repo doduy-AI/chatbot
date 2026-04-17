@@ -43,7 +43,7 @@ sequelize
   })
   .then(() => {
     const PORT = serverConfig.PORT || 3000;
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0' ,() => {
       console.log(` Server đang chạy tại http://localhost:${PORT}`);
     });
   })

@@ -1,6 +1,7 @@
 const config = require("../config/server")
 const { SonioxNodeClient, RealtimeUtteranceBuffer } = require("@soniox/node");
 const sonioxClient = new SonioxNodeClient();
+let currentVoiceStyle = 'nuhanoi';
 async function handleRobotClient(ws, user, groupId, redisService) {
     console.log(`[Robot] Khởi tạo Soniox session cho ${user.username}`);
     const session = sonioxClient.realtime.stt({
@@ -35,15 +36,16 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         if (!utterance?.text?.trim()) return;
 
         const text = utterance.text.trim();
+        console.log(currentVoiceStyle)
         console.log(`[Robot][${user.username}] Utterance: "${text}"`);
 
-        await redisService.pushTask({
-            userId: user.id,
-            groupId: groupId,
-            text: text,
-            language: 'vi',
-            timestamp: Date.now()
-        });
+        // await redisService.pushTask({
+        //     userId: user.id,
+        //     groupId: groupId,
+        //     text: text,
+        //     language: 'vi',
+        //     timestamp: Date.now()
+        // });
 
         if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: 'STATUS', content: 'Đang xử lý...' }));
@@ -75,6 +77,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         } else {
             try {
                 const msg = JSON.parse(data.toString());
+                currentVoiceStyle = msg.voice
                 if (msg.type === 'stop') session.finish();
             } catch (_) {}
         }
