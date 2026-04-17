@@ -36,8 +36,8 @@ class MicStreamer:
                 try:
                     self.audio_queue.put_nowait(data)
                 except queue.Full:
-                    self.audio_queue.get()  # bỏ frame cũ nhất
-                    self.audio_queue.put_nowait(data)  # thêm frame mới
+                    self.audio_queue.get()  
+                    self.audio_queue.put_nowait(data)  
             else:
                 time.sleep(0.01)
 
