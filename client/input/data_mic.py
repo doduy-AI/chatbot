@@ -21,7 +21,7 @@ class MicStreamer:
             input=True,
             frames_per_buffer=self.CHUNK
         )
-        self.audio_queue = queue.Queue()
+        self.audio_queue = queue.Queue(maxsize=5)
 
         self.is_running = True      
         self.is_recording = False 
@@ -30,12 +30,14 @@ class MicStreamer:
         threading.Thread(target=self._loop, daemon=True).start()
 
     def _loop(self):
-        print("[MIC] Mic ready...")
-
         while self.is_running:
             if self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
-                self.audio_queue.put(data)
+                try:
+                    self.audio_queue.put_nowait(data)
+                except queue.Full:
+                    self.audio_queue.get()  # bỏ frame cũ nhất
+                    self.audio_queue.put_nowait(data)  # thêm frame mới
             else:
                 time.sleep(0.01)
 
