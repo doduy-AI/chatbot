@@ -5,7 +5,7 @@ import queue
 
 class MicStreamer:
     def __init__(self):
-        self.CHUNK = 320
+        self.CHUNK = 1024
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 48000
