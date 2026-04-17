@@ -32,6 +32,10 @@ const User = sequelize.define('User',{
     password:{
         type: DataTypes.STRING,
         allowNull:false
+    },
+    clientType: {
+        type: DataTypes.ENUM('human', 'robot'),
+        defaultValue: 'human'
     }
 
 },{

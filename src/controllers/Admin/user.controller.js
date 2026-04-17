@@ -35,8 +35,7 @@ const listUser =async (req,res)=>{
 
 const create = async(req,res)=>{
     try{
-       const {groupId , username , password }  = req.body
-       console.log(username)
+       const {groupId , username , password ,clientType }  = req.body
        const existingUser = await User.findOne({where:{username}})
        if(existingUser){
         return res.status(400).json({
@@ -53,7 +52,8 @@ const create = async(req,res)=>{
         roleid:"2",
         groupId:groupId,
         username:username,
-        password:hashedPassword
+        password:hashedPassword,
+        clientType:clientType
        })
 
        res.status(200).json({

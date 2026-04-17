@@ -15,7 +15,6 @@ if __name__ == "__main__":
     WS.connect()
     try:
         while True:
-            # Giữ chương trình sống để lắng nghe log từ Thread của WS
             time.sleep(1) 
     except KeyboardInterrupt:
         print("Đang thoát...")
