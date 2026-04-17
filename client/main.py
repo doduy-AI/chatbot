@@ -9,7 +9,7 @@ MIC.start()
 MIC.start_recording()
 
 info = {
-        "voice":"nuhanoi",
+        "voice":"nutrem",
     }
 
 if __name__ == "__main__":

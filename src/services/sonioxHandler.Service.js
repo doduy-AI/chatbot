@@ -1,8 +1,9 @@
 const config = require("../config/server")
 const { SonioxNodeClient, RealtimeUtteranceBuffer } = require("@soniox/node");
 const sonioxClient = new SonioxNodeClient();
-let currentVoiceStyle = 'nuhanoi';
 async function handleRobotClient(ws, user, groupId, redisService) {
+    let currentVoiceStyle = 'nuhanoi';
+
     console.log(`[Robot] Khởi tạo Soniox session cho ${user.username}`);
     const session = sonioxClient.realtime.stt({
         model: 'stt-rt-v4',
