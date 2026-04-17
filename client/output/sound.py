@@ -1,7 +1,7 @@
 import pyaudio
 
 class Speaker:
-    def __init__(self, rate=16000 ,chunk=320):
+    def __init__(self, rate=48000 ,chunk=320):
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(
             format=pyaudio.paInt16,
