@@ -37,17 +37,18 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         if (!utterance?.text?.trim()) return;
 
         const text = utterance.text.trim();
-        console.log(currentVoiceStyle)
         console.log(`[Robot][${user.username}] Utterance: "${text}"`);
+        const task = {
+                    userId: user.id,
+                    groupId:groupId,
+                    text: text,
+                    voice:currentVoiceStyle,
+                    timestamp: Date.now()
+                };
 
-        // await redisService.pushTask({
-        //     userId: user.id,
-        //     groupId: groupId,
-        //     text: text,
-        //     language: 'vi',
-        //     timestamp: Date.now()
-        // });
-
+        
+        await redisService.pushTask(task)
+        
         if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: 'STATUS', content: 'Đang xử lý...' }));
         }
