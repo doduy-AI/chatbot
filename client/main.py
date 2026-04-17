@@ -1,44 +1,33 @@
-from login import Login
-from input.data_mic import MicStreamer
-from output.sound import Speaker
+from logic.data_mic import MicStreamer
+from logic.sound import Speaker
+from logic.ws_handler import WSClient
 import time
-import websocket
-AUTH = Login()
-MIC = MicStreamer()
-sound = Speaker()
-MIC.start()
-MIC.start_recording()
+WS = WSClient()
+# MIC = MicStreamer()
+# sound = Speaker()
+# MIC.start()
+# MIC.start_recording()
 
 
-
-# class WebSocketHandler:
-#     def __init__(self):
-#         print("[WS] WEBSOCKET")
-#         self.ws = None
-#         self.username = "bytehome"
-#         self.password = "bytehome"
-#         self.connectted = False
-#         self.ws_url = AUTH.login_and_get_token(self.username,self.password)
-    
-#     def on_message(self, ws , message):
-
-#     def connect(self):
-#         self.ws = websocket.WebSocketApp(
-#             self.ws_url,
-
-#         )
-#         return self.ws
-    
 
 
 if __name__ == "__main__":
+    WS.connect()
     try:
         while True:
-            frame = MIC.audio_queue.get()  
-            sound.play(frame)
-                    
+            # Giữ chương trình sống để lắng nghe log từ Thread của WS
+            time.sleep(1) 
     except KeyboardInterrupt:
-        print("\nĐang dừng...")
-    finally:
-        MIC.stop_recording()
-        MIC.shutdown()
+        print("Đang thoát...")
+
+    
+    # try:
+    #     while True:
+    #         frame = MIC.audio_queue.get()  
+    #         sound.play(frame)
+                    
+    # except KeyboardInterrupt:
+    #     print("\nĐang dừng...")
+    # finally:
+    #     MIC.stop_recording()
+    #     MIC.shutdown()

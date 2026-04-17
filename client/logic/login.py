@@ -15,11 +15,12 @@ class Login:
             }
             res = requests.post(self.LOGIN_URL,json=data_payload)
             if res.status_code == 200 :
-                WS_URL = f"ws://{self.LOCAL}:{self.PORT}?/token={res.json().get('token')}"
+                WS_URL = f"ws://{self.LOCAL}:{self.PORT}?token={res.json().get('token')}"
+                # print(WS_URL)
                 return WS_URL
             else:
                 print("[LOGIN] Đăng Nhập Thất bại")
-                return
+                return "Login thất bại"
         except Exception as e :
             print(f"[LOGIN] Không thể kết lỗi đến server {e}")
         
