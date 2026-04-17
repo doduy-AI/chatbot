@@ -34,11 +34,12 @@ MIC.start_recording()
 if __name__ == "__main__":
     try:
         while True:
-            if not MIC.audio_queue.empty():
+            frame = None
+            while not MIC.audio_queue.empty():
                 frame = MIC.audio_queue.get()
+            
+            if frame:
                 sound.play(frame)
-            else:
-                    time.sleep(0.001)
                     
     except KeyboardInterrupt:
             print("\nĐang dừng...")

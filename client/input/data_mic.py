@@ -2,13 +2,12 @@ import pyaudio
 import threading
 import time
 import queue
-import numpy as np 
-from scipy.signal import resample_poly
+
 
 
 class MicStreamer:
     def __init__(self):
-        self.CHUNK = 1024
+        self.CHUNK = 480
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 48000
@@ -36,9 +35,7 @@ class MicStreamer:
         while self.is_running:
             if self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
-                audio = np.frombuffer(data, dtype=np.int16)
-                down = resample_poly(audio, 1, 3).astype(np.int16)
-                self.audio_queue.put(down.tobytes())
+                self.audio_queue.put(data)
             else:
                 time.sleep(0.01)
 
