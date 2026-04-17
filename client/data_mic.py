@@ -1,6 +1,7 @@
 import pyaudio
 import threading
 import time
+import queue
 
 class MicStreamer:
     def __init__(self):
@@ -18,6 +19,7 @@ class MicStreamer:
             input=True,
             frames_per_buffer=self.CHUNK
         )
+        self.audio_queue = queue.Queue()
 
         self.is_running = True      
         self.is_recording = False 
@@ -31,6 +33,7 @@ class MicStreamer:
         while self.is_running:
             if self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
+                self.audio_queue.put(data)
                 print(len(data))
             else:
                 time.sleep(0.01)
