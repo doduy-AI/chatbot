@@ -3,8 +3,6 @@ import threading
 import time
 import queue
 
-
-
 class MicStreamer:
     def __init__(self):
         self.CHUNK = 480
@@ -54,18 +52,6 @@ class MicStreamer:
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
-
-if __name__ == "__main__":
-    MIC = MicStreamer()
-    MIC.start()
-    
-    time.sleep(1)
-    MIC.start_recording()
-    
-    try:
-        time.sleep(5) 
-    except KeyboardInterrupt:
-        pass
         
-    MIC.stop_recording()
-    MIC.shutdown()
+    def get_silence_frame(self):
+        return b'\x00' * self.CHUNK * 2 

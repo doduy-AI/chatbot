@@ -2,21 +2,26 @@ import websocket
 import threading
 import json
 from .login import Login 
-
-
+from .data_mic import MicStreamer
 
 LOGIN = Login()
 
 class WSClient:
-    def __init__(self):
-        self.username = "chiko1"
+    def __init__(self, mic = MicStreamer):
+        self.username = "chiko"
         self.password = "123456"
         self.url = LOGIN.login_and_get_token(self.username,self.password)
         self.ws =None
         self.is_connected = False
+        self.mic = mic  
 
     def on_message(self,ws,message):
-        print(f"[WS] Nhận Phản hồi từ Server {message}")
+        try:
+            data = json.loads(message)
+            if data.get("type") == "STATUS" and data.get("content") == "end_mic_Bytehome":
+                self.mic.stop_recording()
+        except Exception as e :
+            print(f"[WS] Lỗi parse Data {e}")
 
     def on_error(self,ws,error):
         print(f"[WS] Lỗi : {error}")

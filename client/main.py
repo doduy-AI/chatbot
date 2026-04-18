@@ -2,8 +2,8 @@ from logic.data_mic import MicStreamer
 from logic.sound import Speaker
 from logic.ws_handler import WSClient
 import time
-WS = WSClient()
 MIC = MicStreamer()
+WS = WSClient(mic=MIC)
 # sound = Speaker()
 MIC.start()
 MIC.start_recording()
@@ -19,8 +19,11 @@ if __name__ == "__main__":
     WS.send_json(info)
     try:
         while True:
-            frame = MIC.audio_queue.get()  
-            if frame:
+            if MIC.is_recording:
+                frame = MIC.audio_queue.get()  
                 WS.send_bytes(frame)
+            else:
+                WS.send_bytes(MIC.get_silence_frame())  
+                time.sleep(0.01)
     except KeyboardInterrupt:
         print("Đang thoát...")
