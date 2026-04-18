@@ -1,26 +1,49 @@
 import websocket
 import threading
 import json
+import time
 from .login import Login 
 from .data_mic import MicStreamer
+from .sound import Streaming_Aduio_Url
 
 LOGIN = Login()
 
 class WSClient:
-    def __init__(self, mic = MicStreamer):
-        self.username = "chiko"
+    def __init__(self, mic = None):
+        self.username = "chiko1"
         self.password = "123456"
         self.url = LOGIN.login_and_get_token(self.username,self.password)
         self.ws =None
         self.is_connected = False
+        self.is_playing_event = threading.Event()
+        self.audio_player = Streaming_Aduio_Url()
         self.mic = mic  
 
-    def on_message(self,ws,message):
+    def on_message(self, ws, message):
         try:
             data = json.loads(message)
+            print(data)
             if data.get("type") == "STATUS" and data.get("content") == "end_mic_Bytehome":
                 self.mic.stop_recording()
-        except Exception as e :
+                self.end_mic_time = time.time() 
+                
+            elif data.get("type") == "AI_VOICE_REPLY":
+                audio_url = data.get("audioUrl")
+                self.mic.stop_recording()
+                if audio_url:
+                    self.audio_thread = threading.Thread(
+                        target=self.audio_player.play_audio_stream,
+                        args=(audio_url, self.is_playing_event,self.end_mic_time),
+                        daemon=True
+                    )
+                    self.audio_thread.start()
+                else:
+                    threading.Thread(
+                        target=self._wait_and_restart_mic,
+                        daemon=True
+                    ).start()
+
+        except Exception as e:
             print(f"[WS] Lỗi parse Data {e}")
 
     def on_error(self,ws,error):
@@ -55,3 +78,9 @@ class WSClient:
             
         except Exception as e:
             print(f"[ERROR] Không thể gửi JSON: {e}")
+
+
+    def _wait_and_restart_mic(self):
+        if hasattr(self, 'audio_thread') and self.audio_thread:
+            self.audio_thread.join() 
+        self.mic.start_recording()

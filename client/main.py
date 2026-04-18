@@ -1,10 +1,8 @@
 from logic.data_mic import MicStreamer
-from logic.sound import Speaker
 from logic.ws_handler import WSClient
 import time
 MIC = MicStreamer()
-WS = WSClient(mic=MIC)
-# sound = Speaker()
+WS = WSClient(mic=MIC )
 MIC.start()
 MIC.start_recording()
 

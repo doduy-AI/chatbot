@@ -2,7 +2,7 @@
 import requests
 class Login:
     def __init__(self):
-        self.LOCAL="192.168.1.68"
+        self.LOCAL="localhost"
         self.PORT="4000"
         self.LOGIN_URL=f"http://{self.LOCAL}:{self.PORT}/auth/login"
 

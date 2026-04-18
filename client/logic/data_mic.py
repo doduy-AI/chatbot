@@ -46,6 +46,12 @@ class MicStreamer:
     def stop_recording(self):
         print("[MIC] Stop recording")
         self.is_recording = False
+        # Clear hết data cũ trong queue
+        while not self.audio_queue.empty():
+            try:
+                self.audio_queue.get_nowait()
+            except queue.Empty:
+                break
 
     def shutdown(self):
         self.is_running = False
