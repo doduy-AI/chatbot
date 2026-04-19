@@ -38,7 +38,7 @@ const handleChatSocket = (wss) => {
 
         let content = await redisService.getCache(cacheKey)
 
-        if (content) {
+        if (!content) {
          console.log(`[Cache HIT] group ${groupId}`);
 
             const promptGroup = await Prompt.findOne({
