@@ -48,15 +48,7 @@ async def stream_voice(task_id: str):
                 break
         audio_buffers.pop(task_id, None)
 
-    return StreamingResponse(
-        stream_generator(), 
-        media_type="audio/octet-stream",
-        headers={
-            "X-Accel-Buffering": "no",   
-            "Cache-Control": "no-cache",
-            "Transfer-Encoding": "chunked",
-        }
-    )
+    return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
 
 async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
     """Chạy generate_tts trong executor, đẩy chunk vào asyncio.Queue"""
