@@ -83,7 +83,7 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 text=text_chunk,
                 ref_audio=profile["ref_audio"],
                 ref_text=profile["ref_text"],
-                num_step=4,        
+                num_step=8,        
                 guidance_scale=2.0,
                 speed=1.0
             )

@@ -1,7 +1,7 @@
-const config = require("../config/server")
 const { SonioxNodeClient, RealtimeUtteranceBuffer } = require("@soniox/node");
 const sonioxClient = new SonioxNodeClient();
 async function handleRobotClient(ws, user, groupId, redisService) {
+    let lastPushTime = 0;
     let currentVoiceStyle = 'nuhanoi';
 
     console.log(`[Robot] Khởi tạo Soniox session cho ${user.username}`);
@@ -33,9 +33,14 @@ async function handleRobotClient(ws, user, groupId, redisService) {
     });
 
     session.on('endpoint', async () => {
+        const now = Date.now();
+        if (now - lastPushTime < 3000) {
+            console.log("chặn text")
+        return; 
+    }
         const utterance = utteranceBuffer.markEndpoint();
         if (!utterance?.text?.trim()) return;
-
+        lastPushTime = now;
         const text = utterance.text.trim();
         console.log(`[Robot][${user.username}] Utterance: "${text}"`);
         const task = {
