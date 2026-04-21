@@ -4,17 +4,13 @@ const Prompt = require('../model/group_prompt.model')
 const { handleRobotClient } = require('../services/sonioxHandler.Service');
 const handleChatSocket = (wss) => {
     redisService.listenForResponses((userId, data) => {
-
         wss.clients.forEach((client) => {
-
             if (client.readyState === 1 && client.user && String(client.user.id) === String(userId)) {
                 client.send(JSON.stringify({
                     type: 'AI_VOICE_REPLY',
                     text: data.text,
                     audioUrl: data.audioUrl,
-                    // userId: userId
                 }));
-                // console.log(`[Socket] Đã gửi link voice tới user: ${userId}`);
             }
         });
     });
