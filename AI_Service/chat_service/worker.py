@@ -11,34 +11,31 @@ ai = AIEngine()
 
 
 def handle_task(data):
-    user_id = data.get("userId")
+    userId = data.get("userId")
     text = data.get("text")
     group_id = data.get("groupId")
     voice = data.get("voice")
+    service = data.get("service")
     if text == "disconectuser":
-        ai.clear_session(user_id)
+        ai.clear_session(userId)
         return
     prompt = redis_manager.get_cache(f"group:{group_id}:content")
     strart_time = time.time()
-    reply = ai.generate_respone(text,prompt ,user_id, group_id)
+    reply = ai.generate_respone(text,prompt ,userId, group_id)
     print(f"[CHAT_Service] time {time.time() - strart_time} ")
-    print("[BYTEHOME]", reply)
-
-    redis_manager.publish("tts_tasks", {
-        "userId": user_id,
-        "reply": reply,
-        "voice": voice,
-        "status": "success"
-    })
-
-    # redis_manager.publish(f"voice_ready:{user_id}", {
-    #             "type": "AI_VOICE_REPLY",
-    #             "text": text,
-    #             "audioUrl": "http://192.168.1.35:3001/giongnuhanoi6s.wav"
-    #         })
-    # print(f" Đã trả lời {user_id}")
-
-
+    if (service):
+            redis_manager.publishChat("chat-respone", {
+            "userId": userId,
+            "reply": reply,
+            "status": "success"
+        })
+    else:
+        redis_manager.publish("tts_tasks", {
+            "userId": userId,
+            "reply": reply,
+            "voice": voice,
+            "status": "success"
+        })
 
 def main():
     print(" sẵn sàng")

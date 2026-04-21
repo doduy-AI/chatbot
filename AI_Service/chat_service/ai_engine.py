@@ -40,8 +40,12 @@ class AIEngine:
         self.embed_model = SentenceTransformer(settings.MODEL_QDRANT) 
         self.collection_name = "bytehome"
         self.chat_sessions = {}
+
     def get_context(self, user_id, group_id,query_text):
         try:
+            print(user_id),
+            print(group_id)
+            print(query_text)
             query_vector = self.embed_model.encode(query_text).tolist()
             response = self.qdrant_client.query_points(
                 collection_name=self.collection_name,
@@ -112,6 +116,7 @@ class AIEngine:
     
     def generate_respone(self, text:str ,prompt: str , userId: str ,group_Id:str ):
         try:
+            print("[generate_respone]",userId)
             context = self.get_context(userId,group_Id,text)
             # print(context)
             

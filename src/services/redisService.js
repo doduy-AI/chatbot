@@ -18,8 +18,6 @@ class RedisService {
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
         this.voiceResponsePattern = 'voice_ready:*';
-        this.chatQueue = "chat"
-        this.chatRespon = "chat-respone"
         this.initPatternListener();
     }
     initPatternListener() {
@@ -43,11 +41,16 @@ class RedisService {
         redisSubscriber.psubscribe(this.voiceResponsePattern);
         console.log(`[Redis] Đang nghe Pattern: ${this.voiceResponsePattern}`);
     }
-// lắng nghe phản hồi voice
+// lắng nghe phản hồi chat
     listenForResponsesChat(callback) {
-        this.voiceCallback = callback;
-        redisSubscriber.psubscribe(this.chatRespon);
-        console.log(`[Redis] Đang nghe Pattern: ${this.chatRespon}`);
+        redisSubscriber.subscribe("chat-respone"); 
+        
+        redisSubscriber.on("message", (channel, message) => {
+            if (channel === "chat-respone") {
+                const data = JSON.parse(message);
+                callback(data.userId, data);
+            }
+        });
     }
     
 
@@ -70,18 +73,6 @@ class RedisService {
             console.error('[Redis] lỗi push embedding task', err);
             throw err;
         }
-    }
-
-    // chat task 
-    async pushChatTask(task){
-        try {
-            const data = JSON.stringify(task);
-            await redisPublisher.lpush(this.chatQueue, data);
-        } catch (err) {
-            console.error('[Redis] lỗi push embedding task', err);
-            throw err;
-        }
-
     }
 // cache 
 
