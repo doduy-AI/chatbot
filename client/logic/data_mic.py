@@ -42,6 +42,8 @@ class MicStreamer:
     def start_recording(self):
         print("[MIC] Start Mic")
         self.is_recording = True
+        if hasattr(self, 'ws_client') and self.ws_client:
+            self.ws_client.send_json({"type": "start"})
 
     def stop_recording(self):
         print("[MIC] Stop recording")
