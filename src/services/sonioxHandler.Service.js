@@ -34,7 +34,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
 
     session.on('endpoint', async () => {
         const now = Date.now();
-        if (now - lastPushTime < 3000) {
+        if (now - lastPushTime < 5000) {
             console.log("chặn text")
         return; 
     }
