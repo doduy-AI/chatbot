@@ -54,9 +54,11 @@ async def stream_voice(task_id: str ,audio_format : str = "wav"):
             stream_generator(),
             media_type="audio/mpeg",
             headers={
-                "Accept-Ranges": "bytes",
                 "Content-Type": "audio/mpeg",
-                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",  
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
                 "Connection": "keep-alive",
             }
         )
