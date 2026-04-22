@@ -33,6 +33,8 @@ async def stream_voice(task_id: str ,audio_format : str = "wav"):
                 if isinstance(chunk, bytes):
                     first_chunk = chunk
                     print(f"[STREAM FIRST CHUNK] Nhận chunk đầu sau: {time.time() - connect_time:.3f}s")
+                    print(f"[STREAM FIRST CHUNK] size: {len(first_chunk)}, bytes: {first_chunk[:4].hex()}")
+
             except:
                 return   
         yield first_chunk

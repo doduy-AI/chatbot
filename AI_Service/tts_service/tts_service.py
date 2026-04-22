@@ -132,3 +132,9 @@ def generate_tts_stream(text: str, voice: str , audio_format: str) -> Generator[
             final_bytes = encoder.flush()
             if final_bytes and not final_bytes.startswith(b'LAME'):
                 yield final_bytes
+
+if __name__ == "__main__":
+    with open("test.mp3", "wb") as f:
+        for chunk in generate_tts_stream("Xin chào Emily rất vui được hỗ trợ bạn.", "nuhanoi", "mp3"):
+            f.write(chunk)
+    print("Done, mở test.mp3 bằng VLC xem")
