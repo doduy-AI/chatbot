@@ -119,8 +119,6 @@ async def redis_listener():
             audio_buffers[task_id] = q
             voice_url = f"{EXTERNAL_HOST}/stream-voice/{task_id}?audio_format={audio_format}"
             print(voice_url)
-            print("bắt đàu đợi")
-            # Gửi thông báo cho client
             print(f"[PUBLISH] Gửi URL lúc: {time.time():.3f}")
 
             redis_manager.publish(f"voice_ready:{user_id}", {
@@ -129,7 +127,6 @@ async def redis_listener():
                 "audioUrl": voice_url
             })
 
-            # Submit task cho thread pool
             start_time = time.time()
             await process_tts_task(user_id, text, task_id, q, voice, audio_format) 
             print(f"[TTS DONE] Tổng thời gian TTS: {time.time() - start_time:.3f}s")
