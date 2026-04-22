@@ -56,7 +56,7 @@ const Home = () => {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#212121] text-white">
-            <aside className="flex h-screen w-[260px] flex-col border-r border-white/10 bg-[#0d0d0d] text-white">
+            <aside className="hidden md:flex h-screen w-[260px] flex-col border-r border-white/10 bg-[#0d0d0d] text-white">
                 <div className="flex items-center justify-between px-4 py-3">
                     <div className="mb-3 mt-5">
                         <img src="/logo.webp" alt="logo" />
@@ -82,7 +82,7 @@ const Home = () => {
             <main
                 className="
                     relative flex-1 overflow-y-auto
-                    [&::-webkit-scrollbar]:w-[5px]
+                    [&::-webkit-scrollbar]:w-1.25
                     [&::-webkit-scrollbar-track]:bg-transparent
                     [&::-webkit-scrollbar-thumb]:rounded-full
                     [&::-webkit-scrollbar-thumb]:bg-white/20
@@ -126,16 +126,23 @@ const Home = () => {
                     className={`${
                         !chatStarted
                             ? "absolute left-1/2 w-full max-w-3xl -translate-x-1/2 px-6 transition-all duration-700 top-1/2 -translate-y-1/2"
-                            : "mx-auto fixed bottom-6 left-1/2 -translate-x-1/2 z-20 w-full max-w-3xl px-6"
+                            : "mx-auto w-full max-w-3xl px-6"
                     }`}
                 >
+                {/* <div
+                    className={`absolute left-1/2 w-full max-w-3xl -translate-x-1/2 px-6 transition-all duration-700 ease-in-out ${
+                        chatStarted
+                            ? "flex z-50 right-6 "
+                            : "top-1/2 -translate-y-1/2"
+                    }`}
+                > */}
                     <div className="mx-auto w-full max-w-3xl">
                         <div className="rounded-[28px] border border-white/10 bg-[#2f2f2f] px-5 py-4 shadow-2xl">
                             <textarea
                                 onKeyDown={handleKeyDown}
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Hỏi bất kỳ điều gì"
+                                placeholder="Hỏi bất kỳ điều gì về bảo hiểm xã hội"
                                 rows={1}
                                 className="w-full resize-none bg-transparent text-lg text-white outline-none placeholder:text-white/50"
                             />
