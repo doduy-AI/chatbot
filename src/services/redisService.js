@@ -15,52 +15,44 @@ const redisSubscriber = new Redis({
 class RedisService {
     constructor() {
         this.queueName = 'ai_tasks';
-        // this.responseChannel = 'ai_responses';
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
         this.voiceResponsePattern = 'voice_ready:*';
         this.initPatternListener();
     }
-    // tts_task 
-    async pushTTSTask(task){
-        try {
-            const data = JSON.stringify(task)
-            await redisPublisher.lpush(this.ttsQueue, data);
-        } catch (err) {
-            console.error('[Redis] lỗi push TTS task ' , err)
-            throw err
-        }
-    }
-   
-
     initPatternListener() {
         redisSubscriber.on('pmessage', (pattern, channel, message) => {
             try {
                 const data = JSON.parse(message);
-
                 if (pattern === this.voiceResponsePattern) {
                     const userId = channel.split(':')[1];
-                    // console.log(`[Redis]  Audio ready for User: ${userId}`);
                     if (this.voiceCallback) this.voiceCallback(userId, data);
                 }
 
-                // else if (pattern === this.embeddingResponsePattern) {
-                //     const userId = channel.split(':')[1];
-                //     console.log(`[Redis]  Embedding done for User: ${userId}`);
-                //     if (this.embeddingCallback) this.embeddingCallback(userId, data);
-                // }
             } catch (err) {
                 console.error('[Redis] Lỗi parse JSON:', err);
             }
         });
     }
 
-
+// lắng nghe phản hồi voice 
     listenForResponses(callback) {
         this.voiceCallback = callback;
         redisSubscriber.psubscribe(this.voiceResponsePattern);
         console.log(`[Redis] Đang nghe Pattern: ${this.voiceResponsePattern}`);
     }
+// lắng nghe phản hồi chat
+    listenForResponsesChat(callback) {
+        redisSubscriber.subscribe("chat-respone"); 
+        
+        redisSubscriber.on("message", (channel, message) => {
+            if (channel === "chat-respone") {
+                const data = JSON.parse(message);
+                callback(data.userId, data);
+            }
+        });
+    }
+    
 
     // ai task
     async pushTask(task) {
@@ -72,18 +64,6 @@ class RedisService {
             throw err
         }
     }
-    // listenForResponses(callback) {
-    //     redisSubscriber.subscribe(this.responseChannel);
-
-    //     redisSubscriber.on('message', (channel, message) => {
-    //         if (channel === this.responseChannel) {
-    //             const data = JSON.parse(message);
-    //             console.log(data)
-    //             callback(data);
-    //         }
-    //     });
-    // }
-
     // embetding task 
     async pushEmbeddingTask(task) {
         try {
@@ -93,16 +73,6 @@ class RedisService {
             console.error('[Redis] lỗi push embedding task', err);
             throw err;
         }
-    }
-
-    listenForEmbeddingResponses(callback) {
-        redisSubscriber.subscribe(this.embeddingResponseChannel);
-        redisSubscriber.on('message', (channel, message) => {
-            if (channel === this.embeddingResponseChannel) {
-                const data = JSON.parse(message);
-                callback(data);
-            }
-        });
     }
 // cache 
 
