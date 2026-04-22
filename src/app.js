@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const WebSocket = require('ws');
 const http = require('http');
 const {sequelize} = require('./model/index');
@@ -9,6 +10,7 @@ const handleChatSocket = require('./sockets/chat.socket');
 const { veryConnection } = require('./middlewares/auth.middleware');
 
 const app = express();
+app.use(cors());
 const server = http.createServer(app);
 
 // Middleware

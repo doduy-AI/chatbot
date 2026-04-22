@@ -33,6 +33,8 @@ async def stream_voice(task_id: str ,audio_format : str = "wav"):
                 if isinstance(chunk, bytes):
                     first_chunk = chunk
                     print(f"[STREAM FIRST CHUNK] Nhận chunk đầu sau: {time.time() - connect_time:.3f}s")
+                    print(f"[STREAM FIRST CHUNK] size: {len(first_chunk)}, bytes: {first_chunk[:4].hex()}")
+
             except:
                 return   
         yield first_chunk
@@ -48,11 +50,22 @@ async def stream_voice(task_id: str ,audio_format : str = "wav"):
                 break
         audio_buffers.pop(task_id, None)
     if audio_format == "mp3":
-        return StreamingResponse(stream_generator(), media_type="audio/mpeg")
+        return StreamingResponse(
+            stream_generator(),
+            media_type="audio/mpeg",
+            headers={
+                "Content-Type": "audio/mpeg",
+                "X-Accel-Buffering": "no",  
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
+                "Connection": "keep-alive",
+            }
+        )
     else:
         return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
 
-async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
+async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice,audio_format):
     """Chạy generate_tts trong executor, đẩy chunk vào asyncio.Queue"""
     loop = asyncio.get_event_loop()
     start_time = time.time()
@@ -63,7 +76,7 @@ async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
         # generate_tts là sync → chạy trong thread pool
         def run_tts():
             nonlocal first_chunk
-            for chuck in generate_tts(text, voice):
+            for chuck in generate_tts(text, voice ,audio_format):
                 if first_chunk:
                     print(f" Task {task_id}: chunk đầu sau {time.time() - start_time:.2f}s")
                     first_chunk = False
@@ -106,7 +119,6 @@ async def redis_listener():
             audio_buffers[task_id] = q
             voice_url = f"{EXTERNAL_HOST}/stream-voice/{task_id}?audio_format={audio_format}"
             print(voice_url)
-            # Gửi thông báo cho client
             print(f"[PUBLISH] Gửi URL lúc: {time.time():.3f}")
 
             redis_manager.publish(f"voice_ready:{user_id}", {
@@ -115,7 +127,6 @@ async def redis_listener():
                 "audioUrl": voice_url
             })
 
-            # Submit task cho thread pool
             start_time = time.time()
             await process_tts_task(user_id, text, task_id, q, voice, audio_format) 
             print(f"[TTS DONE] Tổng thời gian TTS: {time.time() - start_time:.3f}s")
