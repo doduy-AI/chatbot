@@ -30,6 +30,7 @@ class WSClient:
             elif data.get("type") == "AI_VOICE_REPLY":
                 audio_url = data.get("audioUrl")
                 self.mic.stop_recording()
+                print(audio_url)
                 if audio_url:
                     self.audio_thread = threading.Thread(
                         target=self.audio_player.play_audio_stream,
