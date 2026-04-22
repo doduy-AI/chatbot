@@ -1,14 +1,14 @@
 from omnivoice.models.omnivoice import OmniVoice
-import argparse
 import logging
 import re
 import torch
 from typing import Generator
 import numpy as np
-import time
+import lameenc
+
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 from input.voice_profiles import VOICE_PROFILE
-import argparse
+
 
 MODEL_PATH = "./models"
 OUTPUT_PATH = "./output/audio.wav"
@@ -65,7 +65,7 @@ def float_to_pcm_bytes(wav: np.ndarray, sample_rate=24000, fade_ms=50, is_last_c
     pcm = (wav * 32767.0).astype(np.int16)
     return pcm.tobytes()
 
-def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
+def generate_tts_stream(text: str, voice: str , audio_format: str) -> Generator[bytes, None, None]:
     profile = VOICE_PROFILE.get(voice)
     if profile is None:
         raise ValueError(f"Giọng '{voice}' không tồn tại. Có sẵn: {list(VOICE_PROFILE)}")
@@ -73,9 +73,16 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
     chunks = split_sentences(text)
     logging.info(f"[TTS] Tổng {len(chunks)} chunk: {chunks}")
 
-    with torch.inference_mode():
-        first_chunk = True
-        
+    use_mp3 = audio_format.lower() == "mp3"
+
+    if use_mp3:
+        encoder = lameenc.Encoder()
+        encoder.set_bit_rate(128)
+        encoder.set_in_sample_rate(24000)
+        encoder.set_channels(1)
+        encoder.set_quality(2)
+
+    with torch.inference_mode():        
         for i, text_chunk in enumerate(chunks):
             print(f"[TTS Chunk {i+1}/{len(chunks)}]: {text_chunk}")
             
@@ -108,12 +115,20 @@ def generate_tts_stream(text: str, voice: str) -> Generator[bytes, None, None]:
                 print(f"[TTS] wav shape: {wav.shape}, sample_rate: {OMNIVOICE_MODEL.sampling_rate}")
 
 
-            audio_chunk = float_to_pcm_bytes(
-                wav, 
-                sample_rate=OMNIVOICE_MODEL.sampling_rate,  
-                fade_ms=50,                                 
-            )
+            if use_mp3:
+                pcm_int16 = (wav * 32767).clip(-32768, 32767).astype(np.int16)
+                mp3_chunk = encoder.encode(pcm_int16.tobytes())
+                if mp3_chunk:
+                    yield mp3_chunk
+            else:
+                audio_chunk = float_to_pcm_bytes(
+                    wav, 
+                    sample_rate=OMNIVOICE_MODEL.sampling_rate,  
+                    fade_ms=50,                                 
+                )
+                yield audio_chunk
             
-            yield audio_chunk
-            first_chunk = False  
-            
+        if use_mp3:
+            final_bytes = encoder.flush()
+            if final_bytes:
+                yield final_bytes
