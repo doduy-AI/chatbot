@@ -47,6 +47,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
                     userId: user.id,
                     groupId:groupId,
                     text: text,
+                    audio_format:"wav",
                     voice:currentVoiceStyle,
                     timestamp: Date.now()
                 };

@@ -66,6 +66,7 @@ const handleChatSocket = (wss) => {
                     groupId:groupId,
                     text: payload.text,
                     voice:payload.voice,
+                    audio_format:"mp3",
                     language: payload.language || 'vi',
                     timestamp: Date.now()
                 };
