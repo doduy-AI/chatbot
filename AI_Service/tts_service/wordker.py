@@ -52,7 +52,7 @@ async def stream_voice(task_id: str ,audio_format : str = "wav"):
     else:
         return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
 
-async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
+async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice,audio_format):
     """Chạy generate_tts trong executor, đẩy chunk vào asyncio.Queue"""
     loop = asyncio.get_event_loop()
     start_time = time.time()
@@ -63,7 +63,7 @@ async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
         # generate_tts là sync → chạy trong thread pool
         def run_tts():
             nonlocal first_chunk
-            for chuck in generate_tts(text, voice):
+            for chuck in generate_tts(text, voice ,audio_format):
                 if first_chunk:
                     print(f" Task {task_id}: chunk đầu sau {time.time() - start_time:.2f}s")
                     first_chunk = False
