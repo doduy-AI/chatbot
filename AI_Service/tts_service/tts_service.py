@@ -119,7 +119,7 @@ def generate_tts_stream(text: str, voice: str , audio_format: str) -> Generator[
                 pcm_int16 = (wav * 32767).clip(-32768, 32767).astype(np.int16)
                 mp3_chunk = encoder.encode(pcm_int16.tobytes())
                 if mp3_chunk:
-                    yield mp3_chunk
+                    yield bytes(mp3_chunk)
             else:
                 audio_chunk = float_to_pcm_bytes(
                     wav, 
@@ -131,7 +131,7 @@ def generate_tts_stream(text: str, voice: str , audio_format: str) -> Generator[
         if use_mp3:
             final_bytes = encoder.flush()
             if final_bytes and not final_bytes.startswith(b'LAME'):
-                yield final_bytes
+                yield bytes(final_bytes)
 
 if __name__ == "__main__":
     with open("test.mp3", "wb") as f:
