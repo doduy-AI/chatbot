@@ -4,12 +4,15 @@ const config = require("../config/server")
 
 const redisPublisher = new Redis({
     host: config.HOST_REDIS,
-    port: config.PORT_REDIS
+    port: config.PORT_REDIS,
+    password: config.PASS_REDIS
 })
 
 const redisSubscriber = new Redis({
     host: config.HOST_REDIS,
-    port: config.PORT_REDIS
+    port: config.PORT_REDIS,
+    password: config.PASS_REDIS
+
 })
 
 class RedisService {
