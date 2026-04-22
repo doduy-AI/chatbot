@@ -18,7 +18,7 @@ app = FastAPI()
 
 audio_buffers = {}
 @app.get("/stream-voice/{task_id}")
-async def stream_voice(task_id: str):
+async def stream_voice(task_id: str ,audio_format : str = "wav"):
     async def stream_generator():
         connect_time = time.time()
         print(f"[STREAM START] Client kết nối lúc: {connect_time:.3f}")
@@ -47,8 +47,10 @@ async def stream_voice(task_id: str):
             except:
                 break
         audio_buffers.pop(task_id, None)
-
-    return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
+    if audio_format == "mp3":
+        return StreamingResponse(stream_generator(), media_type="audio/mpeg")
+    else:
+        return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
 
 async def process_tts_task(user_id, text, task_id, q: asyncio.Queue, voice):
     """Chạy generate_tts trong executor, đẩy chunk vào asyncio.Queue"""
@@ -96,13 +98,13 @@ async def redis_listener():
             user_id = data.get("userId")
             text = data.get("reply", "")
             voice = data.get("voice")
+            audio_format = data.get("audio_format", "wav")
             task_id = f"task_{int(time.time() * 1000)}"
 
             # Tạo queue cho task và lưu vào audio_buffers trước khi publish URL
             q = asyncio.Queue(maxsize=QUEUE_MAXSIZE)
             audio_buffers[task_id] = q
-
-            voice_url = f"{EXTERNAL_HOST}/stream-voice/{task_id}"
+            voice_url = f"{EXTERNAL_HOST}/stream-voice/{task_id}?audio_format={audio_format}"
             print(voice_url)
             # Gửi thông báo cho client
             print(f"[PUBLISH] Gửi URL lúc: {time.time():.3f}")
@@ -115,7 +117,7 @@ async def redis_listener():
 
             # Submit task cho thread pool
             start_time = time.time()
-            await process_tts_task(user_id, text, task_id, q,voice)
+            await process_tts_task(user_id, text, task_id, q, voice, audio_format) 
             print(f"[TTS DONE] Tổng thời gian TTS: {time.time() - start_time:.3f}s")
 
 

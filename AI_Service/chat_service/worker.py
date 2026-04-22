@@ -16,6 +16,7 @@ def handle_task(data):
     group_id = data.get("groupId")
     voice = data.get("voice")
     service = data.get("service")
+    audio_format = data.get("audio_format")
     if text == "disconectuser":
         ai.clear_session(userId)
         return
@@ -34,6 +35,7 @@ def handle_task(data):
             "userId": userId,
             "reply": reply,
             "voice": voice,
+            "audio_format":audio_format,
             "status": "success"
         })
 
