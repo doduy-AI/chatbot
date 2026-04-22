@@ -50,7 +50,14 @@ async def stream_voice(task_id: str ,audio_format : str = "wav"):
                 break
         audio_buffers.pop(task_id, None)
     if audio_format == "mp3":
-        return StreamingResponse(stream_generator(), media_type="audio/mpeg")
+        return StreamingResponse(
+            stream_generator(), 
+            media_type="audio/mpeg",
+            headers={
+                "Content-Type": "audio/mpeg",
+                "Accept-Ranges": "bytes",
+            }
+        )
     else:
         return StreamingResponse(stream_generator(), media_type="audio/octet-stream")
 
