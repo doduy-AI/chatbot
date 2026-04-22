@@ -9,5 +9,6 @@ module.exports = {
     PASS_DB: process.env.PASS_DB,
     PORT_REDIS: process.env.PORT_REDIS,
     HOST_REDIS: process.env.HOST_REDIS,
+    PASS_REDIS: process.env.PASS_REDIS,
     SONIOX_API_KEY : process.env.STT
 }

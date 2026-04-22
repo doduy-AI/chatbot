@@ -10,6 +10,7 @@ class Settings(BaseSettings):
         QDRANT_HOST : str = "QDRANT_HOST"   
         QDRANT_PORT : int = "QDRANT_PORT"
         MODEL_QDRANT : str = "MODEL_QDRANT"
+        PASS_REDIS : str = "PASS_REDIS",
         OCR1 : str = "OCR1"
         OCR2 : str = "OCR2"
         OCR3 : str = "OCR3"

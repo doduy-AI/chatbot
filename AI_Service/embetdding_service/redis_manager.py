@@ -7,6 +7,7 @@ class RedisManager:
         self.client = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT,
+            password=settings.PASS_REDIS,
             decode_responses=True
         )
         print(settings.REDIS_HOST)

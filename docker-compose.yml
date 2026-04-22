@@ -19,7 +19,12 @@ services:
       - "6378:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --bind 0.0.0.0 --protected-mode no
+    command: >
+      redis-server 
+      --appendonly yes 
+      --bind 0.0.0.0 
+      --protected-mode yes 
+      --requirepass "359E5eNLhR9c5WdxVk0w6Lu4cBWGGn0c"
 
   qdrant:
     image: qdrant/qdrant:latest
