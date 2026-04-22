@@ -4,12 +4,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 class Settings(BaseSettings):
     MODEL_NAME : str = "MODEL_NAME" ,
     TOKEN_HF : str = "TOKEN_HF",
-    REDIS_HOST: str = "REDIS_HOST"
-    REDIS_PORT: int = "REDIS_PORT" 
-    EXTERNAL_HOST: str = "EXTERNAL_HOST" 
-    QUEUE_MAXSIZE: int = "QUEUE_MAXSIZE" 
-    STREAM_GET_TIMEOUT: float = "STREAM_GET_TIMEOUT" 
-    QUEUE_PUT_TIMEOUT : float = "QUEUE_PUT_TIMEOUT"
+    REDIS_HOST: str = "REDIS_HOST",
+    REDIS_PORT: int = "REDIS_PORT" ,
+    EXTERNAL_HOST: str = "EXTERNAL_HOST" ,
+    QUEUE_MAXSIZE: int = "QUEUE_MAXSIZE" ,
+    STREAM_GET_TIMEOUT: float = "STREAM_GET_TIMEOUT" ,
+    QUEUE_PUT_TIMEOUT : float = "QUEUE_PUT_TIMEOUT",
+    PASS_REDIS : str = "PASS_REDIS",
     PORT : int = "PORT"
     
     model_config = SettingsConfigDict(
