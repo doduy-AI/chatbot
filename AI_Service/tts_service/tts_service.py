@@ -130,5 +130,5 @@ def generate_tts_stream(text: str, voice: str , audio_format: str) -> Generator[
             
         if use_mp3:
             final_bytes = encoder.flush()
-            if final_bytes:
+            if final_bytes and not final_bytes.startswith(b'LAME'):
                 yield final_bytes
