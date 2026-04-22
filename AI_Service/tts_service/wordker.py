@@ -119,6 +119,8 @@ async def redis_listener():
             audio_buffers[task_id] = q
             voice_url = f"{EXTERNAL_HOST}/stream-voice/{task_id}?audio_format={audio_format}"
             print(voice_url)
+            print("bắt đàu đợi")
+            time.sleep(5)
             # Gửi thông báo cho client
             print(f"[PUBLISH] Gửi URL lúc: {time.time():.3f}")
 
