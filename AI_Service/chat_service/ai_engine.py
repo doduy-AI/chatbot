@@ -29,7 +29,7 @@ class AIEngine:
             google_api_key = settings.API_LLM
         )
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "{system_prompt}"),              # động theo group
+            ("system", "{system_prompt}"),
             MessagesPlaceholder(variable_name="history"),
             ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
             ("human", "{input}"),

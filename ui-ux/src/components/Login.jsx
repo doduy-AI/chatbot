@@ -38,23 +38,23 @@ const Login = () => {
     return (
         <div className="min-h-screen bg-[#212121] flex justify-center items-center px-5 py-14">
             <div className="w-full max-w-[360px]">
-                <img src="/public/logo.webp" />
+                <img src="/logo.webp" />
 
                 <div className="mt-10">
-                    <label className="mb-3 block text-[16px] font-medium text-[#5f5f5f]">
-                        Email
+                    <label className="mb-3 block text-[16px] font-medium text-[#FFFFFF]">
+                        Username
                     </label>
                     <input
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
-                        type="email"
-                        defaultValue="balamia@gmail.com"
+                        type="text"
+                        defaultValue="chiko"
                         className="h-[58px] w-full rounded-[12px] border-2 border-[#b9d9ff] bg-white px-4 text-[16px] text-[#5a5a5a] outline-none"
                     />
                 </div>
 
                 <div className="mt-7">
-                    <label className="mb-3 block text-[16px] font-medium text-[#5f5f5f]">
+                    <label className="mb-3 block text-[16px] font-medium text-[#FFFFFF]">
                         Password
                     </label>
 
