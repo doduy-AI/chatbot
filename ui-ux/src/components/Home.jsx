@@ -2,6 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { SquarePen, Plus } from "lucide-react";
 
 const Home = () => {
+    const [message, setMessage] = useState("");
+    const [chatStarted, setChatStarted] = useState(false);
+    const [messages, setMessages] = useState([]);
+    const messagesEndRef = useRef(null);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
     const handleKeyDown = (e) => {
         if (e.nativeEvent.isComposing) return;
 
@@ -10,9 +19,7 @@ const Home = () => {
             handleSend();
         }
     };
-    const [message, setMessage] = useState("");
-    const [chatStarted, setChatStarted] = useState(false);
-    const [messages, setMessages] = useState([]);
+
     const handleSend = async () => {
         if (!message.trim()) return;
 
@@ -38,7 +45,6 @@ const Home = () => {
             });
 
             const result = await res.json();
-            console.log(result);
 
             if (!res.ok || !result.success) {
                 console.error("API lỗi:", result.message, result.error);
@@ -79,24 +85,19 @@ const Home = () => {
                 </div>
             </aside>
 
-            <main
-                className="
-                    relative flex-1 overflow-y-auto
-                    [&::-webkit-scrollbar]:w-1.25
-                    [&::-webkit-scrollbar-track]:bg-transparent
-                    [&::-webkit-scrollbar-thumb]:rounded-full
-                    [&::-webkit-scrollbar-thumb]:bg-white/20
-                    hover:[&::-webkit-scrollbar-thumb]:bg-white/30
-                "
-            >
+            <main className="relative flex flex-1 flex-col overflow-hidden">
                 {!chatStarted && (
-                    <h1 className="pointer-events-none absolute left-1/2 top-[22%] -translate-x-1/2 text-center text-5xl font-semibold tracking-tight transition-all duration-500">
+                    <h1 className="pointer-events-none absolute left-1/2 top-[22%] z-0 -translate-x-1/2 text-center text-5xl font-semibold tracking-tight transition-all duration-500">
                         Hôm nay bạn muốn hỏi gì?
                     </h1>
                 )}
 
-                {chatStarted && (
-                    <div className="mx-auto w-full max-w-3xl px-4 pb-44 pt-8">
+                <div
+                    className={`flex-1 overflow-y-auto ${
+                        chatStarted ? "pt-8" : "pt-0"
+                    } pb-44`}
+                >
+                    <div className="mx-auto w-full max-w-3xl px-4">
                         <div className="space-y-6">
                             {messages.map((msg, index) => (
                                 <div
@@ -118,24 +119,16 @@ const Home = () => {
                                     </div>
                                 </div>
                             ))}
+                            <div ref={messagesEndRef} />
                         </div>
                     </div>
-                )}
+                </div>
 
                 <div
-                    className={`${
-                        !chatStarted
-                            ? "absolute left-1/2 w-full max-w-3xl -translate-x-1/2 px-6 transition-all duration-700 top-1/2 -translate-y-1/2"
-                            : "mx-auto w-full max-w-3xl px-6"
+                    className={`absolute left-1/2 z-20 w-full max-w-3xl -translate-x-1/2 px-6 transition-all duration-700 ease-in-out ${
+                        chatStarted ? "bottom-4" : "top-1/2 -translate-y-1/2"
                     }`}
                 >
-                {/* <div
-                    className={`absolute left-1/2 w-full max-w-3xl -translate-x-1/2 px-6 transition-all duration-700 ease-in-out ${
-                        chatStarted
-                            ? "flex z-50 right-6 "
-                            : "top-1/2 -translate-y-1/2"
-                    }`}
-                > */}
                     <div className="mx-auto w-full max-w-3xl">
                         <div className="rounded-[28px] border border-white/10 bg-[#2f2f2f] px-5 py-4 shadow-2xl">
                             <textarea
@@ -153,7 +146,7 @@ const Home = () => {
                                         type="button"
                                         className="rounded-full p-2 text-white/80 transition hover:bg-white/10"
                                     >
-                                        <Plus size={0} />
+                                        <Plus size={18} />
                                     </button>
                                 </div>
 
