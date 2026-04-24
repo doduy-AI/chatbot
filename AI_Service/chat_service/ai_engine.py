@@ -32,6 +32,7 @@ class AIEngine:
             ("system", "{system_prompt}"),
             MessagesPlaceholder(variable_name="history"),
             ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
+            ("system", "{system_prompt}"),
             ("human", "{input}"),
         ])
         self.chain = RunnableWithMessageHistory(
@@ -119,8 +120,7 @@ class AIEngine:
         try:
             print("[generate_respone]",userId)
             context = self.get_context(userId,group_Id,text)
-            # print(context)
-            
+            print(self.chain.invoke)
             response = self.chain.invoke(
                 {
                     "input": text,
