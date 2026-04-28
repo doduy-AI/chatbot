@@ -5,14 +5,12 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_qdrant import QdrantVectorStore
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.messages import HumanMessage ,SystemMessage
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter , FieldCondition , MatchValue
 from sentence_transformers import SentenceTransformer
 from config.config import settings
 from datetime import datetime
+from langchain_community.memory import ConversationSummaryBufferMemory
 import logging
 
 
@@ -45,6 +43,7 @@ class AIEngine:
         self.embed_model = SentenceTransformer(settings.MODEL_QDRANT) 
         self.collection_name = "bytehome"
         self.chat_sessions = {}
+        self.summary_memories = {}
 
     def get_context(self, user_id, group_id,query_text):
         try:
@@ -74,6 +73,14 @@ class AIEngine:
             print(f"[Qdrant Error] {e}")
             return ""
         
+    def _get_summary_memory(self, session_id: str):
+        if session_id not in self.summary_memories:
+            self.summary_memories[session_id] = ConversationSummaryBufferMemory(
+                llm=self.model,
+                max_token_limit=500
+            )
+            return self.summary_memories[session_id]
+        
         
     def _get_history(self, session_id: str):
         if session_id not in self.chat_sessions:
@@ -83,8 +90,18 @@ class AIEngine:
         
 
         if len(history_obj.messages) > 6: 
-            history_obj.messages = history_obj.messages[-6:]
-            
+            overflow = history_obj.messages[-6:]
+            text = "\n".join([
+            f"{'User' if m.type == 'human' else 'AI'}: {m.content}"
+            for m in overflow
+        ])
+        new_summary = self.model.invoke(f"Tóm tắt ngắn gọn đoạn hội thoại này:\n{text}").content
+        
+        # Cộng dồn với summary cũ
+        old_summary = self.summary_memories.get(session_id, "")
+        self.summary_memories[session_id] = (old_summary + " " + new_summary).strip()
+        
+        history_obj.messages = history_obj.messages[-6:]
         return history_obj
     
     def clear_session(self, user_id: str):

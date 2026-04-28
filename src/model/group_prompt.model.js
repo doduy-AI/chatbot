@@ -2,7 +2,7 @@ const {DataTypes} = require('sequelize')
 const sequelize = require('../config/db')
 
 const prompt = sequelize.define('prompt',{
-     id:{
+    id:{
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
