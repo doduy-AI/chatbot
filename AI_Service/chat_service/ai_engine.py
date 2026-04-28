@@ -120,7 +120,7 @@ class AIEngine:
         try:
             print("[generate_respone]",userId)
             context = self.get_context(userId,group_Id,text)
-            print(self.chain.invoke)
+            # print(self.chain.invoke)
             response = self.chain.invoke(
                 {
                     "input": text,
