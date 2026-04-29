@@ -3,7 +3,7 @@ import requests
 class Login:
     def __init__(self):
 
-        self.LOCAL="118.70.187.211"
+        self.LOCAL="localhost"
         self.PORT="4000"
         self.LOGIN_URL=f"http://{self.LOCAL}:{self.PORT}/auth/login"
 
@@ -17,7 +17,6 @@ class Login:
             res = requests.post(self.LOGIN_URL,json=data_payload)
             if res.status_code == 200 :
                 WS_URL = f"ws://{self.LOCAL}:{self.PORT}?token={res.json().get('token')}"
-                # print(WS_URL)
                 return WS_URL
             else:
                 print("[LOGIN] Đăng Nhập Thất bại")

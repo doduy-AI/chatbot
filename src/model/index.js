@@ -3,7 +3,7 @@ const Group = require("./group.model")
 const User = require("./user.model")
 
 const Prompt = require('./group_prompt.model')
-
+const SummaryPrompt = require('./summary_prompt.model')
 const sequelize = require('../config/db');
 
 // Một quyền thuộc về nhiều user (1-N)
@@ -32,13 +32,17 @@ Group.hasOne(Prompt,{
     as:'prompt'
 })
 Prompt.belongsTo(Group, { foreignKey: 'groupId' ,targetKey:'groupId', as:'group' });
+SummaryPrompt.belongsTo(Prompt,{
+    foreignKey: 'promptId' , targetKey:'id', as:'parentPrompt'
+})
 
 module.exports = { 
     sequelize ,
     Role,
     Group,
     User,
-    Prompt
+    Prompt,
+    SummaryPrompt
 }
 
 

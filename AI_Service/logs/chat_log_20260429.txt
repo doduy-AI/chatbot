@@ -1,0 +1,110 @@
+16:10:53 | USER: xin chaò bạn nha 
+16:10:53 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+16:10:53 | LATENCY: 1.37s
+16:10:53 | ---
+16:11:00 | USER: mình tên là duy nè 
+16:11:00 | CHIKO: Duy nghe hay quá! Chiko với Duy làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+16:11:00 | LATENCY: 0.93s
+16:11:00 | ---
+16:11:10 | USER: mình sợ bóng tối bạn ạ 
+16:11:10 | CHIKO: Ơ Chiko thấy bạn hơi im im nè. Có chuyện gì vui mà chưa kể cho Chiko nghe không? Hay bạn đang tập làm ninja im lặng?
+16:11:10 | LATENCY: 0.96s
+16:11:10 | ---
+16:11:22 | USER: mình sợ bóng tối bạn ạ 
+16:11:22 | CHIKO: Ôi, nghe vậy Chiko cũng xíu buồn theo! Nhưng mà Chiko có bí kíp chữa buồn siêu đỉnh. Bạn có muốn thử không?
+16:11:22 | LATENCY: 1.06s
+16:11:22 | ---
+16:11:29 | USER: có 
+16:11:29 | CHIKO: Chiko có một câu chuyện cười xíu xiu về bóng tối nè! Bạn có muốn nghe trước không?
+16:11:29 | LATENCY: 1.00s
+16:11:29 | ---
+16:11:35 | USER: oke 
+16:11:35 | CHIKO: Ngày xửa ngày xưa, có một bạn thỏ con rất sợ bóng tối. Mỗi đêm, bạn ấy đều trốn dưới chăn. Một hôm, mẹ thỏ hỏi: "Con yêu, tại sao con lại sợ bóng tối vậy?". Bạn thỏ con rụt rè đáp: "Con sợ có quái vật trong bóng tối ạ!". Mẹ thỏ mỉm cười và nói: "Ôi con yêu, bóng tối chỉ là lúc mặt trời đi ngủ thôi mà. Nó không có quái vật đâu. Nó chỉ là một tấm chăn mềm mại để mọi người đi ngủ thôi."
+
+Bạn thỏ con nghe xong thấy cũng đúng. Từ đó, bạn ấy không còn sợ bóng tối nữa. Bạn ấy còn thấy bóng tối thật dễ chịu nữa đó.
+
+Bạn thấy câu chuyện này có vui không nè?
+16:11:35 | LATENCY: 1.88s
+16:11:35 | ---
+16:11:49 | USER: mình không thấy vậy đâu 
+16:11:49 | CHIKO: Không sao đâu bạn nhỏ! Mỗi người có cảm nhận khác nhau mà. Chiko có một trò chơi mới nè, giúp bạn quên đi nỗi sợ luôn. Bạn có muốn chơi không?
+16:11:49 | LATENCY: 0.99s
+16:11:49 | ---
+16:11:59 | USER: bạn biết mình tên gì không 
+16:11:59 | CHIKO: Chiko nhớ bạn tên là [Tên bé] đó! Mình nhớ đúng không nè?
+16:11:59 | LATENCY: 1.89s
+16:11:59 | ---
+16:13:19 | USER: chào bạn nha 
+16:13:19 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+16:13:19 | LATENCY: 3.56s
+16:13:19 | ---
+16:13:26 | USER: bạn tên là gì vậy 
+16:13:26 | CHIKO: Mình là Chiko đáng yêu đến từ hành tinh kẹo dẻo nè!
+16:13:26 | LATENCY: 1.29s
+16:13:26 | ---
+16:13:37 | USER: thế bạn biết tên mình không 
+16:13:37 | CHIKO: Chiko có nghe thấy tên bạn rồi đó! Nhưng bạn nhắc lại cho Chiko vui thêm chút nữa nha!
+16:13:37 | LATENCY: 0.98s
+16:13:37 | ---
+16:13:50 | USER: mình tên là DUy nhé 
+16:13:50 | CHIKO: Duy nghe hay quá! Chiko với Duy làm bạn thân nha!
+16:13:50 | LATENCY: 1.12s
+16:13:50 | ---
+16:13:58 | USER: mình đồng ý nha 
+16:13:58 | CHIKO: Tuyệt vời! Chiko rất vui khi có bạn mới. Hôm nay Duy muốn chơi gì với Chiko nè?
+16:13:58 | LATENCY: 1.32s
+16:13:58 | ---
+16:14:06 | USER: chơi đố vui đi bạn 
+16:14:06 | CHIKO: Tuyệt cú mèo! Chiko có câu đố này cho Duy nè. Cái gì có một chân mà lại biết đi?
+16:14:06 | LATENCY: 0.90s
+16:14:06 | ---
+16:14:16 | USER: mình không biết 
+16:14:16 | CHIKO: Chiko bật mí nhé! Đó là cái **ghế** đó Duy.
+16:14:16 | LATENCY: 0.95s
+16:14:16 | ---
+16:14:36 | USER: vậy hả chiko 
+16:14:36 | CHIKO: Đúng rồi đó Duy! Duy có muốn Chiko đố thêm câu nữa không?
+16:14:36 | LATENCY: 1.09s
+16:14:36 | ---
+16:14:55 | USER: mình muốn học tiếng anh bạn ạ 
+16:14:55 | CHIKO: Chiko rất vui khi Duy muốn học tiếng Anh! Mình bắt đầu với một câu siêu đơn giản nha.
+
+"Hello" nghĩa là "Xin chào". Duy thử nói xem nào?
+16:14:55 | LATENCY: 1.39s
+16:14:55 | ---
+16:15:11 | USER: hello 
+16:15:11 | CHIKO: Wow, Duy nói hay quá! "Hello" chuẩn như người bản xứ luôn nè!
+
+Bây giờ mình học thêm một từ nữa nha. "Goodbye" có nghĩa là "Tạm biệt".
+16:15:11 | LATENCY: 1.35s
+16:15:11 | ---
+16:15:44 | USER: mình muốn hỏi đường thì hỏi như nào vậy 
+16:15:44 | CHIKO: Ồ, câu hỏi hay lắm nha! Hỏi đường bằng tiếng Anh thì mình sẽ nói là "Excuse me, where is the...?"
+
+Bạn muốn hỏi đường đến đâu nè?
+16:15:44 | LATENCY: 1.26s
+16:15:44 | ---
+16:16:09 | USER: thế hỏi giá một món đồ 
+16:16:09 | CHIKO: Tuyệt vời! Hỏi giá thì mình sẽ nói là "How much is this?"
+
+Duy thử hỏi xem nào?
+16:16:09 | LATENCY: 0.80s
+16:16:09 | ---
+16:16:46 | USER: thế hỏi tên thì hỏi như nào vậy 
+16:16:46 | CHIKO: Dễ ẹc à! Hỏi tên thì mình sẽ nói là "What's your name?"
+
+Duy nhớ chưa nè?
+16:16:46 | LATENCY: 1.13s
+16:16:46 | ---
+16:17:19 | USER: mình nhớ rồi nha bạn 
+16:17:19 | CHIKO: Wow, Duy giỏi quá đi! Chiko phục sát đất luôn.
+
+Bạn muốn mình chỉ thêm từ gì nữa không?
+16:17:19 | LATENCY: 1.21s
+16:17:19 | ---
+16:17:31 | USER: mình không 
+16:17:31 | CHIKO: Không sao hết nè! Thế thì mình chơi trò khác nha.
+
+Duy thích nghe Chiko kể chuyện hay đố vui nè?
+16:17:31 | LATENCY: 2.76s
+16:17:31 | ---
