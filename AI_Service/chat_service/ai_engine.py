@@ -9,10 +9,10 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Filter , FieldCondition , MatchValue
 from sentence_transformers import SentenceTransformer
 from config.config import settings
+import threading
 from datetime import datetime
-from langchain_community.memory import ConversationSummaryBufferMemory
 import logging
-
+from chat_service.redis_manager import redis_manager
 
 
 class AIEngine:
@@ -28,6 +28,7 @@ class AIEngine:
         )
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),
+             ("system", "TÓM TẮT TRƯỚC ĐÓ:\n{summary}"),
             MessagesPlaceholder(variable_name="history"),
             ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
             ("system", "{system_prompt}"),
@@ -44,6 +45,8 @@ class AIEngine:
         self.collection_name = "bytehome"
         self.chat_sessions = {}
         self.summary_memories = {}
+        self._user_group_map = {} 
+
 
     def get_context(self, user_id, group_id,query_text):
         try:
@@ -73,37 +76,46 @@ class AIEngine:
             print(f"[Qdrant Error] {e}")
             return ""
         
-    def _get_summary_memory(self, session_id: str):
-        if session_id not in self.summary_memories:
-            self.summary_memories[session_id] = ConversationSummaryBufferMemory(
-                llm=self.model,
-                max_token_limit=500
-            )
-            return self.summary_memories[session_id]
-        
-        
+
+    def _summarize(self,session_id: str , messages: str):
+        text = "\n".join([
+            f"{'User' if m.type == 'human' else 'AI'}: {m.content}"
+            for m in messages
+        ])
+        old_summary = self.summary_memories.get(session_id, "")
+    
+        result = self.model.invoke(
+            f"Tóm tắt cũ:\n{old_summary}\n\nHội thoại mới:\n{text}\n\nHãy gộp lại thành 1 tóm tắt ngắn gọn:"
+        )
+    
+        self.summary_memories[session_id] = result.content.strip()
+        print(f"[SUMMARY - {session_id}] {self.summary_memories[session_id]}")
+
+
     def _get_history(self, session_id: str):
         if session_id not in self.chat_sessions:
             self.chat_sessions[session_id] = InMemoryChatMessageHistory()
         
         history_obj = self.chat_sessions[session_id]
-        
 
-        if len(history_obj.messages) > 6: 
-            overflow = history_obj.messages[-6:]
-            text = "\n".join([
-            f"{'User' if m.type == 'human' else 'AI'}: {m.content}"
-            for m in overflow
-        ])
-        new_summary = self.model.invoke(f"Tóm tắt ngắn gọn đoạn hội thoại này:\n{text}").content
+        if len(history_obj.messages) > 6:
+            overflow = history_obj.messages[:-6]
+            history_obj.messages = history_obj.messages[-6:]
+            
+            # Tóm tắt chạy nền, không block
+            threading.Thread(
+                target=self._summarize,
+                args=(session_id, overflow),
+                daemon=True
+            ).start()
         
-        # Cộng dồn với summary cũ
-        old_summary = self.summary_memories.get(session_id, "")
-        self.summary_memories[session_id] = (old_summary + " " + new_summary).strip()
-        
-        history_obj.messages = history_obj.messages[-6:]
+        self._user_group_map.pop(session_id, None)
         return history_obj
     
+
+
+
+        
     def clear_session(self, user_id: str):
         try:
             if user_id in self.chat_sessions:
@@ -135,14 +147,19 @@ class AIEngine:
     
     def generate_respone(self, text:str ,prompt: str , userId: str ,group_Id:str ):
         try:
+            self._user_group_map[userId] = group_Id
+
             print("[generate_respone]",userId)
+            summary = ""
+            summary = self.summary_memories.get(userId, "")
+            print(summary)
             context = self.get_context(userId,group_Id,text)
-            # print(self.chain.invoke)
             response = self.chain.invoke(
                 {
                     "input": text,
                     "context":context,
-                    "system_prompt":prompt
+                    "system_prompt":prompt,
+                    "summary": summary 
                 },
                 config={"configurable": {"session_id": userId}}
 
