@@ -2,6 +2,7 @@ const redisService = require('../services/redisService');
 const User = require('../model/user.model')
 const Prompt = require('../model/group_prompt.model')
 const { handleRobotClient } = require('../services/sonioxHandler.Service');
+const SummaryRepo = require('../repositories/summaryPrompt.repository')
 const handleChatSocket = (wss) => {
     redisService.listenForResponses((userId, data) => {
         wss.clients.forEach((client) => {
@@ -23,11 +24,15 @@ const handleChatSocket = (wss) => {
         }
         })
         const groupId = userGroup.groupId
+
         if (!user || !user.id) {
             console.log("Kết nối bị từ chối: Không có thông tin User");
             ws.close();
             return;
         }
+
+        const summary_prompt_id = await SummaryRepo.findSummaryByGroupId(groupId)
+        console.log(summary_prompt_id)
 
         ws.user = user;
         const cacheKey = `group:${groupId}:content`;

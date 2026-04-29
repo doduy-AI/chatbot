@@ -33,7 +33,7 @@ Group.hasOne(Prompt,{
 })
 Prompt.belongsTo(Group, { foreignKey: 'groupId' ,targetKey:'groupId', as:'group' });
 SummaryPrompt.belongsTo(Prompt,{
-    foreignKey: 'promptId' , targetKey:'id', as:'SummaryPrompt'
+    foreignKey: 'promptId' , targetKey:'id', as:'parentPrompt'
 })
 
 module.exports = { 
