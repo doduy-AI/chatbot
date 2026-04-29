@@ -1,8 +1,8 @@
 const redisService = require('../services/redisService');
 const User = require('../model/user.model')
 const Prompt = require('../model/group_prompt.model')
+const SummaryPrompts = require('../model/summary_prompt.model')
 const { handleRobotClient } = require('../services/sonioxHandler.Service');
-const SummaryRepo = require('../repositories/summaryPrompt.repository')
 const handleChatSocket = (wss) => {
     redisService.listenForResponses((userId, data) => {
         wss.clients.forEach((client) => {
@@ -30,28 +30,35 @@ const handleChatSocket = (wss) => {
             ws.close();
             return;
         }
-
-        const summary_prompt_id = await SummaryRepo.findSummaryByGroupId(groupId)
-        console.log(summary_prompt_id)
-
         ws.user = user;
         const cacheKey = `group:${groupId}:content`;
+        const cacheKeySummary = `summary:${groupId}:summary`;
 
         let content = await redisService.getCache(cacheKey)
+        let summary = await redisService.getCache(cacheKeySummary);
 
-        if (!content) {
-         console.log(`[Cache HIT] group ${groupId}`);
+        if (!content || !summary ) {
+            console.log(`[Cache MISS] group ${groupId} → Đang lấy dữ liệu từ DB...`);
 
             const promptGroup = await Prompt.findOne({
-            where:{
-                groupId:groupId
+                where:{
+                    groupId:groupId
+                }
+            })
+            if (promptGroup) {
+                content = promptGroup.content 
+                await redisService.setCache(cacheKey, content, 3600);
+                const summaryData = await SummaryPrompts.findOne({ where: { promptId: promptGroup.id } });
+                if (summaryData) {
+                    summary = summaryData.summary_prompt;
+                    await redisService.setCache(cacheKeySummary, summary, 3600);
+                    console.log(`[Cache MISS] group ${groupId} → đã lưu cache ${cacheKeySummary}`);
+                }
             }
-        })
-        
-        content = promptGroup.content 
-        await redisService.setCache(cacheKey, content, 3600);
-        console.log(`[Cache MISS] group ${groupId} → đã lưu cache`);
-        }
+            console.log(`[Cache MISS] group ${groupId} → đã lưu cache`);
+
+            }
+            
 
         console.log(`[Socket] ${user.username} đã kết nối .`);
         if (userGroup.clientType === 'robot') {
