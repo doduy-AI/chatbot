@@ -38,9 +38,4 @@ const uploadfile = async (req,res)=>{
   }
 
 }
-
-
-
-
-
 module.exports = {uploadfile}
