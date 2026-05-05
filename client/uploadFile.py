@@ -4,7 +4,7 @@ import requests
 # --- CẤU HÌNH ---
 API_URL = 'http://localhost:4000/api/admin/rag/uploadfile'
 TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjcxMWRkYTNmLTYyNGMtNDVkMi04NTNkLTgxM2E3N2U1ZmMzNSIsInVzZXJuYW1lIjoiYnl0ZWhvbWUiLCJpYXQiOjE3Nzc4NjY5OTIsImV4cCI6MTc4MDQ1ODk5Mn0.zXkxR_YaHoX8VtfF6pQkg6t0XIoekwSJGuqNdclVe9I' 
-TARGET_DIR = '/home/doduy/Downloads/data_new1/a'  
+TARGET_DIR = '/home/doduy/Downloads/audio_test/File 1'  
 GROUP_ID = 'd5a3ee64-3ec3-4624-a5b3-1597b957b060' 
 
 def get_all_files_recursive(directory):

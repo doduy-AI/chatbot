@@ -7,7 +7,7 @@ from config.config import settings
 client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
 model = SentenceTransformer(settings.MODEL_QDRANT)
 
-COLLECTION_NAME = "bytehome"
+COLLECTION_NAME = "bytehome1"
 
 def init_storage():
     if not client.collection_exists(COLLECTION_NAME):
