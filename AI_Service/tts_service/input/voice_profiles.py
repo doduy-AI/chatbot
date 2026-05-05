@@ -37,7 +37,7 @@ def get_voice_path(filename: str) -> str:
 VOICE_PROFILE = {
     "nutrem":{
         "ref_audio": get_voice_path("nutrem.wav"),
-        "ref_text":"Xin chào, tôi là robot Chiko, mình sẽ là người bạn đồng hành cùng bạn trong bất kỳ lúc nào bạn cần nhé, mình sẽ kể chuyện vui, giải đáp thắc mắc và dạy bạn nói tiếng anh để bạn có thể cái thiện tiếng anh từng ngày nha. Hello"
+        "ref_text":"Xin chào, mình là robot Chiko, mình sẽ là người bạn đồng hành cùng bạn trong bất kỳ lúc nào bạn cần nhé, mình sẽ kể chuyện vui, giải đáp thắc mắc và dạy bạn nói tiếng anh để bạn có thể cái thiện tiếng anh từng ngày nha. Hello"
     },
 
     "nuhanoi":{
