@@ -7,7 +7,7 @@ from config.config import settings
 client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
 model = SentenceTransformer(settings.MODEL_QDRANT)
 
-COLLECTION_NAME = "bytehome"
+COLLECTION_NAME = "bytehome1"
 
 def init_storage():
     if not client.collection_exists(COLLECTION_NAME):
@@ -52,7 +52,7 @@ def process_embedding_for_user(userid, group_id, base, chuck,path):
         # In ra một đoạn ngắn để debug cho đỡ rối màn hình
         print(f"✓ Đã nạp 1 chunk cho User: {userid} | Content: {chuck[:50]}...")
     except Exception as e:
-        print(f"❌ Lỗi khi đẩy lên Qdrant: {e}")
+        print(f" Lỗi khi đẩy lên Qdrant: {e}")
 
 
     
