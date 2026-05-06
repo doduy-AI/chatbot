@@ -85,7 +85,19 @@ class AIEngine:
         old_summary = self.summary_memories.get(session_id, "")
     
         result = self.model.invoke(
-            f"Tóm tắt cũ:\n{old_summary}\n\nHội thoại mới:\n{text}\n\nHãy gộp lại thành 1 tóm tắt ngắn gọn:"
+            f"""
+            Nhiệm vụ: Cập nhật bộ nhớ dài hạn cho Robot Chiko.            
+            BỘ NHỚ CŨ:
+            {old_summary if old_summary else "Chưa có thông tin."}            
+            HỘI THOẠI MỚI VỪA DIỄN RA:
+            {text}            
+            YÊU CẦU NGHIÊM NGẶT:
+            1. Tuyệt đối KHÔNG ĐƯỢC LÀM MẤT các thông tin định danh: Tên người dùng, tuổi, sở thích đặc biệt.
+            2. Nếu trong 'Hội thoại mới' người dùng tiết lộ thêm thông tin cá nhân, hãy cập nhật vào bản tóm tắt.
+            3. Giữ bản tóm tắt dưới dạng các ý chính quan trọng.
+            4. Trả về kết quả là bản tóm tắt mới hoàn chỉnh, không bao gồm lời dẫn của AI.           
+            BẢN TÓM TẮT MỚI:
+            """
         )
     
         self.summary_memories[session_id] = result.content.strip()
