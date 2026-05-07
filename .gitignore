@@ -45,9 +45,6 @@ __pycache__/
 **/models/**
 
 **/__pycache__/**
-
-**/model/**
-
 tts_test_output/
 
 
