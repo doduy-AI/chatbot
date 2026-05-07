@@ -12,6 +12,9 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         num_channels: 1,
         language_hints: ['vi', 'en'],
         enable_endpoint_detection: true,
+        endpoint_detection_config: {
+            max_endpoint_delay_ms: 1500,
+        },
     });
 
     const utteranceBuffer = new RealtimeUtteranceBuffer({ final_only: true });
