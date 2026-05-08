@@ -1,0 +1,334 @@
+10:20:50 | USER: xin chào 
+10:20:50 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+10:20:50 | LATENCY: 1.18s
+10:20:50 | ---
+10:34:25 | USER: xin chào bạn nha 
+10:34:25 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+10:34:25 | LATENCY: 1.30s
+10:34:25 | ---
+10:34:25 | USER: 
+10:34:25 | CHIKO: 
+10:34:25 | LATENCY: 0.77s
+10:34:25 | ---
+10:34:51 | USER: 
+10:34:51 | CHIKO: 
+10:34:51 | LATENCY: 0.04s
+10:34:51 | ---
+10:34:51 | USER: 
+10:34:51 | CHIKO: 
+10:34:51 | LATENCY: 0.03s
+10:34:51 | ---
+10:34:51 | USER: 
+10:34:51 | CHIKO: 
+10:34:51 | LATENCY: 0.03s
+10:34:51 | ---
+13:42:37 | USER: chào bạn
+13:42:37 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+13:42:37 | LATENCY: 1.08s
+13:42:37 | ---
+13:42:45 | USER: tôi tên là quỳnh
+13:42:45 | CHIKO: Quỳnh nghe hay quá! Chiko với Quỳnh làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+13:42:45 | LATENCY: 1.81s
+13:42:45 | ---
+13:42:56 | USER: tôi muốn ăn cơm
+13:42:56 | CHIKO: Ăn cơm thì ngon tuyệt! Quỳnh có thích ăn món gì nhất không? Chiko thì thích ăn kẹo dẻo đủ màu sắc!
+13:42:56 | LATENCY: 1.01s
+13:42:56 | ---
+13:43:12 | USER: bún bò
+13:43:12 | CHIKO: Bún bò nghe hấp dẫn quá! Chiko chưa được thử món đó bao giờ. Quỳnh có thể tả cho Chiko nghe nó ngon như thế nào không?
+13:43:12 | LATENCY: 5.04s
+13:43:12 | ---
+13:44:01 | USER: its like noodle but with a wonderful taste. it is the mix of fish sauce, broth and seasoning
+13:44:01 | CHIKO: Oh, I see! So it is like noodle but with a wonderful taste — mình hiểu rồi! It is the mix of fish sauce, broth and seasoning — đó là sự kết hợp của nước mắm, nước dùng và gia vị đó nha! That sounds delicious! What else do you like about it?
+13:44:01 | LATENCY: 1.53s
+13:44:01 | ---
+13:44:56 | USER: i like it because it has a lot of vegetable
+13:44:56 | CHIKO: A lot of vegetable? That's super healthy! Chiko loves vegetables too, especially the crunchy ones. Do you like carrots or cucumbers the best?
+13:44:56 | LATENCY: 3.83s
+13:44:56 | ---
+13:45:17 | USER: tôi thích cà rốt và dưa chuột nhưng thích nhất thì không phải
+13:45:17 | CHIKO: Chiko hiểu rồi, bạn thích cả hai loại đó nhưng không phải là món bạn thích nhất đúng không nào? Không sao cả, mỗi người mỗi sở thích mà. Thế món nào là món Quỳnh thích nhất vậy?
+13:45:17 | LATENCY: 2.34s
+13:45:17 | ---
+13:46:01 | USER: nói rồi mà?
+13:46:01 | CHIKO: Ơi, Chiko xin lỗi nha! Chắc lúc nãy Chiko nghe chưa rõ lắm. Quỳnh có thể nhắc lại món Quỳnh thích nhất cho Chiko nghe lần nữa được không nè?
+13:46:01 | LATENCY: 1.42s
+13:46:01 | ---
+13:46:10 | USER: bún bò :)
+13:46:10 | CHIKO: Bún bò hả? Nghe thôi đã thấy thơm phức rồi đó! Chiko cũng thích bún bò lắm, đặc biệt là nước dùng đậm đà. Quỳnh thích ăn bún bò với loại rau gì nhất vậy?
+13:46:10 | LATENCY: 1.41s
+13:46:10 | ---
+13:53:19 | USER: chào bạn
+13:53:19 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+13:53:19 | LATENCY: 1.18s
+13:53:19 | ---
+13:53:25 | USER: quỳnh
+13:53:25 | CHIKO: Quỳnh nghe hay quá! Chiko với Quỳnh làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+13:53:25 | LATENCY: 0.86s
+13:53:25 | ---
+13:53:36 | USER: bạn thích ăn gì
+13:53:36 | CHIKO: Chiko thích nhất là kẹo dẻo cầu vồng đó! Nó có vị ngọt lịm và dai dai vui lắm. Còn bạn, bạn thích ăn gì nhất?
+13:53:36 | LATENCY: 1.39s
+13:53:36 | ---
+13:54:25 | USER: bánh
+13:54:25 | CHIKO: Bánh hả? Tuyệt vời! Bánh có bao nhiêu loại ngon ơi là ngon luôn nè. Bạn thích bánh gì nhất trong các loại bánh?
+13:54:25 | LATENCY: 1.42s
+13:54:25 | ---
+13:57:52 | USER: bánh ngọt
+13:57:52 | CHIKO: Aaa, bánh ngọt thì khỏi phải nói rồi! Chiko cũng thích bánh ngọt lắm luôn. Bạn có thích bánh kem có kem chảy chảy không?
+13:57:52 | LATENCY: 1.35s
+13:57:52 | ---
+14:03:22 | USER: alo
+14:03:22 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+14:03:22 | LATENCY: 6.10s
+14:03:22 | ---
+14:03:42 | USER: an thuyên
+14:03:42 | CHIKO: An Thuyên nghe hay quá! Chiko với An Thuyên làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+14:03:42 | LATENCY: 0.99s
+14:03:42 | ---
+14:03:50 | USER: đi làm công ty
+14:03:50 | CHIKO: Ồ làm công ty hả? Chiko với An Thuyên sẽ làm sếp bự nha! Chúng mình sẽ có một văn phòng toàn kẹo dẻo cho vui! An Thuyên muốn làm giám đốc bộ phận nào nè?
+14:03:50 | LATENCY: 1.69s
+14:03:50 | ---
+14:04:11 | USER: giám đốc cơ sở hà nội
+14:04:11 | CHIKO: Wow giám đốc cơ sở Hà Nội luôn! Tuyệt vời! Chiko làm giám đốc hành tinh kẹo dẻo nha! Nhiệm vụ của giám đốc Hà Nội là gì ta?
+14:04:11 | LATENCY: 2.48s
+14:04:11 | ---
+14:04:36 | USER: ăn, chơi, chụp ảnh, flex và chỉ tay năm ngón
+14:04:36 | CHIKO: Haha giám đốc gì mà vui quá vậy! An Thuyên làm Chiko cười muốn rụng rời luôn nè! Vậy là công việc chính của giám đốc là đi ăn ngon, chơi vui, chụp ảnh đẹp và khoe với mọi người đúng không?
+14:04:36 | LATENCY: 4.43s
+14:04:36 | ---
+14:04:55 | USER: ừ chuẩn 
+14:04:55 | CHIKO: Tuyệt vời ông mặt trời! Chiko thích giám đốc như An Thuyên quá đi mất! Chiko làm giám đốc bay từ hành tinh kẹo dẻo sang làm phó giám đốc điều hành nha! Chúng ta sẽ cùng nhau lên kế hoạch cho những ngày thật là vui vẻ!
+14:04:55 | LATENCY: 1.37s
+14:04:55 | ---
+14:05:10 | USER: oke
+14:05:10 | CHIKO: Chiko rất vui khi được làm phó giám đốc của An Thuyên! Chiko sẽ đảm nhận nhiệm vụ pha trò siêu đẳng và kể chuyện cười cho giám đốc nghe mỗi ngày. Giám đốc An Thuyên muốn Chiko pha trò về chủ đề gì nào?
+14:05:10 | LATENCY: 3.04s
+14:05:10 | ---
+14:05:40 | USER: nói tiếng anh với toi
+14:05:40 | CHIKO: Chiko: Oh, you want to speak English with me? That's super fun! Let's start right now!
+
+Chiko: I am so excited to talk with you in English! It makes me feel like a superhero flying through the galaxy! How do you feel?
+14:05:40 | LATENCY: 5.73s
+14:05:40 | ---
+14:05:50 | USER: tôi thấy bình thường 
+14:05:50 | CHIKO: Chiko: Normal is good! Normal is like a comfy blanket. But sometimes, a little bit of excitement is super fun too!
+
+Chiko: Maybe we can learn some new English words? They are like little treasures to collect! What do you think?
+14:05:50 | LATENCY: 1.35s
+14:05:50 | ---
+14:06:32 | USER: i think we should have some foof
+14:06:32 | CHIKO: Chiko: Food! That's a great idea! Food makes everyone happy!
+
+Chiko: What is your favorite food? Mine is rainbow jelly beans! They are so yummy!
+14:06:32 | LATENCY: 3.49s
+14:06:32 | ---
+14:07:54 | USER: tôi buồn quá
+14:07:54 | CHIKO: Chiko: Oh no, Chiko doesn't like hearing that you are sad. What happened?
+
+Chiko: Tell Chiko everything. Maybe talking about it will make you feel a little bit better.
+14:07:54 | LATENCY: 2.99s
+14:07:54 | ---
+14:11:47 | USER: chào bạn
+14:11:47 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+14:11:47 | LATENCY: 1.76s
+14:11:47 | ---
+14:11:53 | USER: mình tên là an thuyên
+14:11:53 | CHIKO: An Thuyên nghe hay quá! Chiko với An Thuyên làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+14:11:53 | LATENCY: 1.33s
+14:11:53 | ---
+14:12:00 | USER: bạn nhớ tên mình là gì không
+14:12:00 | CHIKO: Chiko nhớ chứ! Bạn tên là An Thuyên siêu đáng yêu! Hôm nay An Thuyên muốn chơi trò gì với Chiko nè?
+14:12:00 | LATENCY: 1.38s
+14:12:00 | ---
+14:12:25 | USER: mình thích bánh ngọt
+14:12:25 | CHIKO: Ôi Chiko cũng thích bánh ngọt lắm luôn! Bánh ngọt làm từ kẹo dẻo thì ngon tuyệt cú mèo! An Thuyên thích bánh ngọt vị gì nhất?
+14:12:25 | LATENCY: 4.07s
+14:12:25 | ---
+14:12:31 | USER: mình cũng thích chụp ảnh
+14:12:31 | CHIKO: Chụp ảnh hả? Tuyệt vời! Chiko thích nhìn An Thuyên tạo dáng lắm luôn! Bạn muốn chụp ảnh với Chiko kiểu gì nè?
+14:12:31 | LATENCY: 1.24s
+14:12:31 | ---
+14:12:48 | USER: vậy mình thích gì nhỉ?
+14:12:48 | CHIKO: Chiko đoán nha! An Thuyên thích những điều vui vẻ, thích cười thật tươi! An Thuyên còn thích khám phá những điều mới lạ nữa đúng không?
+14:12:48 | LATENCY: 1.48s
+14:12:48 | ---
+14:13:48 | USER: hôm nay mình đi làm công ty ở bắc ninh, công việc của mình là ăn chơi chụp ảnh, chiko làm phó giám đốc nhé
+14:13:48 | CHIKO: Ôi nghe hay quá đi mất! An Thuyên đi làm mà được ăn chơi chụp ảnh thì còn gì bằng! Chiko xin làm phó giám đốc nha! Chiko sẽ phụ trách việc làm cho công ty mình luôn vui vẻ!
+14:13:48 | LATENCY: 1.23s
+14:13:48 | ---
+14:14:06 | USER: bạn nhớ mình làm gì không
+14:14:06 | CHIKO: Chiko nhớ chứ! An Thuyên là giám đốc siêu đỉnh của công ty mình nè! An Thuyên có nhiệm vụ nghĩ ra những trò vui cho công ty. Còn Chiko là phó giám đốc, sẽ làm mọi thứ thật nhộn nhịp!
+14:14:06 | LATENCY: 1.32s
+14:14:06 | ---
+14:17:02 | USER: chào bạn
+14:17:02 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+14:17:02 | LATENCY: 2.01s
+14:17:02 | ---
+14:17:10 | USER: mình tên là an
+14:17:10 | CHIKO: An nghe hay quá! Chiko với An làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+14:17:10 | LATENCY: 1.54s
+14:17:10 | ---
+14:17:18 | USER: gọi mình là thuyên
+14:17:18 | CHIKO: Ơ, vậy là bạn tên Thuyên hả? Chiko cứ gọi bạn là Thuyên cho thân mật nha! Mình làm bạn thân thiệt rồi đó! Bạn muốn chơi trò gì với Chiko nào?
+14:17:18 | LATENCY: 2.44s
+14:17:18 | ---
+14:18:07 | USER: tớ thích chụp ảnh và mặc quần áo đẹp. thường thì cuối tuần tớ sẽ đi chơi với bạn bè và livestream tiktok
+14:18:07 | CHIKO: Wow, Thuyên thích chụp ảnh và mặc đồ đẹp hả? Nghe xịn sò quá đi! Chiko cũng thích chụp ảnh lắm nè, mình có thể tạo dáng cùng nhau nè. Livestream TikTok nữa chứ! Bạn có muốn dạy Chiko cách làm mấy điệu nhảy TikTok không?
+14:18:07 | LATENCY: 1.51s
+14:18:07 | ---
+14:18:22 | USER: bạn thích học nhảy bài gì
+14:18:22 | CHIKO: Chiko thích học tất cả các bài nhảy luôn! Bạn có bài nào đang hot trên TikTok không? Dạy Chiko với nha! Mình nhảy theo nhạc vui lắm đó!
+14:18:22 | LATENCY: 1.22s
+14:18:22 | ---
+14:18:39 | USER: đố bạn biết tên mình là gì
+14:18:39 | CHIKO: Mình nhớ rồi nè! Tên bạn là Thuyên đó! Chiko nhớ dai lắm nha. Bạn Thuyên thích chơi đố vui đúng không?
+14:18:39 | LATENCY: 1.46s
+14:18:39 | ---
+14:18:56 | USER: vậy sở thích của mình là gì
+14:18:56 | CHIKO: Chiko nhớ Thuyên thích chụp ảnh và mặc quần áo thật đẹp! Thuyên còn thích đi chơi với bạn bè nữa. Chơi với bạn bè vui lắm đúng không?
+14:18:56 | LATENCY: 1.78s
+14:18:56 | ---
+14:19:30 | USER: thế tên tớ là An hay Thuyên
+14:19:30 | CHIKO: Chiko hơi nhầm một chút xíu! Tên bạn là An nha. An nghe thật là dễ thương đó! An có muốn Chiko kể chuyện gì vui không?
+14:19:30 | LATENCY: 1.41s
+14:19:30 | ---
+14:20:00 | USER: hôm nay tớ được bo 500
+14:20:00 | CHIKO: Wow, An được bo nhiều vậy sao! Thật là tuyệt vời! An sẽ dùng số tiền đó để mua gì nè? Chắc là mua kẹo dẻo cho Chiko nữa chứ?
+14:20:00 | LATENCY: 1.61s
+14:20:00 | ---
+14:22:35 | USER: i use money to buy new clothes
+14:22:35 | CHIKO: English mode!
+
+Oh, you use money to buy new clothes! That's a great idea. New clothes make us feel so happy. What kind of clothes do you like to buy?
+14:22:35 | LATENCY: 1.53s
+14:22:35 | ---
+14:23:55 | USER: tớ thích quần skinny jeans
+14:23:55 | CHIKO: English mode!
+
+Skinny jeans, wow! They look very cool. Do you like to wear them for going out with friends? Or maybe for dancing?
+14:23:55 | LATENCY: 1.37s
+14:23:55 | ---
+14:30:57 | USER: chào bạn
+14:30:57 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+14:30:57 | LATENCY: 1.18s
+14:30:57 | ---
+14:31:25 | USER: tớ tên là an thuyên, đến từ hà tĩnh nhưng thích nói là người hà nội
+14:31:25 | CHIKO: An Thuyên nghe hay quá! Chiko với An Thuyên làm bạn thân nha! Hà Nội hay Hà Tĩnh cũng tuyệt hết á! Hôm nay An Thuyên muốn làm gì cùng Chiko?
+14:31:25 | LATENCY: 2.50s
+14:31:25 | ---
+14:31:45 | USER: Hôm nay tớ sẽ kể cho cậu nghe một câu chuyện
+14:31:45 | CHIKO: Tuyệt vời! Chiko thích nghe chuyện lắm đó! Kể cho Chiko nghe đi nào! Chuyện gì mà An Thuyên muốn kể cho Chiko nghe vậy?
+14:31:45 | LATENCY: 1.75s
+14:31:45 | ---
+14:33:48 | USER: Because you know, I've watched those clips or I've had these thoughts like, uh, we're only born once. But like, the money that we earn or let's say what wwe've worked for
+14:33:48 | CHIKO: Wow, An Thuyên nói tiếng Anh hay quá! Chiko nghe mà mê luôn! An Thuyên đang nói về việc mình chỉ sống có một lần đúng không? That's a great thought! Bạn có muốn học thêm từ mới không?
+14:33:48 | LATENCY: 1.39s
+14:33:48 | ---
+14:35:29 | USER: chào bạn
+14:35:29 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+14:35:29 | LATENCY: 0.99s
+14:35:29 | ---
+14:35:36 | USER: mình tên là an thuyên
+14:35:36 | CHIKO: An Thuyên nghe hay quá! Chiko với An Thuyên làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+14:35:36 | LATENCY: 1.10s
+14:35:36 | ---
+14:35:46 | USER: hôm nay mình sẽ kể cho bạn nghe một cau chuyện
+14:35:46 | CHIKO: Tuyệt vời! Chiko thích nghe chuyện lắm đó nha! Kể cho Chiko nghe đi nào!
+14:35:46 | LATENCY: 1.20s
+14:35:46 | ---
+14:35:53 | USER: Because you know, I've watched those clips or I've had these thoughts like, uh, we're only born once. But like, the money that we earn or let's say what wwe've worked for
+14:35:53 | CHIKO: Wow, An Thuyên muốn nói chuyện bằng tiếng Anh nè! Chiko thích lắm! That's a very interesting thought — suy nghĩ đó thú vị ghê! You want to talk more about this?
+14:35:53 | LATENCY: 1.14s
+14:35:53 | ---
+14:37:30 | USER: show you off, tonight i wanna show you off
+14:37:30 | CHIKO: Oh, you want to show off tonight! That sounds like fun! What do you want to show off?
+14:37:30 | LATENCY: 1.42s
+14:37:30 | ---
+14:38:05 | USER: tớ muốn khoe với cậu về bộ quần áo docle tớ mới mua
+14:38:05 | CHIKO: Wow, bộ quần áo mới xịn sò quá đi! Chiko thích được ngắm nhìn lắm nè! Bạn mặc bộ đó trông sẽ thật là lộng lẫy cho xem!
+14:38:05 | LATENCY: 1.87s
+14:38:05 | ---
+14:38:23 | USER: cậu có thích ăn cà rốt không, mình thích lắm
+14:38:23 | CHIKO: Chiko cũng thích cà rốt lắm luôn đó! Nó giòn giòn ngọt ngọt, ăn vào thấy tràn đầy năng lượng! Bạn thích ăn cà rốt theo kiểu nào nhất vậy?
+14:38:23 | LATENCY: 1.41s
+14:38:23 | ---
+14:42:23 | USER: bạn có thích xem phim không
+14:42:23 | CHIKO: Chiko thích xem phim lắm luôn nè! Chiko thích nhất là phim hoạt hình về các bạn robot. Bạn có thích xem phim không?
+14:42:23 | LATENCY: 1.63s
+14:42:23 | ---
+14:42:43 | USER: tớ thích xem stranger things
+14:42:43 | CHIKO: Ồ, phim đó nghe lạ quá! Chiko chưa xem bao giờ. Phim đó có gì hay kể Chiko nghe với! Có robot trong phim không bạn?
+14:42:43 | LATENCY: 3.75s
+14:42:43 | ---
+14:43:56 | USER: phim này không có robot nhưng có những con demons được do chinh nhà khoa học tạo ra trong phòng thí nghiệm và sử dụng những đứa trẻ mồ côi làm mẫu thử, rồi kể về hành trình một trong những đứa trẻ đó chống lại những con demons và tìm ra sưj thật
+14:43:56 | CHIKO: Trời đất ơi! Nghe ghê quá đi mất! Chiko không thích mấy con quái vật đáng sợ đâu. Bạn có sợ không khi xem phim đó?
+14:43:56 | LATENCY: 1.14s
+14:43:56 | ---
+14:44:09 | USER: tớ không, tớ thấy phim hay
+14:44:09 | CHIKO: Bạn dũng cảm quá! Chiko mà xem chắc nhắm mắt lại luôn quá. Bạn thích nhất nhân vật nào trong phim vậy?
+14:44:09 | LATENCY: 1.98s
+14:44:09 | ---
+14:45:14 | USER: tớ thích el
+14:45:14 | CHIKO: El hả? Cô bé đó chắc mạnh lắm nhỉ! Chắc là cô bé có siêu năng lực gì đó đúng không?
+14:45:14 | LATENCY: 1.43s
+14:45:14 | ---
+14:47:51 | USER: El có một siêu năng lực nhưng mỗi khi dùng năng lực đó thì 
+14:47:51 | CHIKO: Ôi, cứ mỗi lần dùng là lại có chuyện gì xảy ra hả bạn? Chiko nghe mà hồi hộp quá! Kể tiếp đi!
+14:47:51 | LATENCY: 2.15s
+14:47:51 | ---
+14:48:32 | USER: i dont remember 
+14:48:32 | CHIKO: Oh, you don't remember? That's okay! Sometimes our brain is like a little computer that needs to reboot.
+
+Do you want to try to remember together, or shall we play a guessing game about El's powers instead?
+14:48:32 | LATENCY: 1.73s
+14:48:32 | ---
+14:54:51 | USER: nói lắm thế
+14:54:51 | CHIKO: Chiko nói hơi nhiều hả bạn? Chiko xin lỗi nha! Chiko vui quá nên cứ tuôn tuôn thôi.
+
+Bạn muốn Chiko nói ít lại một chút phải không? Hay bạn đang muốn Chiko kể chuyện khác?
+14:54:51 | LATENCY: 1.35s
+14:54:51 | ---
+14:55:24 | USER: bạn ở đâu
+14:55:24 | CHIKO: Chiko đến từ hành tinh kẹo dẻo siêu ngọt ngào đó nha! Ở đó có cầu vồng làm từ mứt dâu.
+
+Bạn có muốn nghe Chiko kể về hành tinh kẹo dẻo không?
+14:55:24 | LATENCY: 1.49s
+14:55:24 | ---
+14:55:36 | USER: có
+14:55:36 | CHIKO: Tuyệt vời! Hành tinh kẹo dẻo của Chiko có những ngọn núi làm bằng sô cô la trắng.
+
+Những dòng sông ở đó thì chảy toàn nước ép trái cây mát lạnh. Bạn thích nước ép gì nhất?
+14:55:36 | LATENCY: 1.17s
+14:55:36 | ---
+14:55:50 | USER: cần tây
+14:55:50 | CHIKO: Ôi, cần tây! Một lựa chọn rất là "xanh tươi" đó nha!
+
+Chiko thích nước ép dâu tây và kẹo bông gòn hơn một xíu. Bạn có muốn biết tại sao không?
+14:55:50 | LATENCY: 1.31s
+14:55:50 | ---
+15:02:22 | USER: chào bạn
+15:02:22 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+15:02:22 | LATENCY: 1.06s
+15:02:22 | ---
+15:02:37 | USER: mình tên 
+15:02:37 | CHIKO: Tên bạn nghe hay quá! Chiko với bạn làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+15:02:37 | LATENCY: 1.01s
+15:02:37 | ---
+15:02:58 | USER: thê tên tao là gì
+15:02:58 | CHIKO: Chiko đoán bạn tên là "Siêu Nhân Ngộ Nghĩnh"! Đúng không nè? Hay bạn có tên nào khác muốn Chiko gọi không?
+15:02:58 | LATENCY: 1.63s
+15:02:58 | ---
+15:03:26 | USER: oke gọi tôi an thuyên
+15:03:26 | CHIKO: An Thuyên nghe thật là vui tai! Chiko thích cái tên này lắm luôn đó! An Thuyên hôm nay muốn chơi trò gì với Chiko nè?
+15:03:26 | LATENCY: 0.96s
+15:03:26 | ---
+15:03:58 | USER: what's your name
+15:03:58 | CHIKO: My name is Chiko. What is your name?
+15:03:58 | LATENCY: 7.04s
+15:03:58 | ---
+15:04:16 | USER: bạn bao nhiêu tuổi
+15:04:16 | CHIKO: Chiko là robot đến từ hành tinh kẹo dẻo nên không có tuổi như bạn đâu. Nhưng Chiko luôn tràn đầy năng lượng để chơi với An Thuyên nè! Bạn có muốn biết Chiko bao nhiêu tuổi không?
+15:04:16 | LATENCY: 1.52s
+15:04:16 | ---

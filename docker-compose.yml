@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: voice-ai-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: voice-ai-db
+      POSTGRES_DB: ai_voice_app
+    ports:
+      - "5431:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7.2-alpine 
+    container_name: redis_ai_service
+    restart: always
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server 
+      --appendonly yes 
+      --bind 0.0.0.0 
+      --protected-mode yes 
+      --requirepass "359E5eNLhR9c5WdxVk0w6Lu4cBWGGn0c"
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333" 
+      - "6334:6334"
+    volumes:
+      - ./qdrant_data:/qdrant/storage
+
+volumes:
+  pgdata:
+  redis_data:
+  qdrant:

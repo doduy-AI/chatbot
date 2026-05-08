@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bytehometts"
+version = "0.1.2"
+description = "BytehomeTTS: Zero-Shot Text-to-Speech with Diffusion Language Models"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    {name = "Đỗ Đình Duy", email = "dev.dinhduy@gmail.com"}
+]
+dependencies = [
+    "torch==2.8.*",
+    "torchaudio==2.8.*",
+    "transformers==5.3.0",
+    "accelerate",
+    "pydub",
+    "gradio",
+    "tensorboardX",
+    "webdataset",
+    "numpy",
+    "soundfile",
+    "pydantic-settings>=2.13.1",
+    "redis>=7.4.0",
+    "scipy>=1.15.3",
+    "lameenc>=1.8.2",
+]
+
+[project.scripts]
+
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux'" }
+]
+torchaudio = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'linux'" }
+]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["bytehometts"]

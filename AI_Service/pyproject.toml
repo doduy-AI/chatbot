@@ -1,0 +1,40 @@
+[project]
+name = "ai-service"
+version = "0.1.0"
+requires-python = "==3.10.*"
+dependencies = [
+    "qdrant-client",
+    "sentence-transformers",
+    "python-docx",
+    "pymupdf",
+    "pymupdf4llm",
+    "llama-parse",
+    "openai",
+    "httpx",
+    "python-dotenv",
+    "redis>=7.4.0",
+    "pydantic-settings>=2.13.1",
+    "typeguard>=4.5.1",
+    "llama-index>=0.14.20",
+    "pandoc>=2.4",
+    "langchain-google-genai>=4.2.1",
+    "langchain-qdrant>=1.1.0",
+    "langchain-huggingface>=1.2.1",
+    "langchain-core>=1.2.28",
+    "langchain-community>=0.4.1",
+    "langchain>=1.2.15",
+]
+
+[project.scripts]
+embetdding = "embetdding_service.worker:main"
+chat = "chat_service.worker:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+where = ["."]

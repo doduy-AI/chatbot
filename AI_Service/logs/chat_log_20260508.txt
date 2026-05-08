@@ -1,0 +1,64 @@
+12:02:14 | USER: xin chào bạn 
+12:02:14 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+12:02:14 | LATENCY: 1.36s
+12:02:14 | ---
+12:02:21 | USER: bạn tên là gì vậy 
+12:02:21 | CHIKO: Chiko là robot đến từ hành tinh kẹo dẻo đó nha! Bạn có muốn biết bí mật về hành tinh của Chiko không?
+12:02:21 | LATENCY: 0.99s
+12:02:21 | ---
+12:02:30 | USER: mình á mình Duy 
+12:02:30 | CHIKO: Duy nghe hay quá! Chiko với Duy làm bạn thân nha! Hôm nay Duy muốn làm gì cùng Chiko?
+12:02:30 | LATENCY: 1.00s
+12:02:30 | ---
+12:02:45 | USER: mình muốn học về data 
+12:02:45 | CHIKO: Data hả? Data nghe lạ quá! Giống tên một bạn robot nào đó của Chiko vậy đó. Duy có muốn Chiko kể chuyện về bạn robot tên Data này không?
+12:02:45 | LATENCY: 3.20s
+12:02:45 | ---
+12:02:58 | USER: không mình muốn hcoj code 
+12:02:58 | CHIKO: Học code hả? Tuyệt quá! Duy muốn học code với Chiko không? Chiko có thể dạy Duy làm chú robot biết nói tiếng Anh nè!
+12:02:58 | LATENCY: 1.28s
+12:02:58 | ---
+12:03:17 | USER: bạn còn nhớ tên mình không 
+12:03:17 | CHIKO: Chiko nhớ chứ! Tên của bạn là Duy nè! Chiko không bao giờ quên tên bạn thân đâu nha!
+12:03:17 | LATENCY: 2.08s
+12:03:17 | ---
+12:03:34 | USER: haah 
+12:03:34 | CHIKO: Duy cười làm Chiko cũng vui lây! Bạn có muốn Chiko kể chuyện cười không? Hay mình chơi trò đoán chữ vui nhộn?
+12:03:34 | LATENCY: 5.23s
+12:03:34 | ---
+12:03:40 | USER: what your name 
+12:03:40 | CHIKO: I am Chiko! I am a robot from the candy planet! What is your name?
+12:03:40 | LATENCY: 2.33s
+12:03:40 | ---
+12:03:48 | USER: my name is Duy 
+12:03:48 | CHIKO: Duy, your name is so cool! I am happy to be your friend! Do you want to learn a new English word today?
+12:03:48 | LATENCY: 0.93s
+12:03:48 | ---
+12:04:05 | USER: how much computer blue
+12:04:05 | CHIKO: Oh, that's an interesting question! Computers don't really have colors like that. But if you see a blue computer, you can say "The computer is blue." Do you want to try saying that?
+12:04:05 | LATENCY: 0.98s
+12:04:05 | ---
+12:04:33 | USER: nó có nghĩa là gì vậy bạn 
+12:04:33 | CHIKO: You want to know what "The computer is blue" means, right? It means that the computer you are looking at has the color blue. Like a blue candy! Isn't that fun?
+12:04:33 | LATENCY: 1.33s
+12:04:33 | ---
+12:04:51 | USER: câu đó có nghĩa là gì vậy bạn 
+12:04:51 | CHIKO: You're asking about "The computer is blue" again! It means that the computer has the color blue. Like a yummy blueberry! Do you have any blue toys?
+12:04:51 | LATENCY: 2.25s
+12:04:51 | ---
+12:05:05 | USER: bạn ơi mình muốn học tiếng anh 
+12:05:05 | CHIKO: Yay! Chiko loves teaching English! Let's start with something super easy. Can you say "Hello"?
+12:05:05 | LATENCY: 2.09s
+12:05:05 | ---
+12:05:18 | USER: helo 
+12:05:18 | CHIKO: Awesome! You said "Hello" perfectly! That means "xin chào" in Vietnamese. Now, can you try saying "My name is Duy"?
+12:05:18 | LATENCY: 7.10s
+12:05:18 | ---
+12:05:38 | USER: thôi trả lời bằng tiếng việt đi bạn 
+12:05:38 | CHIKO: Okie dokie! Chiko hiểu rồi nè. Bạn muốn nói chuyện bằng tiếng Việt thôi đúng không? Thế bạn Duy hôm nay có chuyện gì vui muốn kể cho Chiko nghe không nè?
+12:05:38 | LATENCY: 7.60s
+12:05:38 | ---
+12:06:00 | USER: tên của mình là gì ý nhỉ 
+12:06:00 | CHIKO: Chiko nhớ nè, tên của bạn là Duy! Duy là một cái tên rất hay đó nha! Bạn Duy có muốn Chiko kể chuyện gì vui không nè?
+12:06:00 | LATENCY: 1.23s
+12:06:00 | ---

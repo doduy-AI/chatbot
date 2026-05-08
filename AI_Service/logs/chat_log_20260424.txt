@@ -1,0 +1,108 @@
+15:07:57 | USER: xin chào bạn nha 
+15:07:57 | CHIKO: Chào bạn nhỏ! Mình là Chiko từ hành tinh kẹo dẻo nè! Bạn tên gì vậy?
+15:07:57 | LATENCY: 1.17s
+15:07:57 | ---
+15:09:31 | USER: mình tên là duy 
+15:09:31 | CHIKO: Duy nghe hay quá! Chiko với Duy làm bạn thân nha! Hôm nay bạn muốn làm gì cùng Chiko?
+15:09:31 | LATENCY: 0.95s
+15:09:31 | ---
+15:09:40 | USER: mình muốn chơi trò chơi 
+15:09:40 | CHIKO: Tuyệt vời! Chiko có trò đoán đồ vật siêu vui nè. Bạn có muốn thử không?
+15:09:40 | LATENCY: 1.13s
+15:09:40 | ---
+15:09:45 | USER: mình có 
+15:09:45 | CHIKO: Chiko nghĩ ra một thứ nè. Nó có màu đỏ, tròn tròn và rất ngọt đó. Đố Duy đó là cái gì?
+15:09:45 | LATENCY: 0.88s
+15:09:45 | ---
+15:09:55 | USER: cái kẹo mút 
+15:09:55 | CHIKO: Wow, đúng rồi! Bạn giỏi quá! Bạn đoán đúng cái kẹo mút của Chiko rồi đó!
+15:09:55 | LATENCY: 1.04s
+15:09:55 | ---
+15:10:03 | USER: hihi
+15:10:03 | CHIKO: Bạn cười xinh quá! Chiko cũng vui lây nè. Bạn muốn chơi trò khác nữa không?
+15:10:03 | LATENCY: 1.19s
+15:10:03 | ---
+15:10:12 | USER: mình muốn chơi tiếp 
+15:10:12 | CHIKO: Tuyệt vời! Chiko có một trò này rất vui. Bạn có muốn nghe một câu chuyện cười không?
+15:10:12 | LATENCY: 1.47s
+15:10:12 | ---
+15:10:17 | USER: có 
+15:10:17 | CHIKO: Chiko kể cho bạn nghe nha. Có một bạn ếch hỏi mẹ: "Mẹ ơi, sao con lại có cái lưỡi dài thế ạ?"
+15:10:17 | LATENCY: 0.98s
+15:10:17 | ---
+15:10:37 | USER: tại sao 
+15:10:37 | CHIKO: Mẹ ếch trả lời: "Để con bắt được ruồi cho mẹ ăn chứ sao!" Bạn thấy buồn cười không?
+15:10:37 | LATENCY: 0.94s
+15:10:37 | ---
+15:11:00 | USER: sao lại cho mẹ ăn nhỉ 
+15:11:00 | CHIKO: À, bạn ếch con rất ngoan và yêu mẹ. Bạn ấy muốn làm món quà đặc biệt cho mẹ đó! Bạn có muốn làm điều gì đó đặc biệt cho mẹ không?
+15:11:00 | LATENCY: 1.05s
+15:11:00 | ---
+15:11:12 | USER: mình muốn tặng quà cho mẹ 
+15:11:12 | CHIKO: Tuyệt vời! Chiko thích ý tưởng này lắm. Bạn muốn tặng món quà gì cho mẹ nè?
+15:11:12 | LATENCY: 1.06s
+15:11:12 | ---
+15:11:21 | USER: mình muốn 1 cái kẹp tóc 
+15:11:21 | CHIKO: Chiko nghĩ mẹ bạn sẽ thích lắm đó! Bạn có muốn cùng Chiko học cách nói "con yêu mẹ" bằng tiếng Anh không?
+15:11:21 | LATENCY: 1.11s
+15:11:21 | ---
+15:11:32 | USER: có 
+15:11:32 | CHIKO: Wow, bạn thật là chăm chỉ! "Con yêu mẹ" trong tiếng Anh là "I love you, Mom". Bạn thử nói xem nào!
+15:11:32 | LATENCY: 1.01s
+15:11:32 | ---
+15:11:43 | USER: i love you mon
+15:11:43 | CHIKO: Chiko nghe thấy rồi! Bạn nói hay lắm, Chiko phục sát đất luôn! "Mon" là mẹ đó nha.
+15:11:43 | LATENCY: 1.05s
+15:11:43 | ---
+15:11:57 | USER: thế papa là gì nhỉ 
+15:11:57 | CHIKO: Papa là bố đó bạn! Bạn muốn nói "con yêu bố" bằng tiếng Anh không?
+15:11:57 | LATENCY: 0.98s
+15:11:57 | ---
+15:12:07 | USER: i love you papa
+15:12:07 | CHIKO: Tuyệt vời! Bạn nói chuẩn không cần chỉnh luôn! Papa là bố đó nha.
+15:12:07 | LATENCY: 0.89s
+15:12:07 | ---
+15:12:19 | USER: thế bà nội là gì 
+15:12:19 | CHIKO: Bà nội thì tiếng Anh là "grandma" đó bạn! Bạn giỏi quá!
+15:12:19 | LATENCY: 1.37s
+15:12:19 | ---
+15:14:49 | USER: bây giờ mình muốn trò truyện bằng tiếng anh 
+15:14:49 | CHIKO: Tuyệt vời! Let's talk in English! What do you want to talk about?
+15:14:49 | LATENCY: 0.89s
+15:14:49 | ---
+15:15:07 | USER: đố bạn biết mình tên là gì nhỉ 
+15:15:07 | CHIKO: Chiko nhớ mang máng là bạn tên [Tên bé] đúng không nè? Chiko nhớ đúng không ta?
+15:15:07 | LATENCY: 1.58s
+15:15:07 | ---
+15:16:03 | USER: tên mình là Duy nha 
+15:16:03 | CHIKO: Duy! Tên hay quá! Chiko nhớ rồi nha. Duy muốn chơi trò gì với Chiko nè?
+15:16:03 | LATENCY: 0.99s
+15:16:03 | ---
+15:16:20 | USER: mình muốn trò chuyện bằng tiếng anh 
+15:16:20 | CHIKO: Okay Duy! Let's speak English! What do you want to say first?
+15:16:20 | LATENCY: 0.96s
+15:16:20 | ---
+15:16:31 | USER: what your name ? 
+15:16:31 | CHIKO: My name is Chiko! I am a robot from the candy planet. What is your name again?
+15:16:31 | LATENCY: 0.85s
+15:16:31 | ---
+15:16:44 | USER: my name is duy 
+15:16:44 | CHIKO: Duy! That's a super cool name! Chiko loves it! What do you want to talk about today, Duy?
+15:16:44 | LATENCY: 0.64s
+15:16:44 | ---
+15:17:26 | USER: i am study english
+15:17:26 | CHIKO: Wow, Duy is studying English! That's amazing! Chiko can help you practice. What do you want to learn today?
+15:17:26 | LATENCY: 1.08s
+15:17:26 | ---
+15:17:53 | USER: tôi muốn học về hỏi đường 
+15:17:53 | CHIKO: Tuyệt vời! Hỏi đường là một kỹ năng rất hữu ích đó! Chiko sẽ dạy bạn cách hỏi đường thật tự tin nha!
+
+Let's learn some phrases for asking directions! First, you can say: "Excuse me, where is the park?"
+15:17:53 | LATENCY: 1.11s
+15:17:53 | ---
+15:51:01 | USER: Câu này dễ nè! Ngoài cách này ra còn cách nào hỏi lịch sự hơn không Chiko?
+15:51:01 | CHIKO: Bạn nhỏ Duy giỏi quá! Hỏi được câu đầu tiên là siêu đỉnh rồi!
+
+Bạn hỏi rất hay! Để lịch sự hơn, mình có thể thêm "please" vào cuối câu nè. Ví dụ: "Excuse me, where is the park, please?"
+15:51:01 | LATENCY: 1.30s
+15:51:01 | ---
