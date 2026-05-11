@@ -1,5 +1,6 @@
 chat_service
 config
+docker
 embetdding_service
 logs
 tts_service
