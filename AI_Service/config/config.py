@@ -17,7 +17,8 @@ class Settings(BaseSettings):
         OCR5 : str = "OCR5"
         OCR6 : str = "OCR6"
         GCP_PROJECT_ID : str = "GCP_PROJECT_ID",
-        GCP_LOCATION : str = "GCP_LOCATION"
+        GCP_LOCATION : str = "GCP_LOCATION",
+        GOOGLE_APPLICATION_CREDENTIALS : str = "GOOGLE_APPLICATION_CREDENTIALS"
         model_config = SettingsConfigDict(
         env_file=os.path.join(BASE_DIR, ".env"),  
         env_file_encoding='utf-8'
