@@ -1,3 +1,4 @@
+README.md
 pyproject.toml
 ai_service.egg-info/PKG-INFO
 ai_service.egg-info/SOURCES.txt
