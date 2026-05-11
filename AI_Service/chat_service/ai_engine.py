@@ -1,7 +1,7 @@
 import os 
 import sys
 import time
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_vertexai import ChatVertexAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -22,9 +22,10 @@ class AIEngine:
         port=settings.QDRANT_PORT
     )
         
-        self.model = ChatGoogleGenerativeAI(
-            model = settings.MODEL_NAME,
-            google_api_key = settings.API_LLM
+        self.model = ChatVertexAI(
+            model=settings.MODEL_NAME,          
+            project=settings.GCP_PROJECT_ID,   
+            location=settings.GCP_LOCATION, 
         )
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),
