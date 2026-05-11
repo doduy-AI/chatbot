@@ -14,7 +14,7 @@ import threading
 from datetime import datetime
 import logging
 from chat_service.redis_manager import redis_manager
-
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
 
 class AIEngine:
     def __init__(self):
