@@ -55,11 +55,13 @@ def pdf_scan_to_markdown(filepath: str) -> str:
         index, key = result
 
         try:
-            print(f"Dùng key {index + 1} ...")
+            # print(f"Dùng key {index + 1} ...")
             parser = LlamaParse(
                 api_key=key,
                 result_type="markdown",
-                language="vi"
+                language="vi",
+                use_vendor_multimodal_model=True,
+                vendor_multimodal_model_name="openai-gpt4o"
             )
             documents = parser.load_data(filepath)
             
@@ -79,7 +81,7 @@ def pdf_scan_to_markdown(filepath: str) -> str:
 
 
 if __name__ == "__main__":
-    file_path = "/home/doduy/Downloads/audio_test/41-2024-qh15.pdf"
+    file_path = "/home/doduy/Downloads/audio_test/QĐ số 982_QĐ-BHXH - Vv ban hành Hệ thống chỉ tiêu thống kê và chế độ BC thống kê ngành BHXH.pdf"
     
     md_content = pdf_scan_to_markdown(file_path)
     
