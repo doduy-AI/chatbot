@@ -8,6 +8,3 @@ def is_connected(host="8.8.8.8", port=53, timeout=1):
         return "True"
     except(socket.timeout , OSError):
         return "False"
-
-if __name__ == "__main__":
-    print(is_connected())

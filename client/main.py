@@ -1,6 +1,7 @@
 from logic.data_mic import MicStreamer
 from logic.ws_handler import WSClient
 import time
+
 MIC = MicStreamer()
 WS = WSClient(mic=MIC )
 MIC.start()
@@ -11,6 +12,7 @@ info = {
     }
 
 if __name__ == "__main__":
+    
     WS.connect()
     print("[SYSTEM] Robot Chiko2 đang lắng nghe và gửi dữ liệu...")
     time.sleep(1)
