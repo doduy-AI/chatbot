@@ -21,7 +21,6 @@ def handle_task(data):
         ai.clear_session(userId)
         return
     prompt = redis_manager.get_cache(f"group:{group_id}:content")
-    print(prompt)
     strart_time = time.time()
     reply = ai.generate_respone(text,prompt ,userId, group_id)
     print(f"[CHAT_Service] time {time.time() - strart_time} ")

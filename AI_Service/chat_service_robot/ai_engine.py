@@ -34,10 +34,9 @@ class AIEngine:
             MessagesPlaceholder(variable_name="history"),
             ("system", "TÓM TẮT TRƯỚC ĐÓ:\n{summary}"),
             ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
-            ("system", "{system_prompt}"),
             ("human", "{input}"),
         ])
-        self.chain = RunnableWithMessageHistory(
+        self.chain = RunnableWithMessageHistory( 
             prompt | self.model,
             self._get_history,
             input_messages_key="input",
@@ -89,6 +88,9 @@ class AIEngine:
     
         result = self.model.invoke(
            f"""
+            Tóm tắt cũ: {old_summary}
+            Đoạn hội thoại mới:
+            {text}
             YÊU CẦU NGHIÊM NGẶT:
             1. Tuyệt đối KHÔNG ĐƯỢC LÀM MẤT: Tên, tuổi, sở thích.
             2. Cập nhật thêm nếu có thông tin mới.
