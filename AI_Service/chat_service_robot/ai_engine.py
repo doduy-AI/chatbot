@@ -89,7 +89,12 @@ class AIEngine:
     
         result = self.model.invoke(
            f"""
-           Tóm Tắt những điều chính 
+            YÊU CẦU NGHIÊM NGẶT:
+            1. Tuyệt đối KHÔNG ĐƯỢC LÀM MẤT: Tên, tuổi, sở thích.
+            2. Cập nhật thêm nếu có thông tin mới.
+            3. Luôn ghi rõ: Mode hiện tại (English mode / free talk / correction mode).
+            4. Luôn ghi rõ: Bé đang làm gì (luyện tiếng Anh, kể chuyện, hỏi kiến thức...).
+            5. Giữ dạng ý chính ngắn gọn.
             """
         )
     

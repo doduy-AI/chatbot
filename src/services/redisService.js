@@ -18,6 +18,7 @@ const redisSubscriber = new Redis({
 class RedisService {
     constructor() {
         this.queueName = 'ai_tasks';
+        this.queueNameRobot = 'ai_tasks_robot';
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
         this.voiceResponsePattern = 'voice_ready:*';
@@ -61,7 +62,17 @@ class RedisService {
     async pushTask(task) {
         try {
             const data = JSON.stringify(task)
-            await redisPublisher.lpush(this.queueName, data);
+            await redisPublisher.lpush(this, data);
+        } catch (err) {
+            console.error('[Redis] lỗi push task ', err)
+            throw err
+        }
+    }
+    // ai task robot 
+     async pushTaskRobot(task) {
+        try {
+            const data = JSON.stringify(task)
+            await redisPublisher.lpush(this.queueNameRobot, data);
         } catch (err) {
             console.error('[Redis] lỗi push task ', err)
             throw err

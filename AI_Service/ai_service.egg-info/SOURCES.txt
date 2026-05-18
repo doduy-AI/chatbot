@@ -10,6 +10,10 @@ chat_service/ai_engine.py
 chat_service/redis_manager.py
 chat_service/worker.py
 chat_service/Evals/LLMQA.py
+chat_service_robot/ai_engine.py
+chat_service_robot/redis_manager.py
+chat_service_robot/worker.py
+chat_service_robot/Evals/LLMQA.py
 config/config.py
 embetdding_service/redis_manager.py
 embetdding_service/worker.py

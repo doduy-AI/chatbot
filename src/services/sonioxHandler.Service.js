@@ -56,7 +56,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
                 };
 
         
-        await redisService.pushTask(task)
+        await redisService.pushTaskRobot(task)
         
         if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }));
