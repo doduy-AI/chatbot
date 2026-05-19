@@ -35,33 +35,60 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         }
     });
 
-    session.on('endpoint', async () => {
-        const now = Date.now();
-        if (now - lastPushTime < 5000) {
-            console.log("chặn text")
-        return; 
-    }
-        const utterance = utteranceBuffer.markEndpoint();
-        if (!utterance?.text?.trim()) return;
-        lastPushTime = now;
-        const text = utterance.text.trim();
-        console.log(`[Robot][${user.username}] Utterance: "${text}"`);
-        const task = {
-                    userId: user.id,
-                    groupId:groupId,
-                    text: text,
-                    audio_format:"wav",
-                    voice:currentVoiceStyle,
-                    timestamp: Date.now()
-                };
+    let endpointDebounceTimer = null;
+    let endpointCount = 0;
+    let debounceResetCount = 0;
 
-        
-        await redisService.pushTaskRobot(task)
-        
-        if (ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }));
+    session.on('endpoint', async () => {
+        endpointCount++;
+        const triggerIndex = endpointCount;
+        console.log(`[Endpoint #${triggerIndex}] Triggered`);
+
+        if (endpointDebounceTimer) {
+            debounceResetCount++;
+            console.log(`[Endpoint #${triggerIndex}] Debounce reset lần ${debounceResetCount} — timer bị huỷ`);
+            clearTimeout(endpointDebounceTimer);
         }
+
+        endpointDebounceTimer = setTimeout(async () => {
+            // console.log(`[Endpoint #${triggerIndex}]  Debounce xong sau 1500ms — bắt đầu xử lý`);
+
+            const now = Date.now();
+            if (now - lastPushTime < 5000) {
+                // console.log(`[Endpoint #${triggerIndex}] Chặn — chưa đủ 5s kể từ lần cuối (còn ${5000 - (now - lastPushTime)}ms)`);
+                return;
+            }
+
+            const utterance = utteranceBuffer.markEndpoint();
+            // console.log(`[Endpoint #${triggerIndex}] Utterance raw:`, utterance);
+
+            if (!utterance?.text?.trim()) {
+                // console.log(`[Endpoint #${triggerIndex}]  Utterance rỗng — bỏ qua`);
+                return;
+            }
+
+            lastPushTime = now;
+            const text = utterance.text.trim();
+            // console.log(`[Endpoint #${triggerIndex}]  Text: "${text}"`);
+
+            const task = {
+                userId: user.id,
+                groupId: groupId,
+                text: text,
+                audio_format: "wav",
+                voice: currentVoiceStyle,
+                timestamp: Date.now()
+            };
+            // console.log(`[Endpoint #${triggerIndex}] Task:`, task);
+
+            await redisService.pushTaskRobot(task);
+
+            if (ws.readyState === ws.OPEN) {
+                ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }));
+            }
+        }, 1500);
     });
+
 
     session.on('error', (err) => {
         console.error(`[Soniox] Lỗi — ${user.username}:`, err);
