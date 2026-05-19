@@ -3,8 +3,6 @@ import threading
 import time
 import queue
 import numpy as np 
-from pedalboard import NoiseGate  , Pedalboard
-
 class MicStreamer:
     def __init__(self):
         self.CHUNK = 480
@@ -12,15 +10,6 @@ class MicStreamer:
         self.CHANNELS = 1
         self.RATE = 48000
         self.RMS_THRESHOLD = 300
-
-        self.board= Pedalboard([
-            NoiseGate(
-                threshold_db=-60,
-                ratio=3,
-                attack_ms=2.0,
-                release_ms=150.0
-            )
-        ])
 
         self.p = pyaudio.PyAudio()
 
@@ -41,22 +30,24 @@ class MicStreamer:
 
     def _process(self, chunk):
         audio_np = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
-        
         rms = np.abs(audio_np).mean()
-        # print(f"RMS: {rms:.4f}")
-        
-        if rms < 0.005:
-            return self.get_silence_frame()
-        
+
+        if rms < 0.002:
+            return None  # Trả None thay vì silence frame
+
         return chunk
 
     def _loop(self):
         while self.is_running:
             if self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
-                processed = self._process(data)  
+                processed = self._process(data)
+                
+                if processed is None:  # Skip, không đẩy vào queue
+                    continue
+                    
                 try:
-                    self.audio_queue.put_nowait(processed)  
+                    self.audio_queue.put_nowait(processed)
                 except queue.Full:
                     self.audio_queue.get()
                     self.audio_queue.put_nowait(processed)
