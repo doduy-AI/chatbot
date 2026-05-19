@@ -2,14 +2,13 @@ import pyaudio
 import threading
 import time
 import queue
-import numpy as np 
+
 class MicStreamer:
     def __init__(self):
         self.CHUNK = 480
         self.FORMAT = pyaudio.paInt16
         self.CHANNELS = 1
         self.RATE = 48000
-        self.RMS_THRESHOLD = 300
 
         self.p = pyaudio.PyAudio()
 
@@ -28,29 +27,15 @@ class MicStreamer:
     def start(self):
         threading.Thread(target=self._loop, daemon=True).start()
 
-    def _process(self, chunk):
-        audio_np = np.frombuffer(chunk, dtype=np.int16).astype(np.float32) / 32768.0
-        rms = np.abs(audio_np).mean()
-
-        if rms < 0.002:
-            return None  # Trả None thay vì silence frame
-
-        return chunk
-
     def _loop(self):
         while self.is_running:
             if self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
-                processed = self._process(data)
-                
-                if processed is None:  # Skip, không đẩy vào queue
-                    continue
-                    
                 try:
-                    self.audio_queue.put_nowait(processed)
+                    self.audio_queue.put_nowait(data)
                 except queue.Full:
-                    self.audio_queue.get()
-                    self.audio_queue.put_nowait(processed)
+                    self.audio_queue.get()  
+                    self.audio_queue.put_nowait(data)  
             else:
                 time.sleep(0.01)
 

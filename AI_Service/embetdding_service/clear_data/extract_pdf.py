@@ -81,9 +81,9 @@ def pdf_scan_to_markdown(filepath: str) -> str:
 
 
 if __name__ == "__main__":
-    file_path = "/home/doduy/Downloads/audio_test/QĐ số 982_QĐ-BHXH - Vv ban hành Hệ thống chỉ tiêu thống kê và chế độ BC thống kê ngành BHXH.pdf"
+    file_path = "/home/doduy/Downloads/1.22 Trả lời Hải Phòng (vợ chết, lấy vợ 2 thì bố mẹ vợ 1 không được hưởng tuất tháng).pdf"
     
-    md_content = pdf_scan_to_markdown(file_path)
+    md_content = pdf_word_to_markdown(file_path)
     
     output_path = Path(file_path).with_suffix(".md")
     with open(output_path, "w", encoding="utf-8") as f:
