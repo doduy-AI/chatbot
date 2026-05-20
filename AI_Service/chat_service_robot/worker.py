@@ -5,10 +5,11 @@ import time
 from chat_service.redis_manager import redis_manager
 from config.config import settings
 from concurrent.futures import ThreadPoolExecutor
-from chat_service.ai_engine import AIEngine 
+from chat_service_robot.ai_engine import AIEngine 
+from chat_service_robot.utils.cleanText import clean_llm_text
+
 executor = ThreadPoolExecutor(max_workers=10)
 ai = AIEngine() 
-
 
 def handle_task(data):
     userId = data.get("userId")
@@ -22,7 +23,8 @@ def handle_task(data):
         return
     prompt = redis_manager.get_cache(f"group:{group_id}:content")
     strart_time = time.time()
-    reply = ai.generate_respone(text,prompt ,userId, group_id)
+    reply = clean_llm_text(ai.generate_respone(text,prompt ,userId, group_id))
+    print(reply)
     print(f"[CHAT_Service] time {time.time() - strart_time} ")
     if (service):
             redis_manager.publishChat("chat-respone", {

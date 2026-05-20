@@ -23,16 +23,10 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         console.log(`[Soniox] Session ready — ${user.username}`);
     })
 
-    let finalTimeout = null;
-    let lastFinalText = '';
+    lastFinalText = ""
+    let sentenceTimer = null;   
+    const PUSH_COOLDOWN = 5000; 
     session.on('result', (result) => {
-    function getDynamicDelay(text) {
-        const wordCount = text.trim().split(/\s+/).length;
-        if (wordCount <= 5) return 500;
-        if (wordCount <= 10) return 800;
-        if (wordCount >=11) return 1500;
-        return 2000;
-    }
         utteranceBuffer.addResult(result);
 
         const preview = result.tokens
@@ -44,23 +38,37 @@ async function handleRobotClient(ws, user, groupId, redisService) {
             .filter(t => t.is_final)
             .map(t => t.text)
             .join('');
-        
-        if(preview){
-            console.log("PREVIEW:",preview)
-            if(finalTimeout){
-                clearTimeout(finalTimeout);
-                finalTimeout = null ;
+
+        if (preview) {
+            ws.send(JSON.stringify({ type: 'STT_PREVIEW', text: preview }));
+            console.log('PREVIEW:', preview);          
+        if (sentenceTimer) {
+                clearTimeout(sentenceTimer);
+                sentenceTimer = setTimeout(() => {
+                    if (lastFinalText) {
+                        console.log('SENTENCE COMPLETE 1:', lastFinalText);
+                        lastFinalText = "";
+                    }
+                    sentenceTimer = null;
+                }, 1000);
             }
         }
+        if (finalText) {
+            console.log("final: " + finalText);
+            lastFinalText += finalText;
 
-        if(finalText){
-            lastFinalText += finalText         
-            if (finalTimeout) {
-            clearTimeout(finalTimeout);
-        }
-
-        finalTimeout = setTimeout(async() => {
-             if (lastFinalText && ws.readyState === ws.OPEN) {
+            if (sentenceTimer) clearTimeout(sentenceTimer);
+            sentenceTimer = setTimeout(async () => {
+                
+                console.log('SENTENCE COMPLETE 2:', lastFinalText);
+                const now = Date.now();
+                if (now - lastPushTime < 5000) {
+                    lastFinalText = "";
+                    sentenceTimer = null;
+                    return;
+                }
+                lastPushTime = now;
+                ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }));
                 const task = {
                     userId: user.id,
                     groupId: groupId,
@@ -68,14 +76,16 @@ async function handleRobotClient(ws, user, groupId, redisService) {
                     audio_format: "wav",
                     voice: currentVoiceStyle,
                     timestamp: Date.now()
-            };
-            await redisService.pushTaskRobot(task);
-            ws.send(JSON.stringify({ type: 'PREVIEW:', text: preview }));
-            ws.send(JSON.stringify({ type: 'FINAL CONFIRMED:', text: lastFinalText }));
-            ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }))
-        }
-            lastFinalText = '';
-        },getDynamicDelay(lastFinalText))
+                    };
+
+                await redisService.pushTaskRobot(task);
+
+                lastFinalText = "";
+                sentenceTimer = null;
+                
+
+
+            }, 1000);
         }
     });
 
