@@ -23,73 +23,63 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         console.log(`[Soniox] Session ready — ${user.username}`);
     })
 
+    let finalTimeout = null;
+    let lastFinalText = '';
     session.on('result', (result) => {
+    function getDynamicDelay(text) {
+        const wordCount = text.trim().split(/\s+/).length;
+        if (wordCount <= 5) return 500;
+        if (wordCount <= 10) return 800;
+        if (wordCount >=11) return 1500;
+        return 2000;
+    }
         utteranceBuffer.addResult(result);
 
         const preview = result.tokens
             .filter(t => !t.is_final)
             .map(t => t.text)
             .join('');
-        if (preview && ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: 'STT_PREVIEW', text: preview }));
-        }
-    });
 
-    let endpointDebounceTimer = null;
-    let endpointCount = 0;
-    let debounceResetCount = 0;
-
-    session.on('endpoint', async () => {
-        endpointCount++;
-        const triggerIndex = endpointCount;
-        console.log(`[Endpoint #${triggerIndex}] Triggered`);
-
-        if (endpointDebounceTimer) {
-            debounceResetCount++;
-            console.log(`[Endpoint #${triggerIndex}] Debounce reset lần ${debounceResetCount} — timer bị huỷ`);
-            clearTimeout(endpointDebounceTimer);
+        const finalText = result.tokens
+            .filter(t => t.is_final)
+            .map(t => t.text)
+            .join('');
+        
+        if(preview){
+            console.log("PREVIEW:",preview)
+            if(finalTimeout){
+                clearTimeout(finalTimeout);
+                finalTimeout = null ;
+            }
         }
 
-        endpointDebounceTimer = setTimeout(async () => {
-            // console.log(`[Endpoint #${triggerIndex}]  Debounce xong sau 1500ms — bắt đầu xử lý`);
+        if(finalText){
+            lastFinalText += finalText         
+            if (finalTimeout) {
+            clearTimeout(finalTimeout);
+        }
 
-            const now = Date.now();
-            if (now - lastPushTime < 5000) {
-                // console.log(`[Endpoint #${triggerIndex}] Chặn — chưa đủ 5s kể từ lần cuối (còn ${5000 - (now - lastPushTime)}ms)`);
-                return;
-            }
-
-            const utterance = utteranceBuffer.markEndpoint();
-            // console.log(`[Endpoint #${triggerIndex}] Utterance raw:`, utterance);
-
-            if (!utterance?.text?.trim()) {
-                // console.log(`[Endpoint #${triggerIndex}]  Utterance rỗng — bỏ qua`);
-                return;
-            }
-
-            lastPushTime = now;
-            const text = utterance.text.trim();
-            // console.log(`[Endpoint #${triggerIndex}]  Text: "${text}"`);
-
-            const task = {
-                userId: user.id,
-                groupId: groupId,
-                text: text,
-                audio_format: "wav",
-                voice: currentVoiceStyle,
-                timestamp: Date.now()
+        finalTimeout = setTimeout(async() => {
+             if (lastFinalText && ws.readyState === ws.OPEN) {
+                const task = {
+                    userId: user.id,
+                    groupId: groupId,
+                    text: lastFinalText,
+                    audio_format: "wav",
+                    voice: currentVoiceStyle,
+                    timestamp: Date.now()
             };
-            // console.log(`[Endpoint #${triggerIndex}] Task:`, task);
-
             await redisService.pushTaskRobot(task);
-
-            if (ws.readyState === ws.OPEN) {
-                ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }));
-            }
-        }, 1500);
+            ws.send(JSON.stringify({ type: 'PREVIEW:', text: preview }));
+            ws.send(JSON.stringify({ type: 'FINAL CONFIRMED:', text: lastFinalText }));
+            ws.send(JSON.stringify({ type: 'STATUS', content: 'end_mic_Bytehome' }))
+        }
+            lastFinalText = '';
+        },getDynamicDelay(lastFinalText))
+        }
     });
 
-
+    
     session.on('error', (err) => {
         console.error(`[Soniox] Lỗi — ${user.username}:`, err);
         if (ws.readyState === ws.OPEN) {
