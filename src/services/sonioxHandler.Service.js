@@ -3,7 +3,6 @@ const sonioxClient = new SonioxNodeClient();
 async function handleRobotClient(ws, user, groupId, redisService) {
     let lastPushTime = 0;
     let currentVoiceStyle = 'nuhanoi';
-
     console.log(`[Robot] Khởi tạo Soniox session cho ${user.username}`);
     const session = sonioxClient.realtime.stt({
         model: 'stt-rt-v4',
@@ -18,14 +17,12 @@ async function handleRobotClient(ws, user, groupId, redisService) {
     });
 
     const utteranceBuffer = new RealtimeUtteranceBuffer({ final_only: true });
-
     session.on('connected',()=>{
         console.log(`[Soniox] Session ready — ${user.username}`);
     })
 
     lastFinalText = ""
     let sentenceTimer = null;   
-    const PUSH_COOLDOWN = 5000; 
     session.on('result', (result) => {
         utteranceBuffer.addResult(result);
 
@@ -50,7 +47,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
                         lastFinalText = "";
                     }
                     sentenceTimer = null;
-                }, 1000);
+                }, 1300);
             }
         }
         if (finalText) {
@@ -77,15 +74,10 @@ async function handleRobotClient(ws, user, groupId, redisService) {
                     voice: currentVoiceStyle,
                     timestamp: Date.now()
                     };
-
                 await redisService.pushTaskRobot(task);
-
                 lastFinalText = "";
                 sentenceTimer = null;
-                
-
-
-            }, 1000);
+            }, 1300);
         }
     });
 

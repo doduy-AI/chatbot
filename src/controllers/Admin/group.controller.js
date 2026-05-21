@@ -3,7 +3,7 @@ const Group = require('../../model/group.model')
 const create = async(req,res)=>{
 
     try{
-        const {groupName , email , phoneNumber} = req.body
+    const {groupName , email , phoneNumber} = req.body
     const existingGroupName = await Group.findOne({where:{groupName}})
     const existingEmail = await Group.findOne({where:{email}})
     const existingPhoneNumber = await Group.findOne({where:{phoneNumber}})

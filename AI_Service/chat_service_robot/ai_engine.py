@@ -17,11 +17,12 @@ class AIEngine:
             location=settings.GCP_LOCATION,
         ) 
 
-        # Đơn giản hóa prompt hệ thống để tránh trùng lặp biến hệ thống
+ 
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),
             MessagesPlaceholder(variable_name="history"),
             ("system", "TÓM TẮT TRƯỚC ĐÓ:\n{summary}"),
+            ("system", "Không Được Phép Nhắc lại tóm tắt "),
             ("system", "{system_prompt}"),
             ("human", "{input}"),
         ])
