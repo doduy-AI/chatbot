@@ -1,5 +1,4 @@
 import os 
-import sys
 import time
 from google import genai
 from langchain_google_vertexai import ChatVertexAI
@@ -9,7 +8,6 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter , FieldCondition , MatchValue
 from config.config import settings
-import threading
 from datetime import datetime
 import logging
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
@@ -19,7 +17,7 @@ class AIEngine:
         self.qdrant_client = QdrantClient(
         host=settings.QDRANT_HOST,
         port=settings.QDRANT_PORT
-    )
+    ) 
         
         self.model = ChatVertexAI(
             model=settings.MODEL_NAME,          
@@ -106,20 +104,13 @@ class AIEngine:
     def _get_history(self, session_id: str):
         if session_id not in self.chat_sessions:
             self.chat_sessions[session_id] = InMemoryChatMessageHistory()
-        
+
         history_obj = self.chat_sessions[session_id]
 
+        # Chỉ giữ lại 6 message gần nhất
         if len(history_obj.messages) > 6:
-            overflow = history_obj.messages[:-6]
             history_obj.messages = history_obj.messages[-6:]
-            
-            threading.Thread(
-                target=self._summarize,
-                args=(session_id, overflow),
-                daemon=True
-            ).start()
-        
-        self._user_group_map.pop(session_id, None)
+
         return history_obj
          
     def clear_session(self, user_id: str):

@@ -55,4 +55,4 @@ AI_Service/tts_service/models/
 AI_Service/logs/*.txt
 AI_Service/logs/chat_log_*.txt
 
-**./json
+**.json
