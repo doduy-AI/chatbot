@@ -5,7 +5,7 @@ COPY pyproject.toml uv.lock .python-version  .env ./
 
 RUN uv sync --frozen --no-install-project
 
-COPY chat_service/ ./chat_service/
+COPY chat_service/ ./chat_service_robot/
 COPY config/ ./config/
 
-CMD ["uv", "run", "chat"]
+CMD ["uv", "run", "chat_BHXH"]

@@ -105,7 +105,7 @@ class AIEngine:
         try:
             self._user_group_map[userId] = group_Id
 
-            print("[generate_respone]", userId)
+            # print("[generate_respone]", userId)
             summary = self.summary_memories.get(userId, "")
             
             response = self.chain.invoke(
