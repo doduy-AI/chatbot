@@ -62,7 +62,7 @@ class RedisService {
     async pushTask(task) {
         try {
             const data = JSON.stringify(task)
-            await redisPublisher.lpush(this, data);
+            await redisPublisher.lpush(this.queueName, data);
         } catch (err) {
             console.error('[Redis] lỗi push task ', err)
             throw err
@@ -103,7 +103,6 @@ class RedisService {
         console.log(`[Cache] Đã xóa key: ${key}`);
     }
 
-    // end cache redis 
 }
 
 module.exports = new RedisService();

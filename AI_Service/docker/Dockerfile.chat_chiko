@@ -1,0 +1,11 @@
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+WORKDIR /app
+
+COPY pyproject.toml uv.lock .python-version  .env ./
+
+RUN uv sync --frozen --no-install-project
+
+COPY chat_service/ ./chat_service/
+COPY config/ ./config/
+
+CMD ["uv", "run", "chat"]

@@ -17,20 +17,17 @@ class AIEngine:
         self.qdrant_client = QdrantClient(
         host=settings.QDRANT_HOST,
         port=settings.QDRANT_PORT
-    ) 
-        
+    )       
         self.model = ChatVertexAI(
             model=settings.MODEL_NAME,          
             project=settings.GCP_PROJECT_ID,   
             location=settings.GCP_LOCATION,
         )
-
         self.embed_client = genai.Client(
             vertexai=True,
             project=settings.GCP_PROJECT_ID,
             location=settings.GCP_LOCATION,
         )
-
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),
             MessagesPlaceholder(variable_name="history"),
@@ -44,7 +41,6 @@ class AIEngine:
             input_messages_key="input",
             history_messages_key="history",
         )
-
         self.collection_name = "BHXH"
         self.chat_sessions = {}
         self._user_group_map = {} 
@@ -75,7 +71,6 @@ class AIEngine:
                 ),
                 limit=10
             )
-
             raw_contexts = []
             seen = set()
 
