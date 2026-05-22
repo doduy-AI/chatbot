@@ -30,7 +30,7 @@ dependencies = [
 [project.scripts]
 embetdding = "embetdding_service.worker:main"
 chat = "chat_service.worker:main"
-test_chat = "chat_service.ai_engine:main"
+chat_robot = "chat_service_robot.worker:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

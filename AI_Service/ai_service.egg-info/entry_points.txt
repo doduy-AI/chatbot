@@ -1,4 +1,4 @@
 [console_scripts]
 chat = chat_service.worker:main
+chat_robot = chat_service_robot.worker:main
 embetdding = embetdding_service.worker:main
-test_chat = chat_service.ai_engine:main

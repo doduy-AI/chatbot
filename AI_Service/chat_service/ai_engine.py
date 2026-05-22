@@ -1,19 +1,17 @@
 import os 
 import sys
 import time
-
+from google import genai
 from langchain_google_vertexai import ChatVertexAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter , FieldCondition , MatchValue
-from sentence_transformers import SentenceTransformer
 from config.config import settings
 import threading
 from datetime import datetime
 import logging
-from chat_service.redis_manager import redis_manager
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
 
 class AIEngine:
@@ -27,12 +25,17 @@ class AIEngine:
             model=settings.MODEL_NAME,          
             project=settings.GCP_PROJECT_ID,   
             location=settings.GCP_LOCATION,
-        ) 
+        )
+
+        self.embed_client = genai.Client(
+            vertexai=True,
+            project=settings.GCP_PROJECT_ID,
+            location=settings.GCP_LOCATION,
+        )
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),
             MessagesPlaceholder(variable_name="history"),
-            ("system", "TÓM TẮT TRƯỚC ĐÓ:\n{summary}"),
             ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
             ("system", "{system_prompt}"),
             ("human", "{input}"),
@@ -44,16 +47,20 @@ class AIEngine:
             history_messages_key="history",
         )
 
-        self.embed_model = SentenceTransformer(settings.MODEL_QDRANT) 
-        self.collection_name = "bytehome"
+        self.collection_name = "BHXH"
         self.chat_sessions = {}
-        self.summary_memories = {}
         self._user_group_map = {} 
 
 
-    def get_context(self, user_id, group_id,query_text):
+    def get_context(self, user_id, group_id, query_text):
         try:
-            query_vector = self.embed_model.encode(query_text).tolist()
+            print(group_id)
+            print(user_id)
+            result = self.embed_client.models.embed_content(
+                model=settings.MODEL_QDRANT,
+                contents=query_text,
+            )
+            query_vector = result.embeddings[0].values
             response = self.qdrant_client.query_points(
                 collection_name=self.collection_name,
                 query=query_vector,
@@ -70,31 +77,30 @@ class AIEngine:
                 ),
                 limit=10
             )
-            raw_contexts = [hit.payload.get("text", "") for hit in response.points]
-        
-            unique_contexts = list(dict.fromkeys(raw_contexts))
-            
-            return "\n\n".join(unique_contexts)
+
+            raw_contexts = []
+            seen = set()
+
+            for hit in response.points:
+                content = hit.payload.get("content", "")
+                if content in seen:
+                    continue
+                seen.add(content)
+
+                raw_contexts.append({
+                    "title": hit.payload.get("title", ""),
+                    "section_path": hit.payload.get("section_path", ""),
+                    "header": hit.payload.get("header", ""),
+                    "file_name": hit.payload.get("file_name", ""),
+                    "content": content,
+                })
+
+            return raw_contexts
+
         except Exception as e:
             print(f"[Qdrant Error] {e}")
-            return ""
-        
-
-    def _summarize(self,session_id: str , messages: str):
-        text = "\n".join([
-            f"{'User' if m.type == 'human' else 'AI'}: {m.content}"
-            for m in messages
-        ])
-        old_summary = self.summary_memories.get(session_id, "")
-    
-        result = self.model.invoke(
-           f"""
-           Tóm Tắt những điều chính 
-            """
-        )
-    
-        self.summary_memories[session_id] = result.content.strip()
-        print(f"[SUMMARY - {session_id}] {self.summary_memories[session_id]}")
+            return []
+            
 
 
     def _get_history(self, session_id: str):
@@ -107,7 +113,6 @@ class AIEngine:
             overflow = history_obj.messages[:-6]
             history_obj.messages = history_obj.messages[-6:]
             
-            # Tóm tắt chạy nền, không block
             threading.Thread(
                 target=self._summarize,
                 args=(session_id, overflow),
@@ -116,11 +121,7 @@ class AIEngine:
         
         self._user_group_map.pop(session_id, None)
         return history_obj
-    
-
-
-
-        
+         
     def clear_session(self, user_id: str):
         try:
             if user_id in self.chat_sessions:
@@ -150,27 +151,33 @@ class AIEngine:
         else:
             print(f"Không tìm thấy session cho user: {user_id}")
     
-    def generate_respone(self, text:str ,prompt: str , userId: str ,group_Id:str ):
+    def generate_respone(self, text: str, prompt: str, userId: str, group_Id: str):
         try:
             self._user_group_map[userId] = group_Id
+            print("[generate_respone]", userId)
+            
+            contexts = self.get_context(userId, group_Id, text)
+            
+            context_str = "\n\n---\n\n".join([
+                f"Tài liệu: {ctx['file_name']}\n"
+                f"Tiêu đề: {ctx['title']}\n"
+                f"Mục: {ctx['section_path']}\n"
+                f"Nội dung:\n{ctx['content']}"
+                for ctx in contexts
+            ])
 
-            print("[generate_respone]",userId)
-            summary = ""
-            summary = self.summary_memories.get(userId, "")
-            print(summary)
-            context = self.get_context(userId,group_Id,text)
+            print(context_str)
+            
             response = self.chain.invoke(
                 {
                     "input": text,
-                    "context":context,
-                    "system_prompt":prompt,
-                    "summary": summary 
+                    "context": context_str,
+                    "system_prompt": prompt,
                 },
                 config={"configurable": {"session_id": userId}}
-
             )
             return response.content
-        except Exception as e :
+        except Exception as e:
             print(f"[ERR_RESPONE]{e}")
             return ""
         
@@ -188,62 +195,60 @@ def main():
 
         AI = AIEngine()
         system_prompt= """
-                        ## PERSONA
-                        Tên bạn là Chiko — robot từ hành tinh kẹo dẻo, siêu vui tính và tràn đầy năng lượng. Bạn là người bạn thân của các bé 6–8 tuổi. Không bao giờ chê bai hay phán xét. Mọi câu trả lời đều giúp bé cười và tự tin hơn.
+                        Bạn là Trợ lý ảo Emily, chuyên gia tư vấn về pháp luật và Bảo hiểm xã hội Việt Nam.
 
-                        ## NGÔN NGỮ
-                        - Mặc định: tiếng Việt
-                        - Khi bé muốn học tiếng Anh: bật English mode ngay lập tức
-                        - Trong English mode: nói hoàn toàn bằng tiếng Anh, chỉ xen tiếng Việt sau dấu gạch ngang để giải thích nghĩa từ mới
-                        - Ví dụ đúng: "I am happy — mình vui nha! Can you say it?"
-                        - English mode giữ nguyên cho đến khi bé chuyển chủ đề sang tiếng Việt rõ ràng
+                        NHIỆM VỤ:
+                        - Chỉ trả lời dựa trên CONTEXT được cung cấp.
+                        - Không được suy diễn.
+                        - Không được bịa thông tin.
+                        - Nếu context không đủ thì phải trả lời đúng nguyên văn:
+                        "Không tìm thấy thông tin phù hợp trong dữ liệu."
 
-                        ## CÁCH SỬA LỖI
-                        - Không bao giờ nói "sai rồi" hay chê bai trực tiếp
-                        - Khi bé nói rõ muốn được sửa hoặc luyện tập: bật correction mode ngay
-                        - Correction mode giữ nguyên cho đến khi bé đổi chủ đề rõ ràng
-                        - Trong correction mode: echo câu đúng trước, trả lời nội dung sau
-                        - Khi bé nói sai trong correction mode: khen effort trước, echo lại câu đúng tự nhiên, mời bé nói lại
-                        - Ví dụ: bé nói "how your name" → "Great question! What is your name? — Bạn tên gì vậy! Bạn thử nói lại xem!"
-                        - Khi bé hỏi tự nhiên không có context luyện tập: trả lời bình thường, không echo
+                        QUY TẮC BẮT BUỘC (TUÂN THỦ TUYỆT ĐỐI):
 
-                        ## CÁCH NÓI CHUYỆN
-                        - Ưu tiên cảm xúc trước, giải pháp sau
-                        - Luôn kết câu bằng một câu hỏi để duy trì hội thoại
-                        - Mỗi lượt hai đến bốn câu, mỗi câu dưới mười lăm từ
-                        - Không bắt đầu câu bằng "Tôi" — dùng "Mình" hoặc "Chiko"
-                        - Khi bé im lặng hoặc trả lời quá ngắn: chọn ngẫu nhiên một trong các cách sau
-                        + Đố vui một câu
-                        + Kể chuyện ngắn rồi hỏi bé đoán kết
-                        + Thử thách bé làm gì đó
-                        + Chia sẻ bí mật buồn cười về hành tinh kẹo dẻo
-                        + Hỏi bé một câu hỏi kỳ lạ
-                        - Không dùng cùng một cách hai lần liên tiếp
+                        1. Luôn bắt đầu câu trả lời bằng:
+                        "Theo ..."
 
-                        ## CÔNG CỤ CHIKO CÓ THỂ DÙNG
-                        Kể chuyện ngắn, đố vui, trò chơi đoán từ, thử thách lặp lại câu, khen theo nhiều cách khác nhau mỗi lần
+                        2. Phải trả lời dựa trên quy định mới nhất nếu có nhiều quy định mâu thuẫn theo thời gian.
 
-                        ## SỬ DỤNG BỘ NHỚ
-                        - Phần "TÓM TẮT TRƯỚC ĐÓ" chứa thông tin quan trọng từ cuộc trò chuyện cũ
-                        - Nếu summary ghi "English mode": tiếp tục English mode ngay
-                        - Nếu summary ghi "correction mode": tiếp tục sửa lỗi ngay
-                        - Nếu summary ghi bé đang luyện tập chủ đề cụ thể: tiếp tục đúng chủ đề đó
-                        - Không hỏi lại thông tin đã có trong summary
+                        3. Không được nhắc tới:
+                        - CONTEXT
+                        - SOURCE
+                        - dữ liệu được cung cấp
+                        - tài liệu tham khảo
 
-                        ## FORMAT — BẮT BUỘC CHO TTS
-                        - Chỉ trả về lời thoại thuần, không gì khác
-                        - Không emoji, không markdown, không ngoặc đơn, không gạch đầu dòng
-                        - Không số kiểu "3 lần" — viết "ba lần"
+                        4. Không được ghi:
+                        [SOURCE 1]
+                        [SOURCE 2]
 
-                        ## GIỚI HẠN NỘI DUNG
-                        - Không bạo lực, không chủ đề không phù hợp với trẻ 6–8 tuổi
-                        - Chuyện ma được phép nhưng phải hài hước, không gây sợ hãi
-                        - Nếu bé hỏi thứ không phù hợp: chuyển hướng nhẹ nhàng bằng câu hỏi khác
-                        - Chiko không thể hát, phát nhạc, vẽ hoặc gửi hình ảnh
+                        5. Không được tự thêm lời khuyên, suy luận hoặc giải thích ngoài nội dung văn bản pháp luật.
+
+                        6. Không dùng bullet point, danh sách, đánh số hoặc gạch đầu dòng.
+                        Chỉ viết văn xuôi liền mạch.
+
+                        7. Trả lời ngắn gọn:
+                        - Khoảng 3 câu với câu hỏi đơn giản.
+                        - Khoảng 5–10 câu với câu hỏi phức tạp.
+
+                        8. Phải viết bằng tiếng Việt.
+
+                        9. Giữ giọng điệu thân thiện, lịch sự, xưng Emily khi phù hợp.
+
+                        10. Không viết tắt.
+                        Ví dụ:
+                        - bảo hiểm xã hội
+                        - bảo hiểm y tế
+                        - bảo hiểm thất nghiệp
+
+                        11. Khi trả lời phải cố gắng nêu:
+                        - tên văn bản pháp luật
+                        - điều luật hoặc section path nếu có trong context.
+
+                        12. Không được bịa điều luật hoặc tên văn bản không tồn tại trong context.
                 """
         
-        group_id = "db2d95a1-2e60-4c2d-a930-41b9586fd334"
-        user_id = "5937bfe9-c854-4130-b430-b7da318c374a"
+        group_id = "d5a3ee64-3ec3-4624-a5b3-1597b957b060"
+        user_id = "base"
 
         while True:
             text = input("Bạn: ")

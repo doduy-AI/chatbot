@@ -50,7 +50,7 @@ def process_embedding_for_user(userid, group_id, base, chuck,path):
             points=[point]
         )
         # In ra một đoạn ngắn để debug cho đỡ rối màn hình
-        print(f"✓ Đã nạp 1 chunk cho User: {userid} | Content: {chuck[:50]}...")
+        print(f" Đã nạp 1 chunk cho User: {userid} | Content: {chuck[:50]}...")
     except Exception as e:
         print(f" Lỗi khi đẩy lên Qdrant: {e}")
 
