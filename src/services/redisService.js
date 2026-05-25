@@ -19,6 +19,7 @@ class RedisService {
     constructor() {
         this.queueName = 'ai_tasks';
         this.queueNameRobot = 'ai_tasks_robot';
+        this.queueNameRoboMinh = 'ai_tasks_robo_minh'
         this.embeddingQueue = 'embedding_tasks';
         this.embeddingResponseChannel = 'embedding_responses';
         this.voiceResponsePattern = 'voice_ready:*';
@@ -69,10 +70,21 @@ class RedisService {
         }
     }
     // ai task robot 
-     async pushTaskRobot(task) {
+    async pushTaskRobot(task) {
         try {
             const data = JSON.stringify(task)
             await redisPublisher.lpush(this.queueNameRobot, data);
+        } catch (err) {
+            console.error('[Redis] lỗi push task ', err)
+            throw err
+        }
+    }
+
+    // ai task robominh
+    async pushTashRoboMinh(task){
+        try {
+            const data = JSON.stringify(task)
+            await redisPublisher.lpush(this.queueNameRoboMinh, data);
         } catch (err) {
             console.error('[Redis] lỗi push task ', err)
             throw err

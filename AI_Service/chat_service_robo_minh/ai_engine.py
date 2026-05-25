@@ -31,7 +31,7 @@ class AIEngine:
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),
             MessagesPlaceholder(variable_name="history"),
-            ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
+            # ("system", "THÔNG TIN HỖ TRỢ:\n{context}"),
             ("system", "{system_prompt}"),
             ("human", "{input}"),
         ])
@@ -46,53 +46,53 @@ class AIEngine:
         self._user_group_map = {} 
 
 
-    def get_context(self, user_id, group_id, query_text):
-        try:
-            print(group_id)
-            print(user_id)
-            result = self.embed_client.models.embed_content(
-                model=settings.MODEL_QDRANT,
-                contents=query_text,
-            )
-            query_vector = result.embeddings[0].values
-            response = self.qdrant_client.query_points(
-                collection_name=self.collection_name,
-                query=query_vector,
-                query_filter=Filter(
-                    must=[
-                        FieldCondition(key="groupId", match=MatchValue(value=group_id)),
-                        Filter(
-                            should=[
-                                FieldCondition(key="userId", match=MatchValue(value="base")),
-                                FieldCondition(key="userId", match=MatchValue(value=user_id))
-                            ]
-                        )
-                    ]
-                ),
-                limit=10
-            )
-            raw_contexts = []
-            seen = set()
+    # def get_context(self, user_id, group_id, query_text):
+    #     try:
+    #         print(group_id)
+    #         print(user_id)
+    #         result = self.embed_client.models.embed_content(
+    #             model=settings.MODEL_QDRANT,
+    #             contents=query_text,
+    #         )
+    #         query_vector = result.embeddings[0].values
+    #         response = self.qdrant_client.query_points(
+    #             collection_name=self.collection_name,
+    #             query=query_vector,
+    #             query_filter=Filter(
+    #                 must=[
+    #                     FieldCondition(key="groupId", match=MatchValue(value=group_id)),
+    #                     Filter(
+    #                         should=[
+    #                             FieldCondition(key="userId", match=MatchValue(value="base")),
+    #                             FieldCondition(key="userId", match=MatchValue(value=user_id))
+    #                         ]
+    #                     )
+    #                 ]
+    #             ),
+    #             limit=10
+    #         )
+    #         raw_contexts = []
+    #         seen = set()
 
-            for hit in response.points:
-                content = hit.payload.get("content", "")
-                if content in seen:
-                    continue
-                seen.add(content)
+    #         for hit in response.points:
+    #             content = hit.payload.get("content", "")
+    #             if content in seen:
+    #                 continue
+    #             seen.add(content)
 
-                raw_contexts.append({
-                    "title": hit.payload.get("title", ""),
-                    "section_path": hit.payload.get("section_path", ""),
-                    "header": hit.payload.get("header", ""),
-                    "file_name": hit.payload.get("file_name", ""),
-                    "content": content,
-                })
+    #             raw_contexts.append({
+    #                 "title": hit.payload.get("title", ""),
+    #                 "section_path": hit.payload.get("section_path", ""),
+    #                 "header": hit.payload.get("header", ""),
+    #                 "file_name": hit.payload.get("file_name", ""),
+    #                 "content": content,
+    #             })
 
-            return raw_contexts
+    #         return raw_contexts
 
-        except Exception as e:
-            print(f"[Qdrant Error] {e}")
-            return []
+    #     except Exception as e:
+    #         print(f"[Qdrant Error] {e}")
+    #         return []
             
 
 
@@ -142,22 +142,22 @@ class AIEngine:
             self._user_group_map[userId] = group_Id
             print("[generate_respone]", userId)
             
-            contexts = self.get_context(userId, group_Id, text)
+            # contexts = self.get_context(userId, group_Id, text)
             
-            context_str = "\n\n---\n\n".join([
-                f"Tài liệu: {ctx['file_name']}\n"
-                f"Tiêu đề: {ctx['title']}\n"
-                f"Mục: {ctx['section_path']}\n"
-                f"Nội dung:\n{ctx['content']}"
-                for ctx in contexts
-            ])
+            # context_str = "\n\n---\n\n".join([
+            #     f"Tài liệu: {ctx['file_name']}\n"
+            #     f"Tiêu đề: {ctx['title']}\n"
+            #     f"Mục: {ctx['section_path']}\n"
+            #     f"Nội dung:\n{ctx['content']}"
+            #     for ctx in contexts
+            # ])
 
-            print(context_str)
+            # print(context_str)
             
             response = self.chain.invoke(
                 {
                     "input": text,
-                    "context": context_str,
+                    # "context": context_str,
                     "system_prompt": prompt,
                 },
                 config={"configurable": {"session_id": userId}}
