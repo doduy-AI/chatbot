@@ -1,11 +1,11 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 WORKDIR /app
 
-COPY pyproject.toml uv.lock .python-version  .env ./
+COPY pyproject.toml uv.lock .python-version  .env chiko-495710-493fd37069f6.json gen-lang-client-0954243606-4d0f4019a524.json ./
 
 RUN uv sync --frozen --no-install-project
 
-COPY chat_service/ ./chat_service_robot/
+COPY chat_service_robot/ ./chat_service_robot/
 COPY config/ ./config/
 
-CMD ["uv", "run", "chat_BHXH"]
+CMD ["uv", "run", "chat_robot"]

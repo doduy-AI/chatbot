@@ -2,7 +2,7 @@ import json
 import os 
 import  sys
 import time
-from chat_service.redis_manager import redis_manager
+from chat_service_robot.redis_manager import redis_manager
 from config.config import settings
 from concurrent.futures import ThreadPoolExecutor
 from chat_service_robot.ai_engine import AIEngine 
