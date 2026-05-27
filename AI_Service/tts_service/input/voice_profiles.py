@@ -44,6 +44,6 @@ VOICE_PROFILE = {
     },
     "nam":{
         "ref_audio": get_voice_path("nam.wav"),
-        "ref_text":"Đây là câu chuyện về một trong những vụ gian lận kế toán lớn nhất lịch sử. Hàng tỷ đô bị cướp mất, hàng chục nghìn công"
+        "ref_text":"Đây là câu chuyện về một trong những vụ gian lận kế toán lớn nhất lịch sử. Hàng tỷ đô bị cướp mất, hàng chục nghìn công việc biến mất , hàng chục tội án  "
     }
 }
