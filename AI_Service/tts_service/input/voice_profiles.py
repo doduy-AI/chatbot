@@ -41,5 +41,9 @@ VOICE_PROFILE = {
     "nuhanoi":{
         "ref_audio": get_voice_path("giongnuhanoi6s.wav"),
         "ref_text":"Xin chào, tôi là một người yêu thích công nghệ và sáng tạo. Trong công việc hằng ngày, tôi thường đọc tài liệu"
+    },
+    "nam":{
+        "ref_audio": get_voice_path("nam.wav"),
+        "ref_text":"Đây là câu chuyện về một trong những vụ gian lận kế toán lớn nhất lịch sử. Hàng tỷ đô bị cướp mất, hàng chục nghìn công"
     }
 }
