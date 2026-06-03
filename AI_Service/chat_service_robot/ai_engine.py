@@ -1,7 +1,7 @@
 import os 
 import threading
 from google import genai
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -15,16 +15,15 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDE
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 class AIEngine:
     def __init__(self):
-        self.model = ChatVertexAI(
-            model_name=settings.MODEL_NAME,
-            project=settings.GCP_PROJECT_ID,   
-            location=settings.GCP_LOCATION,
-        ) 
-        json_path = os.path.join(BASE_DIR, settings.GG_JSON.strip('"').lstrip("./"))
-        credentials = Credentials.from_service_account_file(
-            json_path,
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        self.model = ChatGoogleGenerativeAI(
+            model=settings.MODEL_NAME,
+             google_api_key=settings.GOOGLE_API_KEY,
         )
+        # json_path = os.path.join(BASE_DIR, settings.GG_JSON.strip('"').lstrip("./"))
+        # credentials = Credentials.from_service_account_file(
+        #     json_path,
+        #     scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        # )
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", """{system_prompt}
@@ -47,11 +46,8 @@ class AIEngine:
             history_messages_key="history",
         )
         self.client = genai.Client(
-        vertexai=True,
-        project=settings.GG_PROJECT,
-        location=settings.GCP_LOCATION,
-        credentials=credentials,
-    )
+            api_key=settings.GOOGLE_API_KEY 
+        )
 
         self.chat_sessions = {}
         self.summary_memories = {}

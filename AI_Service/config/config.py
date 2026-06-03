@@ -18,9 +18,9 @@ class Settings(BaseSettings):
         OCR6 : str = "OCR6"
         GCP_PROJECT_ID : str = "GCP_PROJECT_ID"
         GCP_LOCATION : str = "GCP_LOCATION"
-        GG_JSON : str = "GG_JSON",
+        GG_JSON : str = "GG_JSON"
         GG_PROJECT : str = "GG_PROJECT"
-
+        GOOGLE_API_KEY: str = "GOOGLE_API_KEY"
         GOOGLE_APPLICATION_CREDENTIALS : str = "GOOGLE_APPLICATION_CREDENTIALS"
         model_config = SettingsConfigDict(
         env_file=os.path.join(BASE_DIR, ".env"),  

@@ -1,7 +1,7 @@
 import os 
 import time
 from google import genai
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -10,7 +10,7 @@ from qdrant_client.models import Filter , FieldCondition , MatchValue
 from config.config import settings
 from datetime import datetime
 import logging
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
+os.environ["GOOGLE_API_KEY"] = settings.GOOGLE_API_KEY
 
 class AIEngine:
     def __init__(self):
@@ -18,15 +18,12 @@ class AIEngine:
         host=settings.QDRANT_HOST,
         port=settings.QDRANT_PORT
     )       
-        self.model = ChatVertexAI(
-            model=settings.MODEL_NAME,          
-            project=settings.GCP_PROJECT_ID,   
-            location=settings.GCP_LOCATION,
+        self.model = ChatGoogleGenerativeAI(
+            model=settings.MODEL_NAME,
+             google_api_key=settings.GOOGLE_API_KEY,
         )
         self.embed_client = genai.Client(
-            vertexai=True,
-            project=settings.GCP_PROJECT_ID,
-            location=settings.GCP_LOCATION,
+            api_key=settings.GOOGLE_API_KEY 
         )
         prompt = ChatPromptTemplate.from_messages([
             ("system", "{system_prompt}"),

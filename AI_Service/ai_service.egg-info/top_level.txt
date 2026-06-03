@@ -1,7 +1,7 @@
 chat_service
+chat_service_robo_minh
 chat_service_robot
 config
 docker
 embetdding_service
-logs
 tts_service
