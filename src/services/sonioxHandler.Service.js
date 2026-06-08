@@ -75,6 +75,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
                     timestamp: Date.now()
                     };
                 await redisService.pushTaskRobot(task);
+                // await redisService.pushAgenTask(task)
                 lastFinalText = "";
                 sentenceTimer = null;
             }, 1300);
