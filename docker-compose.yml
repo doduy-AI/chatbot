@@ -16,7 +16,7 @@ services:
     container_name: redis_ai_service
     restart: always
     ports:
-      - "6378:6379"
+      - "9736:6379"
     volumes:
       - redis_data:/data
     command: >
