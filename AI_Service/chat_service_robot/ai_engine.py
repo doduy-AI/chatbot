@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from config.config import settings
 from google.oauth2.service_account import Credentials
+from chat_service_robot.redis_manager import redis_manager
 import logging
 from datetime import datetime 
 import time
@@ -101,8 +102,9 @@ class AIEngine:
             print(f"[ERR_CLEAR_SESSION] {e}")
             return False
         
-    def generate_respone(self, text: str, prompt: str, userId: str, group_Id: str):
+    def generate_respone(self, text: str, prompt: str, userId: str, group_Id: str, current_code: str):
         try:
+            print("đã chạy vào đây 2")
             self._user_group_map[userId] = group_Id
 
             # print("[generate_respone]", userId)
@@ -128,6 +130,11 @@ class AIEngine:
                     daemon=True
                 ).start()
 
+            
+            result_queue_name = f"results_vision:{current_code}"
+            task_data = redis_manager.listen_tasks(result_queue_name)
+            print(task_data)
+            print(response.content)
             return response.content
         except Exception as e:
             print(f"[ERR_RESPONE] {e}")

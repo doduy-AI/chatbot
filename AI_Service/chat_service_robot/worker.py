@@ -7,39 +7,55 @@ from config.config import settings
 from concurrent.futures import ThreadPoolExecutor
 from chat_service_robot.ai_engine import AIEngine 
 from chat_service_robot.utils.cleanText import clean_llm_text
+from chat_service_robot.utils.ramdumCode import ramdum
 
 executor = ThreadPoolExecutor(max_workers=10)
 ai = AIEngine() 
-
 def handle_task(data):
+    print(data)
     userId = data.get("userId")
     text = data.get("text")
     group_id = data.get("groupId")
     voice = data.get("voice")
     service = data.get("service")
     audio_format = data.get("audio_format")
+
     if text == "disconectuser":
         ai.clear_session(userId)
         return
+
     prompt = redis_manager.get_cache(f"group:{group_id}:content")
+
     strart_time = time.time()
-    reply = clean_llm_text(ai.generate_respone(text,prompt ,userId, group_id))
+
+    current_code = ramdum() 
+    redis_manager.publish("ai_tasks_agent", {
+        "userId": userId,
+        "text": text,
+        "status": "success",
+        "Code": current_code 
+    })
+    print("đã chạy vào đây 1 ")
+
+    reply = clean_llm_text(ai.generate_respone(text,prompt ,userId, group_id,current_code))
     print(reply)
-    print(f"[CHAT_Service] time {time.time() - strart_time} ")
-    if (service):
-            redis_manager.publishChat("chat-respone", {
-            "userId": userId,
-            "reply": reply,
-            "status": "success"
-        })
-    else:
-        redis_manager.publish("tts_tasks", {
-            "userId": userId,
-            "reply": reply,
-            "voice": voice,
-            "audio_format":audio_format,
-            "status": "success"
-        })
+    # print(f"[CHAT_Service] time {time.time() - strart_time} ")
+
+    # if (service):
+    #         redis_manager.publishChat("chat-respone", {
+    #         "userId": userId,
+    #         "reply": reply,
+    #         "status": "success"
+    #     })
+    # else:
+    #     redis_manager.publish("tts_tasks", {
+    #         "userId": userId,
+    #         "reply": reply,
+    #         "voice": voice,
+    #         "audio_format":audio_format,
+    #         "status": "success"
+    #     })
+        
 
 def main():
     print(" sẵn sàng")
