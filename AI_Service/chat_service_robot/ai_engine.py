@@ -105,6 +105,8 @@ class AIEngine:
         
     def generate_respone(self, text: str, prompt: str, userId: str, group_Id: str, current_code: str):
         try:
+            print("ddax chayj vao day")
+            print(text)
             self._user_group_map[userId] = group_Id
 
             # print("[generate_respone]", userId)
@@ -130,6 +132,11 @@ class AIEngine:
                     daemon=True
                 ).start()
 
+            # print("B")
+            # print(type(response))
+            # print(response.content)
+
+            # return response.content
 
             result_queue_name = f"results_vision:{current_code}"
             task_data = redis_manager.listen_tasks(result_queue_name)
@@ -138,7 +145,28 @@ class AIEngine:
             if(Agent == "None"):
                 return response.content
             else:
-                return "oke"
+                print(Agent)
+                responseAgent = self.client.models.generate_content(
+                model=settings.MODEL_NAME,
+                contents=f"""
+                  Bạn là Chiko, một người bạn thân thiện của trẻ em.
+
+                    Dưới đây là mô tả từ camera:
+
+                    {Agent}
+
+                    YÊU CẦU:
+                    - Giải thích bằng tiếng Việt đơn giản.
+                    - Dùng từ ngữ phù hợp cho trẻ 6-8 tuổi.
+                    - Câu ngắn gọn, dễ hiểu.
+                    - Không dùng thuật ngữ kỹ thuật.
+                    - Nếu phát hiện vật nguy hiểm (dao, lửa, ổ điện...) hãy nhắc nhẹ nhàng.
+                    - Trả lời tối đa 2-3 câu.
+                    """,
+                config=types.GenerateContentConfig(temperature=0.3))
+                print(type(responseAgent))
+                return responseAgent.text
+                
 
         except Exception as e:
             print(f"[ERR_RESPONE] {e}")

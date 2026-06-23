@@ -35,24 +35,25 @@ def handle_task(data):
         "status": "success",
         "code": current_code 
     })
+    strart_time1 = time.time()
     reply = clean_llm_text(ai.generate_respone(text,prompt ,userId, group_id,current_code))
     print(reply)
-    # print(f"[CHAT_Service] time {time.time() - strart_time} ")
+    print(f"[CHAT_Service] time {time.time() - strart_time} ")
 
-    # if (service):
-    #         redis_manager.publishChat("chat-respone", {
-    #         "userId": userId,
-    #         "reply": reply,
-    #         "status": "success"
-    #     })
-    # else:
-    #     redis_manager.publish("tts_tasks", {
-    #         "userId": userId,
-    #         "reply": reply,
-    #         "voice": voice,
-    #         "audio_format":audio_format,
-    #         "status": "success"
-    #     })
+    if (service):
+            redis_manager.publishChat("chat-respone", {
+            "userId": userId,
+            "reply": reply,
+            "status": "success"
+        })
+    else:
+        redis_manager.publish("tts_tasks", {
+            "userId": userId,
+            "reply": reply,
+            "voice": voice,
+            "audio_format":audio_format,
+            "status": "success"
+        })
         
 
 def main():
