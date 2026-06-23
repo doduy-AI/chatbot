@@ -11,6 +11,7 @@ from chat_service_robot.redis_manager import redis_manager
 import logging
 from datetime import datetime 
 import time
+import json
 from google.genai import types
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -104,7 +105,6 @@ class AIEngine:
         
     def generate_respone(self, text: str, prompt: str, userId: str, group_Id: str, current_code: str):
         try:
-            print("đã chạy vào đây 2")
             self._user_group_map[userId] = group_Id
 
             # print("[generate_respone]", userId)
@@ -130,12 +130,16 @@ class AIEngine:
                     daemon=True
                 ).start()
 
-            
+
             result_queue_name = f"results_vision:{current_code}"
             task_data = redis_manager.listen_tasks(result_queue_name)
-            print(task_data)
-            print(response.content)
-            return response.content
+            data = json.loads(task_data[1])
+            Agent = data.get("text")
+            if(Agent == "None"):
+                return response.content
+            else:
+                return "oke"
+
         except Exception as e:
             print(f"[ERR_RESPONE] {e}")
             return ""

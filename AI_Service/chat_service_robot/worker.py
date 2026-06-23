@@ -33,10 +33,8 @@ def handle_task(data):
         "userId": userId,
         "text": text,
         "status": "success",
-        "Code": current_code 
+        "code": current_code 
     })
-    print("đã chạy vào đây 1 ")
-
     reply = clean_llm_text(ai.generate_respone(text,prompt ,userId, group_id,current_code))
     print(reply)
     # print(f"[CHAT_Service] time {time.time() - strart_time} ")
