@@ -107,6 +107,7 @@ async function handleRobotClient(ws, user, groupId, redisService) {
         } else {
             try {
                 const msg = JSON.parse(data.toString());
+                console.log(meg)
                 currentVoiceStyle = msg.voice
                 if (msg.type === 'stop') session.finish();
             } catch (_) {}
