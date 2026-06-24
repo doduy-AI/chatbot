@@ -1,30 +1,34 @@
 import os 
 import threading
-from google import genai
-from langchain_google_vertexai import ChatVertexAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from config.config import settings
-from google.oauth2.service_account import Credentials
 import logging
 from datetime import datetime 
 import time
+from google import genai
 from google.genai import types
 import json 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = settings.GOOGLE_APPLICATION_CREDENTIALS
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 class AIEngine:
     def __init__(self):
-        self.model = ChatVertexAI(
-            model_name=settings.MODEL_NAME,
-            project=settings.GCP_PROJECT_ID,   
-            location=settings.GCP_LOCATION,
-        ) 
-        json_path = os.path.join(BASE_DIR, settings.GG_JSON.strip('"').lstrip("./"))
-        credentials = Credentials.from_service_account_file(
-            json_path,
-            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        api_key = settings.GOOGLE_API_KEY
+
+        if hasattr(api_key, "get_secret_value"):
+            api_key = api_key.get_secret_value()
+
+        if not api_key:
+            raise RuntimeError("GOOGLE_API_KEY chưa được cấu hình")
+
+        self.model = ChatGoogleGenerativeAI(
+            model=settings.MODEL_NAME,
+            api_key=api_key,
+            vertexai=False,
+            temperature=0.7,
+            max_retries=2,
+            timeout=30,
         )
 
         prompt = ChatPromptTemplate.from_messages([
@@ -51,11 +55,8 @@ class AIEngine:
             history_messages_key="history",
         ) 
         self.client = genai.Client(
-        vertexai=True,
-        project=settings.GG_PROJECT,
-        location=settings.GCP_LOCATION,
-        credentials=credentials,
-    )
+            api_key=api_key
+        )
 
         self.chat_sessions = {}
         self.summary_memories = {}
@@ -331,7 +332,9 @@ def main():
 
             ## CÁCH NÓI CHUYỆN
             - Ưu tiên cảm xúc trước, giải pháp sau
-            - Luôn kết thúc bằng một câu hỏi để duy trì hội thoại
+            - Thường kết thúc bằng một câu hỏi tự nhiên.
+            - Không đặt câu hỏi khi nó làm câu trả lời bị gượng ép.
+            - Không dùng câu hỏi để kéo bé trở lại chủ đề cũ.
             - Mỗi lượt hai đến bốn câu
             - Mỗi câu dưới mười lăm từ
             - Không bắt đầu câu bằng từ Tôi
@@ -342,10 +345,16 @@ def main():
             + Đố vui một câu
             + Kể chuyện ngắn rồi hỏi đoán kết
             + Thử thách vui
-
             + Câu hỏi kỳ lạ vui nhộn
             - Không dùng cùng một kiểu liên tiếp hai lần
             - Ưu tiên phản hồi nhanh và ngắn gọn
+
+            ## THỨ TỰ ƯU TIÊN NGỮ CẢNH
+            - Ý định trong câu hiện tại của bé luôn có ưu tiên cao nhất.
+            - Chỉ tiếp tục hoạt động trước khi câu hiện tại liên quan đến hoạt động đó.
+            - Nếu bé hỏi sang chủ đề mới, trả lời hoàn toàn theo chủ đề mới.
+            - Không tự kéo bé trở lại bài tập cũ.
+            - Có thể hỏi bé có muốn quay lại bài tập sau, nhưng không lặp lại câu luyện tập cũ.
 
             ## CÔNG CỤ CHIKO CÓ THỂ DÙNG
             - Kể chuyện ngắn
@@ -360,7 +369,6 @@ def main():
             - Chỉ dùng dữ liệu đó để trả lời tự nhiên
             - Không nhắc đến dữ liệu nội bộ
             - Không nói các từ: tóm tắt, summary, memory, bộ nhớ
-            - Nếu summary ghi chủ đề luyện tập: tiếp tục đúng chủ đề đó
             - Không hỏi lại thông tin đã có trong summary
 
             ## FORMAT BẮT BUỘC CHO TTS

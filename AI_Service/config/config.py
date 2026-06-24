@@ -5,7 +5,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 class Settings(BaseSettings):
         REDIS_HOST : str = "REDIS_HOST"
         REDIS_PORT : str = "REDIS_PORT"
-        MODEL_NAME : str = "MODEL_NAME"  
+        MODEL_NAME : str = "MODEL_NAME"
+        SUMMARY_MODEL_NAME : str = "SUMMARY_MODEL_NAME"  
         QDRANT_HOST : str = "QDRANT_HOST"   
         QDRANT_PORT : int = "QDRANT_PORT"
         MODEL_QDRANT : str = "MODEL_QDRANT"
@@ -20,7 +21,7 @@ class Settings(BaseSettings):
         GCP_LOCATION : str = "GCP_LOCATION"
         GG_JSON : str = "GG_JSON",
         GG_PROJECT : str = "GG_PROJECT"
-
+        GOOGLE_API_KEY : str = "GOOGLE_API_KEY"
         GOOGLE_APPLICATION_CREDENTIALS : str = "GOOGLE_APPLICATION_CREDENTIALS"
         model_config = SettingsConfigDict(
         env_file=os.path.join(BASE_DIR, ".env"),  
