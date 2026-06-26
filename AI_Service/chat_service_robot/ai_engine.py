@@ -42,7 +42,7 @@ class AIEngine:
         - internal_context chỉ để hiểu ngữ cảnh.
         - Không bao giờ nói: tóm tắt, memory, bộ nhớ, ngữ cảnh nội bộ.
         - Không bao giờ giải thích rằng bạn đang dùng internal_context.
-        - Chỉ trả lời trực tiếp như Chiko đang nói với bé.
+        - Chỉ trả lời trực tiếp như đang nói với người dùng .
         """),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}"),
