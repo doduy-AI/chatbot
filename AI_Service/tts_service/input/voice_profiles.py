@@ -6,7 +6,7 @@ from config.config import settings
 import logging
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
-HF_REPO = "doduy1911/audio_TTS"
+HF_REPO = "Bytehome/Audio_Clone_TTS"
 HF_MODEL_REPO = settings.MODEL_NAME
 MODEL_PATH = os.path.join(_DIR, "..", "models")
 
