@@ -197,14 +197,14 @@ chatbot_voice/
 │   │   └── redis_manager.py
 │   ├── tts_service/                        # Text-to-Speech service
 │   │   ├── wordker.py                      # FastAPI app + streaming TTS endpoint
-│   │   ├── tts_service.py                  # OmniVoice TTS engine wrapper
+│   │   ├── tts_service.py                  # BytehmeTTS TTS engine wrapper
 │   │   ├── dowload_model.py                # HuggingFace model downloader
 │   │   ├── config/
 │   │   │   ├── config.py                   # TTS-specific config
 │   │   │   └── redis_maneger.py
 │   │   ├── input/
 │   │   │   └── voice_profiles.py           # Voice definitions (nutrem, nuhanoi, nam)
-│   │   ├── omnivoice/                      # OmniVoice TTS library
+│   │   ├── BytehmeTTS/                      # BytehmeTTS TTS library
 │   │   │   ├── cli/                        # CLI tools (train, infer, demo)
 │   │   │   ├── data/                       # Data processing (batching, dataset)
 │   │   │   ├── eval/                       # Evaluation (MOS, WER, similarity)
@@ -287,7 +287,7 @@ chatbot_voice/
    └── Conversation summarization (background thread, after 6+ messages)
 5. Worker → redis_manager.publish("tts_tasks") → Redis queue "tts_tasks"
 6. tts_service/wordker.py ← BRPOP "tts_tasks" ← Redis
-7. OmniVoice generates streaming audio chunks
+7. BytehmeTTS generates streaming audio chunks
 8. TTS → redis_manager.publish(f"voice_ready:{userId}") → Redis PubSub
 9. Backend (RedisService) → listenForResponses → WebSocket broadcast
 10. Browser ← WebSocket ← {type: "AI_VOICE_REPLY", text, audioUrl}
@@ -447,17 +447,20 @@ npm run dev                # port 3000
 ### AI Workers (có thể scale):
 ```bash
 cd AI_Service
+
+uv sync 
 # Chat service (human)
-python -m chat_service.worker
+uv run python -m chat_service.worker
 
 # Chat service (robot - Chiko)
-python -m chat_service_robot.worker
+uv run python -m chat_service_robot.worker
 
 # Chat service (robo_minh)
-python -m chat_service_robo_minh.worker
+uv run python -m chat_service_robo_minh.worker
 
 # TTS service
-python -m tts_service.wordker       # port 5000
+cd AI_Service
+uv run wordker       # port 8001
 
 # Embedding service
 python -m embetdding_service.worker
@@ -502,7 +505,7 @@ python main.py
 - **TTS Sentence Splitting**: Regex split by `.`, `!`, `?`, `…` rồi merge chunk <5 từ vào câu trước
 - **Qdrant**: Collection `bytehome1`, vector size = 384, cosine distance, keyword index trên userId và groupId
 - **Rate Limiting (Robot)**: Tối đa 1 request mỗi 5 giây từ robot client
-- **Model loading**: OmniVoice TTS model được tải từ HuggingFace Hub về `AI_Service/tts_service/models/`
+- **Model loading**: BytehmeTTS TTS model được tải từ HuggingFace Hub về `AI_Service/tts_service/models/`
 
 ---
 

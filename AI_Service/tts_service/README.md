@@ -2,7 +2,7 @@
 
 ## 📌 Tổng quan
 
-`tts_service` là dịch vụ chuyển văn bản thành giọng nói (TTS) sử dụng **OmniVoice** model — một model voice cloning tự host. Dịch vụ nhận text từ Redis queue `tts_tasks`, sinh audio streaming theo thời gian thực, và public URL cho client truy cập qua **FastAPI StreamingResponse**.
+`tts_service` là dịch vụ chuyển văn bản thành giọng nói (TTS) sử dụng **BytehmeTTS** model — một model voice cloning tự host. Dịch vụ nhận text từ Redis queue `tts_tasks`, sinh audio streaming theo thời gian thực, và public URL cho client truy cập qua **FastAPI StreamingResponse**.
 
 ## 🔄 Luồng hoạt động
 
@@ -22,7 +22,7 @@ Redis Queue "tts_tasks"
               │
               ├─► run_tts() trong ThreadPoolExecutor (sync code)
               │     ├─► split_sentences(text): Chia text thành chunk ≤30 từ
-              │     ├─► OmniVoice.generate(text, ref_audio, ref_text)
+              │     ├─► BytehmeTTS.generate(text, ref_audio, ref_text)
               │     ├─► float_to_pcm_bytes() hoặc lameenc MP3 encode
               │     └─► Yield từng audio chunk → asyncio.Queue
               │
@@ -40,7 +40,7 @@ Client request:
 ```
 tts_service/
 ├── wordker.py              # FastAPI app + Redis listener + streaming endpoint
-├── tts_service.py          # OmniVoice TTS engine wrapper + audio processing
+├── tts_service.py          # BytehmeTTS TTS engine wrapper + audio processing
 ├── dowload_model.py        # HuggingFace model downloader
 ├── Dockerfile              # Docker image
 ├── docker-compose.yaml     # Docker Compose config
@@ -52,12 +52,12 @@ tts_service/
 │   └── redis_maneger.py    # Redis client
 ├── input/
 │   └── voice_profiles.py   # Voice definitions + HuggingFace audio download
-├── models/                 # OmniVoice model weights (gitignored)
-├── omnivoice/              # OmniVoice TTS library (~30 Python files)
+├── models/                 # BytehmeTTS model weights (gitignored)
+├── BytehmeTTS/              # BytehmeTTS TTS library (~30 Python files)
 │   ├── cli/                # CLI: train, infer, demo, infer_batch
 │   ├── data/               # Data processing: batching, dataset, collator
 │   ├── eval/               # Evaluation: MOS, WER, speaker similarity
-│   ├── models/             # OmniVoice model architecture
+│   ├── models/             # BytehmeTTS model architecture
 │   ├── scripts/            # Audio utilities: denoise, extract tokens
 │   ├── training/           # Training pipeline: builder, trainer, checkpoint
 │   └── utils/              # Audio, text, voice design, duration utils
@@ -124,7 +124,7 @@ uv run wordker.py
 
 ## 📦 Dependencies chính
 - `torch` — PyTorch (CUDA nếu có, fallback CPU)
-- `omnivoice` — OmniVoice TTS model (local library)
+- `BytehmeTTS` — BytehmeTTS TTS model (local library)
 - `fastapi` + `uvicorn` — HTTP server + streaming
 - `lameenc` — MP3 encoding
 - `huggingface_hub` — Download models & voice references
@@ -137,7 +137,7 @@ uv run wordker.py
 |------|-------|---------|
 | `PORT` | FastAPI server port | — |
 | `EXTERNAL_HOST` | Public URL prefix cho audio stream | `localhost:8001` |
-| `MODEL_NAME` | HuggingFace repo ID cho OmniVoice model | — |
+| `MODEL_NAME` | HuggingFace repo ID cho BytehmeTTS model | — |
 | `TOKEN_HF` | HuggingFace API token | — |
 | `QUEUE_MAXSIZE` | Max size của asyncio audio queue | — |
 | `STREAM_GET_TIMEOUT` | Timeout chờ audio chunk (giây) | — |
@@ -146,7 +146,7 @@ uv run wordker.py
 
 ## ⚠️ Ghi chú
 
-- Model OmniVoice nặng, cần GPU (CUDA) để chạy nhanh. Trên CPU sẽ chậm.
+- Model BytehmeTTS nặng, cần GPU (CUDA) để chạy nhanh. Trên CPU sẽ chậm.
 - Lần chạy đầu tiên sẽ tự động tải model từ HuggingFace (~vài GB).
 - Audio queue dùng `asyncio.Queue` với maxsize để tránh memory overflow.
 - Service tự khởi động `redis_listener()` background task khi FastAPI startup.
