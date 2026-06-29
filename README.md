@@ -15,7 +15,7 @@
 | Database | PostgreSQL + Sequelize ORM |
 | Vector Database | Qdrant (384-dim embeddings) |
 | STT (Speech-to-Text) | Soniox (stt-rt-v4, 48kHz, PCM 16-bit) |
-| TTS (Text-to-Speech) | OmniVoice (model tự host) |
+| TTS (Text-to-Speech) | Bytehome_TTS |
 | Embedding Model | Sentence Transformers (384-dim) |
 | Frontend Web | React 19 + Vite + TailwindCSS v4 |
 | Containerization | Docker + Docker Compose |
@@ -92,7 +92,7 @@
 │  │ TTS Service         │  │ Embedding Service                 │  │
 │  │ (FastAPI :5000)     │  │ worker.py                        │  │
 │  │ ┌─────────────────┐ │  │ Queue: embedding_tasks           │  │
-│  │ │ OmniVoice Model  │ │  │ ┌──────────────────────────────┐│  │
+│  │ │ Bytehome_TTS Model  │ │  │ ┌──────────────────────────────┐│  │
 │  │ │ - Voice cloning  │ │  │ │ Document Processing Pipeline ││  │
 │  │ │ - Streaming TTS  │ │  │ │ 1. File Classification       ││  │
 │  │ │ - MP3 / PCM WAV  │ │  │ │ 2. OCR / Text Extraction     ││  │
